@@ -25,10 +25,10 @@ export class Customer {
   @Column({ nullable: true })
   profileImage: string;
 
-  @Column("simple-array")
-  wantService: string[];
+  @Column("simple-array", { nullable: true })
+  wantService: String[];
 
-  @Column("simple-array")
+  @Column("simple-array", { nullable: true })
   livingPlace: string[];
 
   @CreateDateColumn()
