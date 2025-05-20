@@ -1,53 +1,57 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+} from "typeorm";
 
 @Entity()
 export class Mover {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    username: string;
+  @Column()
+  username: string;
 
-    @Column()
-    nickname: string;
+  @Column({ nullable: true })
+  nickname: string;
 
-    @Column({unique: true})
-    email: string;
+  @Column({ unique: true })
+  email: string;
 
-    @Column()
-    password: string;
+  @Column()
+  password: string;
 
-    @Column()
-    phonNumber: string;
+  @Column()
+  phoneNumber: string;
 
-    @Column({nullable: true})
-    img: string;
+  @Column({ nullable: true })
+  img: string;
 
-    @Column('simple-array')
-    serviceArea: string[];
+  @Column({ nullable: true })
+  serviceArea: string;
 
-    @Column('simple-array')
-    serviceList: string[]; 
-    
-    @Column({nullable: true, type: 'text'})
-    intro: string;
+  @Column({ nullable: true })
+  serviceList: string;
 
-    @Column({ nullable: true, type: 'text' })
-    career: string;
+  @Column({ nullable: true, type: "text" })
+  intro: string;
 
-    @Column({ nullable: true, type: 'text' })
-    detailDescription: string;
+  @Column({ nullable: true, type: "text" })
+  career: string;
 
-    @Column({ default: 0 })
-    likeCount: number;
+  @Column({ nullable: true, type: "text" })
+  detailDescription: string;
 
-    @Column({ default: 0 })
-    totalRating: number; // 별점 총점
+  @Column({ default: 0 })
+  likeCount: number;
 
-    @Column({ default: 0 })
-    reviewCounts: number; 
+  @Column({ default: 0 })
+  totalRating: number; // 별점 총점
 
-    @CreateDateColumn()
-    createdAt: Date;
+  @Column({ default: 0 })
+  reviewCounts: number;
 
+  @CreateDateColumn()
+  createdAt: Date;
 }
