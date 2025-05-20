@@ -7,8 +7,8 @@ import {
 
 @Entity()
 export class Mover {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
 
   @Column()
   username: string;
@@ -28,11 +28,11 @@ export class Mover {
   @Column({ nullable: true })
   img: string;
 
-  @Column({ nullable: true })
-  serviceArea: string;
+  @Column("simple-array", { nullable: true })
+  serviceArea: string[];
 
-  @Column({ nullable: true })
-  serviceList: string;
+  @Column("simple-array", { nullable: true })
+  serviceList: string[];
 
   @Column({ nullable: true, type: "text" })
   intro: string;
