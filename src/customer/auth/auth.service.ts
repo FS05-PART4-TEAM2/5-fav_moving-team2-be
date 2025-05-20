@@ -16,12 +16,12 @@ export class AuthService {
   async signUp(SignUpRequestDto: SignUpRequestDto): Promise<Customer> {
     const { username, email, password, phoneNumber } = SignUpRequestDto;
 
-    const existingCustomer = await this.customerRepository.findOne({
+    const existing = await this.customerRepository.findOne({
       where: { email },
     });
-    if (existingCustomer) {
-      console.log("existingCustomer", existingCustomer.email);
-      throw new UserExistsException({ email: existingCustomer.email });
+    if (existing) {
+      console.log("existingCustomer", existing.email);
+      throw new UserExistsException({ email: existing.email });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const newCustomer = this.customerRepository.create({

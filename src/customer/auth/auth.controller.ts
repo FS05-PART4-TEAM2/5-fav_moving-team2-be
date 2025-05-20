@@ -15,11 +15,7 @@ export class AuthController {
   async signUpCustomer(
     @Body() createCustomerDto: SignUpRequestDto,
   ): Promise<ApiResponse<Customer | null>> {
-    try {
-      const customer = await this.authService.signUp(createCustomerDto);
-      return ApiResponse.success(customer, "회원가입이 완료되었습니다.");
-    } catch (error) {
-      return ApiResponse.fail("회원가입 실패");
-    }
+    const customer = await this.authService.signUp(createCustomerDto);
+    return ApiResponse.success(customer, "회원가입이 완료되었습니다.");
   }
 }
