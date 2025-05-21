@@ -10,7 +10,7 @@ import { error } from "console";
 import { CustomerLoginResponseDto } from "src/common/dto/login.response.dto";
 
 @Injectable()
-export class AuthService {
+export class CustomerAuthService {
   constructor(
     @InjectRepository(Customer)
     private readonly customerRepository: Repository<Customer>,
