@@ -9,12 +9,14 @@ import { LoginRequestDto } from "src/common/dto/login.request.dto";
 import { error } from "console";
 import { LoginResponseDto } from "src/common/dto/login.response.dto";
 import { InvalidCredentialsException } from "src/common/exceptions/invalid-credentials.exception";
+import { JwtService } from "@nestjs/jwt";
 
 @Injectable()
 export class CustomerAuthService {
   constructor(
     @InjectRepository(Customer)
     private readonly customerRepository: Repository<Customer>,
+    private readonly jwtService: JwtService,
   ) {}
 
   async signUp(SignUpRequestDto: SignUpRequestDto): Promise<Customer> {
@@ -50,6 +52,12 @@ export class CustomerAuthService {
     if (!isPasswordValid) {
       throw new InvalidCredentialsException();
     }
+
+    const payload = { sub: customer.id, email: customer.email };
+    const accessToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET,
+      expiresIn: process.env.JWT_EXPIRES_IN,
+    });
 
     const response: LoginResponseDto = {
       customer: {
