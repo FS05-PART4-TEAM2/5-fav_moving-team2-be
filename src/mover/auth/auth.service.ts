@@ -8,6 +8,7 @@ import { UserExistsException } from "src/common/exceptions/user-exists.exception
 import { LoginRequestDto } from "src/common/dto/login.request.dto";
 import { MoverLoginResponseDto } from "src/common/dto/login.response.dto";
 import { JwtService } from "@nestjs/jwt";
+import { InvalidCredentialsException } from "src/common/exceptions/invalid-credentials.exception";
 
 @Injectable()
 export class AuthService {
@@ -43,11 +44,11 @@ export class AuthService {
       where: { email },
     });
     if (!mover) {
-      throw new UserExistsException({ email: email });
+      throw new InvalidCredentialsException();
     }
     const isPasswordValid = await bcrypt.compare(password, mover.password);
     if (!isPasswordValid) {
-      throw new UnauthorizedException("비밀번호가 일치하지 않습니다");
+      throw new InvalidCredentialsException();
     }
     console.log("로그인 성공");
     const payload = { sub: mover.id, email: mover.email };
