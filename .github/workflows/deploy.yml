@@ -1,0 +1,58 @@
+name: Deploy to AWS EC2 on Merge to Main
+
+on:
+  push:
+    branches:
+      - main # dev → main 병합 시에만 실행
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📦 Checkout source code
+        uses: actions/checkout@v3
+
+      - name: 🛠️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: 📥 Install dependencies (production only)
+        run: npm install --omit=dev
+
+      - name: 🏗️ Build NestJS project
+        run: npm run build
+
+      - name: 🧾 Create .env.production
+        run: |
+          echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env.production
+          echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env.production
+          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env.production
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env.production
+          echo "DB_DATABASE=${{ secrets.DB_DATABASE }}" >> .env.production
+          echo "DB_SSL=${{ secrets.DB_SSL }}" >> .env.production
+          echo "S3_ACCESS_KEY=${{ secrets.S3_ACCESS_KEY }}" >> .env.production
+          echo "S3_SECRET_KEY=${{ secrets.S3_SECRET_KEY }}" >> .env.production
+          echo "NODE_ENV=production" >> .env.production
+
+      - name: 📦 Zip production files
+        run: |
+          zip -r deploy.zip dist node_modules package.json .env.production ecosystem.config.js
+
+      - name: 🔐 Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: 🚀 Deploy to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no deploy.zip ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USERNAME }}/
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
+            cd /home/${{ secrets.EC2_USERNAME }}
+            rm -rf app
+            unzip -o deploy.zip -d app
+            cd app
+            npm run start:prod || pm2 restart ecosystem.config.js || pm2 start ecosystem.config.js
+          EOF
