@@ -4,6 +4,10 @@ import { ValidationPipe } from "@nestjs/common";
 import { AppModule } from "./app.module";
 import { AllExceptionsFilter } from "./common/filters/http-exception.filter";
 
+import * as crypto from "crypto";
+// @ts-ignore
+global.crypto = crypto;
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
