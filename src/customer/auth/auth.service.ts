@@ -60,9 +60,14 @@ export class CustomerAuthService {
       secret: process.env.JWT_SECRET,
       expiresIn: process.env.JWT_EXPIRES_IN,
     });
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_REFRESH_SECRET,
+      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN,
+    }); // Auth 엔티티에 refreshToken을 저장하는 로직 추가 예정
 
     const response: CustomerLoginResponseDto = {
       accessToken,
+      refreshToken,
       customer: {
         id: customer.id,
         username: customer.username,
