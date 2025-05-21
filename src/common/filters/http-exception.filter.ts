@@ -39,6 +39,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       errorMessage = "알 수 없는 에러입니다.";
     }
 
+    if(status === 500) console.error('[AllExceptionsFilter]', exception);
     res.status(status).json(ApiResponse.fail(errorMessage, errorName));
   }
 }

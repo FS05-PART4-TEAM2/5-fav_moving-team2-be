@@ -8,9 +8,10 @@ import * as bcrypt from "bcrypt";
 import { LoginRequestDto } from "src/common/dto/login.request.dto";
 import { error } from "console";
 import { LoginResponseDto } from "src/common/dto/login.response.dto";
+import { InvalidCredentialsException } from "src/common/exceptions/invalid-credentials.exception";
 
 @Injectable()
-export class AuthService {
+export class CustomerAuthService {
   constructor(
     @InjectRepository(Customer)
     private readonly customerRepository: Repository<Customer>,
@@ -43,11 +44,11 @@ export class AuthService {
       where: { email },
     });
     if (!customer) {
-      throw new UserExistsException({ email: email });
+      throw new InvalidCredentialsException();
     }
     const isPasswordValid = await bcrypt.compare(password, customer.password);
     if (!isPasswordValid) {
-      throw new UnauthorizedException(" 비밀번호가 일치하지 않습니다");
+      throw new InvalidCredentialsException();
     }
 
     const response: LoginResponseDto = {
