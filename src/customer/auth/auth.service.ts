@@ -62,6 +62,7 @@ export class CustomerAuthService {
     });
 
     const response: CustomerLoginResponseDto = {
+      accessToken,
       customer: {
         id: customer.id,
         username: customer.username,

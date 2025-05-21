@@ -1,4 +1,5 @@
 export class CustomerLoginResponseDto {
+  accessToken: string;
   customer: {
     id: string;
     username: string;
