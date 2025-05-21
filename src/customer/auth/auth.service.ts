@@ -16,6 +16,10 @@ export class CustomerAuthService {
     private readonly customerRepository: Repository<Customer>,
   ) {}
 
+  // async signUpOrSignInByOauth(): Promise<Customer> {
+    
+  // }
+
   async signUp(SignUpRequestDto: SignUpRequestDto): Promise<Customer> {
     const { username, email, password, phoneNumber } = SignUpRequestDto;
 
