@@ -1,14 +1,14 @@
 import { Body, Controller, Post } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-import { AuthService } from "./auth.service";
 import { SignUpRequestDto } from "src/common/dto/signup.request.dto";
 import { ApiResponse } from "src/common/dto/api-response.dto";
 import { Customer } from "../customer.entity";
+import { CustomerAuthService } from "./auth.service";
 
 @ApiTags("Auth")
 @Controller("auth/customer")
-export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+export class CustomerAuthController {
+  constructor(private readonly authService: CustomerAuthService) {}
 
   @Post("signup")
   @ApiOperation({ summary: "소비자 회원가입" })

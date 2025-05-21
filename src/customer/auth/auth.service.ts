@@ -7,7 +7,7 @@ import { UserExistsException } from "src/common/exceptions/user-exists.exception
 import * as bcrypt from "bcrypt";
 
 @Injectable()
-export class AuthService {
+export class CustomerAuthService {
   constructor(
     @InjectRepository(Customer)
     private readonly customerRepository: Repository<Customer>,

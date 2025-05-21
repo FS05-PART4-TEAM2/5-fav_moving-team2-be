@@ -16,8 +16,17 @@ export class Customer {
   @Column({ unique: true })
   email: string;
 
-  @Column()
+  @Column({ nullable: true }) // OAuth 가입의 경우에는 패스워드 X
   password: string;
+
+  @Column({ nullable: true })
+  isProfile: boolean; // 프로필 정보 등록했는지 여부
+
+  @Column({ nullable: true })
+  authType: string;
+
+  @Column({ nullable: true })
+  provider: string; // OAuth 제공자 : google, naver, kakao 등
 
   @Column()
   phoneNumber: string;
