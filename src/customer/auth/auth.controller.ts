@@ -9,7 +9,7 @@ import { CustomerLoginResponseDto } from "src/common/dto/login.response.dto";
 import { Response } from "express";
 
 @ApiTags("Auth")
-@Controller("auth/customer")
+@Controller("api/auth/customer")
 export class CustomerAuthController {
   constructor(private readonly authService: CustomerAuthService) {}
 
