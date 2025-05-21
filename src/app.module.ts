@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { DatabaseModule } from "./database/database.module";
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -9,6 +10,7 @@ import { DatabaseModule } from "./database/database.module";
       // envFilePath: `.env`, // 또는 환경에 따라 다른 파일명을 사용
     }),
     DatabaseModule,
+    AuthModule,
   ],
 })
 export class AppModule {}
