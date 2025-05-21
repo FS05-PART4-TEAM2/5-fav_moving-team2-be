@@ -4,18 +4,19 @@ import { PassportStrategy } from "@nestjs/passport";
 import { Request } from "express";
 import {
   Strategy,
-  StrategyOptions,
+  StrategyOptionsWithRequest,
   VerifyCallback,
 } from "passport-google-oauth20";
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, "google") {
   constructor(private configService: ConfigService) {
-    const options: StrategyOptions = {
+    const options: StrategyOptionsWithRequest = {
       clientID: configService.get("GOOGLE_CLIENT_ID")!,
       clientSecret: configService.get("GOOGLE_CLIENT_SECRET")!,
       callbackURL: configService.get("GOOGLE_REDIRECT_URI")!,
       scope: ["email", "profile"],
+      passReqToCallback: true,
     };
 
     super(options);
@@ -28,9 +29,18 @@ export class GoogleStrategy extends PassportStrategy(Strategy, "google") {
     profile: any,
     done: VerifyCallback,
   ): Promise<any> {
-    const role = req.session?.oauthrole; // 구글 로그인 요청 uri의 param에서 role을 가져옴
-    if (!role) {
-      throw new UnauthorizedException("Role 정보를 입력하세요.");
+    const state = req.query.state;
+
+    if (typeof state !== "string") {
+      throw new UnauthorizedException("역할 정보가 올바르지 않습니다.");
+    }
+
+    const decoded = decodeURIComponent(state);
+    const parsed = JSON.parse(decoded);
+    const role = parsed.role;
+
+    if (role !== "customer" && role !== "mover") {
+      throw new UnauthorizedException("존재하지 않는 역할 정보입니다.");
     }
     const { name, emails, photos } = profile;
 
