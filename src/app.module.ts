@@ -1,6 +1,8 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { DatabaseModule } from "./database/database.module";
+import { CustomerModule } from "./customer/customer.module";
+import { MoverModule } from "./mover/mover.module";
 import { AuthModule } from './auth/auth.module';
 
 @Module({
@@ -10,6 +12,8 @@ import { AuthModule } from './auth/auth.module';
       // envFilePath: `.env`, // 또는 환경에 따라 다른 파일명을 사용
     }),
     DatabaseModule,
+    CustomerModule,
+    MoverModule,
     AuthModule,
   ],
 })
