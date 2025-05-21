@@ -3,10 +3,10 @@ module.exports = {
     {
       name: "nest-app",
       script: "dist/main.js",
+      exec_mode: "fork", // 👈 이 부분 수정
       instances: 1,
       autorestart: true,
       watch: false,
-      max_memory_restart: "512M",
       env: {
         NODE_ENV: "production",
       },
