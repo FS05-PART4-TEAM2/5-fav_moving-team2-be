@@ -33,7 +33,7 @@ import * as path from "path";
                     )
                     .toString(),
                 }
-              : false,
+              : useSSL,
           entities: [__dirname + "/../**/*.entity{.ts,.js}"],
           synchronize: true,
         };

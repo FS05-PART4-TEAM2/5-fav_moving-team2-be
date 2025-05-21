@@ -8,7 +8,7 @@ import { LoginRequestDto } from "src/common/dto/login.request.dto";
 import { CustomerLoginResponseDto } from "src/common/dto/login.response.dto";
 
 @ApiTags("Auth")
-@Controller("auth/customer")
+@Controller("api/auth/customer")
 export class CustomerAuthController {
   constructor(private readonly authService: CustomerAuthService) {}
 

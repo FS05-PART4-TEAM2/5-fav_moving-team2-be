@@ -9,7 +9,7 @@ import { MoverLoginResponseDto } from "src/common/dto/login.response.dto";
 import { Response } from "express";
 
 @ApiTags("Auth")
-@Controller("auth/mover")
+@Controller("api/auth/mover")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
