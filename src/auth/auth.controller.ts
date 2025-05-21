@@ -32,12 +32,6 @@ export class AuthController {
     return res.redirect(redirectUrl);
   }
 
-  @Get("google/login")
-  @UseGuards(AuthGuard("google"))
-  googleLogin() {
-    // 실제 실행되지 않는 핸들러. guard가 구글 로그인 페이지로 자동 리디렉션만 진행
-  }
-
   @Get("google/redirect")
   @UseGuards(AuthGuard("google"))
   googleRedirect(@Req() req: Request) {
