@@ -3,7 +3,7 @@ name: Deploy to AWS EC2 on Merge to Main
 on:
   push:
     branches:
-      - main # dev → main 병합 시에만 실행
+      - main
 
 jobs:
   deploy:
@@ -18,15 +18,15 @@ jobs:
         with:
           node-version: 18
 
-      - name: 📥 Install dependencies (production only)
-        run: npm install --omit=dev
+      - name: 📥 Install dependencies
+        run: npm install
 
       - name: 🏗️ Build NestJS project
         run: npm run build
 
       - name: 🧾 Create .env.production
         run: |
-          echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env.production
+          echo "DB_HOST=${{ secrets.DB_HOST }}" > .env.production
           echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env.production
           echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env.production
           echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env.production
@@ -38,12 +38,12 @@ jobs:
 
       - name: 📦 Zip production files
         run: |
-          zip -r deploy.zip dist node_modules package.json .env.production ecosystem.config.js
+          zip -r deploy.zip dist package.json .env.production ecosystem.config.js
 
       - name: 🔐 Setup SSH key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.EC2_SSH_KEY }}" | base64 -d > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
       - name: 🚀 Deploy to EC2
@@ -54,5 +54,6 @@ jobs:
             rm -rf app
             unzip -o deploy.zip -d app
             cd app
-            npm run start:prod || pm2 restart ecosystem.config.js || pm2 start ecosystem.config.js
+            npm install --omit=dev
+            pm2 restart ecosystem.config.js || pm2 start ecosystem.config.js
           EOF
