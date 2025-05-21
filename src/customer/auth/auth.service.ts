@@ -7,9 +7,9 @@ import { UserExistsException } from "src/common/exceptions/user-exists.exception
 import * as bcrypt from "bcrypt";
 import { LoginRequestDto } from "src/common/dto/login.request.dto";
 import { error } from "console";
-import { LoginResponseDto } from "src/common/dto/login.response.dto";
 import { InvalidCredentialsException } from "src/common/exceptions/invalid-credentials.exception";
 import { JwtService } from "@nestjs/jwt";
+import { CustomerLoginResponseDto } from "src/common/dto/login.response.dto";
 
 @Injectable()
 export class CustomerAuthService {
@@ -40,7 +40,9 @@ export class CustomerAuthService {
     return this.customerRepository.save(newCustomer);
   }
 
-  async login(LoginRequestDto: LoginRequestDto): Promise<LoginResponseDto> {
+  async login(
+    LoginRequestDto: LoginRequestDto,
+  ): Promise<CustomerLoginResponseDto> {
     const { email, password } = LoginRequestDto;
     const customer = await this.customerRepository.findOne({
       where: { email },
@@ -59,7 +61,7 @@ export class CustomerAuthService {
       expiresIn: process.env.JWT_EXPIRES_IN,
     });
 
-    const response: LoginResponseDto = {
+    const response: CustomerLoginResponseDto = {
       customer: {
         id: customer.id,
         username: customer.username,
