@@ -7,7 +7,7 @@ import { UserExistsException } from "src/common/exceptions/user-exists.exception
 import * as bcrypt from "bcrypt";
 import { LoginRequestDto } from "src/common/dto/login.request.dto";
 import { error } from "console";
-import { LoginResponseDto } from "src/common/dto/login.response.dto";
+import { CustomerLoginResponseDto } from "src/common/dto/login.response.dto";
 
 @Injectable()
 export class AuthService {
@@ -37,7 +37,9 @@ export class AuthService {
     return this.customerRepository.save(newCustomer);
   }
 
-  async login(LoginRequestDto: LoginRequestDto): Promise<LoginResponseDto> {
+  async login(
+    LoginRequestDto: LoginRequestDto,
+  ): Promise<CustomerLoginResponseDto> {
     const { email, password } = LoginRequestDto;
     const customer = await this.customerRepository.findOne({
       where: { email },
@@ -50,7 +52,7 @@ export class AuthService {
       throw new UnauthorizedException(" 비밀번호가 일치하지 않습니다");
     }
 
-    const response: LoginResponseDto = {
+    const response: CustomerLoginResponseDto = {
       customer: {
         id: customer.id,
         username: customer.username,
