@@ -1,6 +1,4 @@
 export class LoginResponseDto {
-  accessToken: string;
-  refreshToken: string;
   customer: {
     id: string;
     username: string;
@@ -8,7 +6,7 @@ export class LoginResponseDto {
     phoneNumber: string;
     profileImage: string | null;
     wantService: string | null;
-    livingPlcace: string | null;
+    livingPlace: string | null;
     createdAt: Date;
   };
 }

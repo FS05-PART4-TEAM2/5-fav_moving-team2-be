@@ -32,5 +32,5 @@ export class Customer {
   livingPlace: string[];
 
   @CreateDateColumn()
-  createAt: Date;
+  createdAt: Date;
 }

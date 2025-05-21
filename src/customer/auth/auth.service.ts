@@ -1,10 +1,13 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Customer } from "../customer.entity";
 import { SignUpRequestDto } from "src/common/dto/signup.request.dto";
 import { UserExistsException } from "src/common/exceptions/user-exists.exception";
 import * as bcrypt from "bcrypt";
+import { LoginRequestDto } from "src/common/dto/login.request.dto";
+import { error } from "console";
+import { LoginResponseDto } from "src/common/dto/login.response.dto";
 
 @Injectable()
 export class AuthService {
@@ -32,5 +35,34 @@ export class AuthService {
     });
 
     return this.customerRepository.save(newCustomer);
+  }
+
+  async login(LoginRequestDto: LoginRequestDto): Promise<LoginResponseDto> {
+    const { email, password } = LoginRequestDto;
+    const customer = await this.customerRepository.findOne({
+      where: { email },
+    });
+    if (!customer) {
+      throw new UserExistsException({ email: email });
+    }
+    const isPasswordValid = await bcrypt.compare(password, customer.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException(" 비밀번호가 일치하지 않습니다");
+    }
+
+    const response: LoginResponseDto = {
+      customer: {
+        id: customer.id,
+        username: customer.username,
+        email: customer.email,
+        phoneNumber: customer.phoneNumber,
+        profileImage: null,
+        wantService: null,
+        livingPlace: null,
+        createdAt: customer.createdAt,
+      },
+    };
+
+    return response;
   }
 }
