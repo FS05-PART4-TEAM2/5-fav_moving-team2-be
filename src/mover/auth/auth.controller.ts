@@ -6,7 +6,7 @@ import { Mover } from "../mover.entity";
 import { SignUpRequestDto } from "src/common/dto/signup.request.dto";
 
 @ApiTags("Auth")
-@Controller("auth/mover")
+@Controller("api/auth/mover")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
