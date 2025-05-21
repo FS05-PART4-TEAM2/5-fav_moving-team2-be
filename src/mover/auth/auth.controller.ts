@@ -34,6 +34,11 @@ export class AuthController {
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
     });
+    res.cookie("refreshToken", loginResponse.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
     return ApiResponse.success(loginResponse, "로그인 성공");
   }
 }
