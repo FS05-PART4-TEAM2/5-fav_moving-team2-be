@@ -1,6 +1,8 @@
 import * as crypto from "crypto";
-// @ts-ignore
-global.crypto = crypto;
+if (typeof globalThis.crypto === "undefined") {
+  // @ts-ignore
+  globalThis.crypto = crypto;
+}
 
 import { NestFactory } from "@nestjs/core";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
