@@ -6,6 +6,7 @@ import { Mover } from "../mover.entity";
 import { SignUpRequestDto } from "src/common/dto/signup.request.dto";
 import { LoginRequestDto } from "src/common/dto/login.request.dto";
 import { MoverLoginResponseDto } from "src/common/dto/login.response.dto";
+import { Response } from "express";
 
 @ApiTags("Auth")
 @Controller("auth/mover")
@@ -25,8 +26,14 @@ export class AuthController {
   @ApiOperation({ summary: "로그인" })
   async loginMover(
     @Body() LoginRequestDto: LoginRequestDto,
+    @Res({ passthrough: true }) res: Response,
   ): Promise<ApiResponse<MoverLoginResponseDto>> {
     const loginResponse = await this.authService.login(LoginRequestDto);
+    res.cookie("accessToken", loginResponse.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
     return ApiResponse.success(loginResponse, "로그인 성공");
   }
 }

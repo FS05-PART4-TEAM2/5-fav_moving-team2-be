@@ -7,12 +7,14 @@ import { SignUpRequestDto } from "src/common/dto/signup.request.dto";
 import { UserExistsException } from "src/common/exceptions/user-exists.exception";
 import { LoginRequestDto } from "src/common/dto/login.request.dto";
 import { MoverLoginResponseDto } from "src/common/dto/login.response.dto";
+import { JwtService } from "@nestjs/jwt";
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(Mover)
     private readonly moverRepository: Repository<Mover>,
+    private readonly jwtService: JwtService,
   ) {}
 
   async signUp(SignUpRequestDto: SignUpRequestDto): Promise<Mover> {
@@ -47,7 +49,16 @@ export class AuthService {
     if (!isPasswordValid) {
       throw new UnauthorizedException("비밀번호가 일치하지 않습니다");
     }
+    console.log("로그인 성공");
+    const payload = { sub: mover.id, email: mover.email };
+    console.log("payload", payload);
+    const accessToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET,
+      expiresIn: "1h",
+    });
+
     const response: MoverLoginResponseDto = {
+      accessToken,
       mover: {
         id: mover.id,
         username: mover.username,
