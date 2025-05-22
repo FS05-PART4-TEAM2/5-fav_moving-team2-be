@@ -3,12 +3,14 @@ import { AuthService } from "./auth.service";
 import { AuthGuard } from "@nestjs/passport";
 import { Request, Response } from "express";
 import { ConfigService } from "@nestjs/config";
+import { CustomerAuthService } from "src/customer/auth/auth.service";
 
 @Controller("api/auth")
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
+    private readonly customerAuthService: CustomerAuthService,
   ) {}
 
   @Get("google/:role/login")
@@ -31,6 +33,6 @@ export class AuthController {
   @UseGuards(AuthGuard("google"))
   googleRedirect(@Req() req: Request) {
     //req.user의 role에 따라 분기처리 예정
-    console.log(req.user);
+    console.log(req.user)
   }
 }

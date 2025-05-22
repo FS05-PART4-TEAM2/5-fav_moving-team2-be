@@ -7,14 +7,18 @@ import { UserExistsException } from "src/common/exceptions/user-exists.exception
 import * as bcrypt from "bcrypt";
 import { LoginRequestDto } from "src/common/dto/login.request.dto";
 import { error } from "console";
-import { LoginResponseDto } from "src/common/dto/login.response.dto";
+import { CustomerLoginResponseDto } from "src/common/dto/login.response.dto";
+import { InvalidCredentialsException } from "src/common/exceptions/invalid-credentials.exception";
+import { JwtService } from "@nestjs/jwt";
 import { OauthLoginDto } from "./dto/oauthLogin.dto";
+import { OauthProviderConflictException } from "src/common/exceptions/oauth-provider-conflict.exception";
 
 @Injectable()
 export class CustomerAuthService {
   constructor(
     @InjectRepository(Customer)
     private readonly customerRepository: Repository<Customer>,
+    private readonly jwtService: JwtService,
   ) {}
 
   async signUpOrSignInByOauthCustomer(
@@ -27,16 +31,19 @@ export class CustomerAuthService {
     });
 
     if (existedCustomer) {
-      // 이미 가입한 손님일 때
+      /** 이미 가입한 손님일 때 */
 
       // 만약 가입한 provider와 일치하지 않으면 예외처리 (중복 가입 방지)
+      if (existedCustomer.provider !== oAuthLoginDto.provider) {
+        throw new OauthProviderConflictException(existedCustomer.provider);
+      }
 
       // access token, refresh token 발급
 
       return existedCustomer;
     }
 
-    // 아직 가입하지 않은 손님일 때
+    /** 아직 가입하지 않은 손님일 때 */
 
     const newCustomerObject = this.customerRepository.create({
       username: oAuthLoginDto.name,
@@ -71,20 +78,35 @@ export class CustomerAuthService {
     return this.customerRepository.save(newCustomer);
   }
 
-  async login(LoginRequestDto: LoginRequestDto): Promise<LoginResponseDto> {
+  async login(
+    LoginRequestDto: LoginRequestDto,
+  ): Promise<CustomerLoginResponseDto> {
     const { email, password } = LoginRequestDto;
     const customer = await this.customerRepository.findOne({
       where: { email },
     });
     if (!customer) {
-      throw new UserExistsException({ email: email });
+      throw new InvalidCredentialsException();
     }
     const isPasswordValid = await bcrypt.compare(password, customer.password);
     if (!isPasswordValid) {
-      throw new UnauthorizedException(" 비밀번호가 일치하지 않습니다");
+      throw new InvalidCredentialsException();
     }
 
-    const response: LoginResponseDto = {
+    const payload = { sub: customer.id, email: customer.email };
+    const accessToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET,
+      expiresIn: process.env.JWT_EXPIRES_IN,
+    });
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_REFRESH_SECRET,
+      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN,
+    }); // Auth 엔티티에 refreshToken을 저장하는 로직 추가 예정
+
+    const response: CustomerLoginResponseDto = {
+      accessToken,
+      refreshToken,
+
       customer: {
         id: customer.id,
         username: customer.username,
