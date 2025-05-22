@@ -17,11 +17,11 @@ export class Auth {
   @Column({ nullable: true })
   refreshToken: string;
 
-  @Column({ nullable: true })
-  provider: string;
+  @Column({ type: "varchar", nullable: true })
+  provider: string | null;
 
-  @Column({ nullable: true })
-  providerId: string;
+  @Column({ type: "varchar", nullable: true })
+  providerId: string | null;
 
   @Column()
   userType: "mover" | "customer";

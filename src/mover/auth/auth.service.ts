@@ -82,6 +82,13 @@ export class AuthService {
         createdAt: mover.createdAt,
       },
     };
+
+    await this.sharedAuthService.recordLogin({
+      userType: "mover",
+      userId: mover.id,
+      accessToken,
+      refreshToken,
+    });
     return response;
   }
 }

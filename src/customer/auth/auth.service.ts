@@ -81,6 +81,13 @@ export class CustomerAuthService {
       },
     };
 
+    await this.sharedAuthService.recordLogin({
+      userType: "customer",
+      userId: customer.id,
+      accessToken,
+      refreshToken,
+    });
+
     return response;
   }
 }

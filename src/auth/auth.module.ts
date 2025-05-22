@@ -5,9 +5,16 @@ import { PassportModule } from "@nestjs/passport";
 import { GoogleStrategy } from "./strategies/google.strategy";
 import { CustomerAuthModule } from "src/customer/auth/auth.module";
 import { JwtModule } from "@nestjs/jwt";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { Auth } from "./auth.entity";
 
 @Module({
-  imports: [PassportModule, CustomerAuthModule, JwtModule.register({})],
+  imports: [
+    PassportModule,
+    CustomerAuthModule,
+    JwtModule.register({}),
+    TypeOrmModule.forFeature([Auth]),
+  ],
   controllers: [AuthController],
   providers: [AuthService, GoogleStrategy],
   exports: [AuthService],
