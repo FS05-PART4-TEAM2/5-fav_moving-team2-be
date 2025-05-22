@@ -35,6 +35,6 @@ export class Auth {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @UpdateDateColumn()
-  logoutAt?: Date;
+  @Column({ type: "timestamp", nullable: true })
+  logoutAt?: Date | null;
 }

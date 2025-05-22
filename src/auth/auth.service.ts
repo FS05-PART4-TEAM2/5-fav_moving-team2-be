@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Auth } from "./auth.entity";
@@ -32,13 +36,19 @@ export class AuthService {
         userId: recordLogin.userId,
       },
     });
+
     if (existing) {
-      Object.assign(existing, recordLogin); // 같은 유저 로그인 정보 존재하면 업데이트
-      await this.authRepository.save(existing);
-    } else {
-      const record = this.authRepository.create(recordLogin); // 새로 생성
-      await this.authRepository.save(record);
+      if (!existing.logoutAt) {
+        // 기존 레코드가 유효한 경우 updatedAt만 갱신
+        existing.updatedAt = new Date();
+        await this.authRepository.save(existing);
+        return;
+      }
     }
+
+    // 새로운 Auth 레코드 생성
+    const record = this.authRepository.create({ ...recordLogin, logoutAt: null });
+    await this.authRepository.save(record);
   }
 
   async logout(accessToken: string): Promise<void> {
