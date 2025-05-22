@@ -15,6 +15,7 @@ export class CustomerLoginResponseDto {
 
 export class MoverLoginResponseDto {
   accessToken: string;
+  refreshToken: string;
   mover: {
     id: string;
     username: string;

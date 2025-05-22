@@ -7,6 +7,9 @@ import { UserExistsException } from "src/common/exceptions/user-exists.exception
 import * as bcrypt from "bcrypt";
 import { LoginRequestDto } from "src/common/dto/login.request.dto";
 import { error } from "console";
+
+import { CustomerLoginResponseDto } from "src/common/dto/login.response.dto";
+
 import { InvalidCredentialsException } from "src/common/exceptions/invalid-credentials.exception";
 import { JwtService } from "@nestjs/jwt";
 import { CustomerLoginResponseDto } from "src/common/dto/login.response.dto";
@@ -68,6 +71,7 @@ export class CustomerAuthService {
     const response: CustomerLoginResponseDto = {
       accessToken,
       refreshToken,
+
       customer: {
         id: customer.id,
         username: customer.username,

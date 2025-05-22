@@ -9,6 +9,9 @@ import { LoginRequestDto } from "src/common/dto/login.request.dto";
 import { MoverLoginResponseDto } from "src/common/dto/login.response.dto";
 import { JwtService } from "@nestjs/jwt";
 
+import { InvalidCredentialsException } from "src/common/exceptions/invalid-credentials.exception";
+
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -43,22 +46,33 @@ export class AuthService {
       where: { email },
     });
     if (!mover) {
-      throw new UserExistsException({ email: email });
+
+      throw new InvalidCredentialsException();
     }
     const isPasswordValid = await bcrypt.compare(password, mover.password);
     if (!isPasswordValid) {
-      throw new UnauthorizedException("비밀번호가 일치하지 않습니다");
+      throw new InvalidCredentialsException();
+
     }
     console.log("로그인 성공");
     const payload = { sub: mover.id, email: mover.email };
     console.log("payload", payload);
     const accessToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_SECRET,
-      expiresIn: "1h",
+
+      expiresIn: process.env.JWT_EXPIRES_IN,
+    });
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_REFRESH_SECRET,
+      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN,
+
     });
 
     const response: MoverLoginResponseDto = {
       accessToken,
+
+      refreshToken,
+
       mover: {
         id: mover.id,
         username: mover.username,
