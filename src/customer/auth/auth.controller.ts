@@ -6,9 +6,8 @@ import { Customer } from "../customer.entity";
 import { CustomerAuthService } from "./auth.service";
 import { LoginRequestDto } from "src/common/dto/login.request.dto";
 import { CustomerLoginResponseDto } from "src/common/dto/login.response.dto";
-
 import { Response } from "express";
-
+import { SetAuthCookies } from "src/common/utils/set-auth-cookies.util";
 
 @ApiTags("Auth")
 @Controller("api/auth/customer")
@@ -28,21 +27,15 @@ export class CustomerAuthController {
   @ApiOperation({ summary: "소비자 로그인" })
   async loginCustomer(
     @Body() LoginRequestDto: LoginRequestDto,
-
     @Res({ passthrough: true }) res: Response,
-
   ): Promise<ApiResponse<CustomerLoginResponseDto>> {
     const loginResponse = await this.authService.login(LoginRequestDto);
-    res.cookie("accessToken", loginResponse.accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    });
-    res.cookie("refreshToken", loginResponse.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    });
+    SetAuthCookies.set(
+      res,
+      loginResponse.accessToken,
+      loginResponse.refreshToken,
+    );
+
     return ApiResponse.success(loginResponse, "로그인 완료");
   }
 }
