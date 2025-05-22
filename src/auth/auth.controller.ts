@@ -17,7 +17,7 @@ import { SetAuthCookies } from "../common/utils/set-auth-cookies.util";
 import { ApiResponse } from "../common/dto/api-response.dto";
 import { CustomerAuthService } from "../customer/auth/auth.service";
 import { AuthService as MoverAuthService } from "../mover/auth/auth.service";
-import { AccessToken } from '../common/decorators/access-token.decorator';
+import { AccessToken } from "../common/decorators/access-token.decorator";
 
 @Controller("api/auth")
 export class AuthController {
@@ -83,7 +83,10 @@ export class AuthController {
 
   @Post("logout")
   @ApiOperation({ summary: "로그아웃" })
-  async logout(@AccessToken() accessToken: string, @Res({ passthrough: true }) res: Response): Promise<ApiResponse<null>> {
+  async logout(
+    @AccessToken() accessToken: string,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<ApiResponse<null>> {
     await this.authService.logout(accessToken);
 
     // Clear cookies
