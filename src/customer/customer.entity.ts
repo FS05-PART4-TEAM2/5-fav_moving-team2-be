@@ -35,7 +35,7 @@ export class Customer {
   profileImage: string;
 
   @Column("simple-array", { nullable: true })
-  wantService: String[];
+  wantService: string[];
 
   @Column("simple-array", { nullable: true })
   livingPlace: string[];
