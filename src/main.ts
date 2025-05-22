@@ -24,6 +24,8 @@ async function bootstrap() {
 
   /** 전역 예외 설정 */
   app.useGlobalFilters(new AllExceptionsFilter());
+  /** multer 파일 업로드 설정 */
+  app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
   /** swagger 설정 */
   const config = new DocumentBuilder()
