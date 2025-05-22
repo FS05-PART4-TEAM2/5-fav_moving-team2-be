@@ -7,14 +7,19 @@ import { UserExistsException } from "src/common/exceptions/user-exists.exception
 import * as bcrypt from "bcrypt";
 import { LoginRequestDto } from "src/common/dto/login.request.dto";
 import { error } from "console";
+
 import { CustomerLoginResponseDto } from "src/common/dto/login.response.dto";
+
 import { InvalidCredentialsException } from "src/common/exceptions/invalid-credentials.exception";
+import { JwtService } from "@nestjs/jwt";
+import { CustomerLoginResponseDto } from "src/common/dto/login.response.dto";
 
 @Injectable()
 export class CustomerAuthService {
   constructor(
     @InjectRepository(Customer)
     private readonly customerRepository: Repository<Customer>,
+    private readonly jwtService: JwtService,
   ) {}
 
   async signUp(SignUpRequestDto: SignUpRequestDto): Promise<Customer> {
@@ -53,7 +58,20 @@ export class CustomerAuthService {
       throw new InvalidCredentialsException();
     }
 
+    const payload = { sub: customer.id, email: customer.email };
+    const accessToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET,
+      expiresIn: process.env.JWT_EXPIRES_IN,
+    });
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_REFRESH_SECRET,
+      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN,
+    }); // Auth 엔티티에 refreshToken을 저장하는 로직 추가 예정
+
     const response: CustomerLoginResponseDto = {
+      accessToken,
+      refreshToken,
+
       customer: {
         id: customer.id,
         username: customer.username,
