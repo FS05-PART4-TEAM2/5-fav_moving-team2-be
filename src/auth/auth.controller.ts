@@ -1,18 +1,21 @@
 import {
-  BadRequestException,
   Controller,
   Get,
   Param,
   Req,
   Res,
   UseGuards,
+  Post,
+  BadRequestException,
 } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { AuthGuard } from "@nestjs/passport";
 import { Request, Response } from "express";
 import { ConfigService } from "@nestjs/config";
-import { CustomerAuthService } from "src/customer/auth/auth.service";
-import { ApiResponse } from "src/common/dto/api-response.dto";
+
+import { CustomerAuthService } from "../customer/auth/auth.service";
+import { AccessToken } from "../common/decorators/access-token.decorator";
+import { CommonApiResponse } from "src/common/dto/api-response.dto";
 import {
   CustomerGoogleOauthLoginResponseDto,
   MoverGoogleOauthLoginResponseDto,
@@ -88,6 +91,49 @@ export class AuthController {
     return res.redirect(redirectUrl);
   }
 
+  @Post("refresh")
+  @ApiOperation({ summary: "AccessToken 갱신" })
+  async refreshAccessToken(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<CommonApiResponse<{ accessToken: string }>> {
+    const refreshToken = req.cookies["refreshToken"];
+
+    if (!refreshToken) {
+      throw new BadRequestException("refreshToken이 누락되었습니다.");
+    }
+
+    const payload = this.authService.decodeToken(refreshToken);
+    const service =
+      payload.userType === "customer"
+        ? this.customerAuthService
+        : this.moverAuthService;
+
+    const { accessToken, refreshToken: newRefreshToken } =
+      await service.refreshAccessToken(refreshToken);
+
+    SetAuthCookies.set(res, accessToken, newRefreshToken);
+    return CommonApiResponse.success(
+      { accessToken },
+      "AccessToken이 갱신되었습니다.",
+    );
+  }
+
+  @Post("logout")
+  @ApiOperation({ summary: "로그아웃" })
+  async logout(
+    @AccessToken() accessToken: string,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<CommonApiResponse<null>> {
+    await this.authService.logout(accessToken);
+
+    // Clear cookies
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
+
+    return CommonApiResponse.success(null, "로그아웃되었습니다.");
+  }
+  
   @Get("google/redirect")
   @UseGuards(AuthGuard("google"))
   @ApiOperation({
@@ -98,7 +144,7 @@ export class AuthController {
   async googleRedirect(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<ApiResponse<SafeCustomer | SafeMover>> {
+  ): Promise<CommonApiResponse<SafeCustomer | SafeMover>> {
     let userInfo:
       | CustomerGoogleOauthLoginResponseDto
       | MoverGoogleOauthLoginResponseDto;
@@ -109,7 +155,7 @@ export class AuthController {
         req.user,
       );
       SetAuthCookies.set(res, userInfo.accessToken, userInfo.refreshToken);
-      return ApiResponse.success(userInfo.customer, "로그인 완료");
+      return CommonApiResponse.success(userInfo.customer, "로그인 완료");
     }
     if (req.user?.role === "mover") {
       // 기사 OAuth 로그인 일 때
@@ -117,7 +163,7 @@ export class AuthController {
         req.user,
       );
       SetAuthCookies.set(res, userInfo.accessToken, userInfo.refreshToken);
-      return ApiResponse.success(userInfo.mover, "로그인 완료");
+      return CommonApiResponse.success(userInfo.mover, "로그인 완료");
     }
     throw new BadRequestException();
   }

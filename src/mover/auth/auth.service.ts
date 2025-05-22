@@ -17,6 +17,7 @@ import { JwtService } from "@nestjs/jwt";
 import { AuthService as SharedAuthService } from "src/auth/auth.service";
 
 import { InvalidCredentialsException } from "src/common/exceptions/invalid-credentials.exception";
+import { RefreshTokenResponseDto } from "src/common/dto/refreshToken.response.dto";
 import {
   MoverGoogleOauthLoginResponseDto,
   OauthLoginRequestDto,
@@ -145,6 +146,19 @@ export class MoverAuthService {
         createdAt: mover.createdAt,
       },
     };
+
+    await this.sharedAuthService.recordLogin({
+      userType: "mover",
+      userId: mover.id,
+      accessToken,
+      refreshToken,
+    });
     return response;
+  }
+
+  async refreshAccessToken(
+    refreshToken: string,
+  ): Promise<RefreshTokenResponseDto> {
+    return this.sharedAuthService.refreshAccessToken(refreshToken);
   }
 }

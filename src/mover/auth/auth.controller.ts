@@ -1,6 +1,6 @@
 import { Body, Controller, Post, Res } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-import { ApiResponse } from "src/common/dto/api-response.dto";
+import { CommonApiResponse } from "src/common/dto/api-response.dto";
 import { Mover } from "../mover.entity";
 import { SignUpRequestDto } from "src/common/dto/signup.request.dto";
 import { LoginRequestDto } from "src/common/dto/login.request.dto";
@@ -18,9 +18,9 @@ export class MoverAuthController {
   @ApiOperation({ summary: "회원가입" })
   async signUpMover(
     @Body() createMoverDto: SignUpRequestDto,
-  ): Promise<ApiResponse<Mover | null>> {
+  ): Promise<CommonApiResponse<Mover | null>> {
     const mover = await this.moverAuthService.signUp(createMoverDto);
-    return ApiResponse.success(mover, "회원가입 성공");
+    return CommonApiResponse.success(mover, "회원가입 성공");
   }
 
   @Post("login")
@@ -28,15 +28,14 @@ export class MoverAuthController {
   async loginMover(
     @Body() LoginRequestDto: LoginRequestDto,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<ApiResponse<MoverLoginResponseDto>> {
+  ): Promise<CommonApiResponse<MoverLoginResponseDto>> {
     const loginResponse = await this.moverAuthService.login(LoginRequestDto);
-    console.log("loginResponse", loginResponse);
     SetAuthCookies.set(
       res,
       loginResponse.accessToken,
       loginResponse.refreshToken,
     );
 
-    return ApiResponse.success(loginResponse, "로그인 성공");
+    return CommonApiResponse.success(loginResponse, "로그인 성공");
   }
 }

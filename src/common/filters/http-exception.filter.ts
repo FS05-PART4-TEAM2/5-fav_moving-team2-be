@@ -7,7 +7,7 @@ import {
   HttpStatus,
 } from "@nestjs/common";
 import { Response } from "express";
-import { ApiResponse } from "../dto/api-response.dto";
+import { CommonApiResponse } from "../dto/api-response.dto";
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -40,6 +40,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     if(status === 500) console.error('[AllExceptionsFilter]', exception);
-    res.status(status).json(ApiResponse.fail(errorMessage, errorName));
+    res.status(status).json(CommonApiResponse.fail(errorMessage, errorName));
   }
 }
