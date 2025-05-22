@@ -1,9 +1,6 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { DatabaseModule } from "./database/database.module";
-import { CustomerModule } from "./customer/customer.module";
-import { MoverModule } from "./mover/mover.module";
-import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -13,9 +10,6 @@ import { AuthModule } from './auth/auth.module';
       envFilePath: [".env", `.env.${process.env.NODE_ENV}`],
     }),
     DatabaseModule,
-    CustomerModule,
-    MoverModule,
-    AuthModule,
   ],
 })
 export class AppModule {}
