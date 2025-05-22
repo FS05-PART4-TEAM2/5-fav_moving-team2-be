@@ -50,10 +50,7 @@ export class AuthController {
 
   @Get("google/redirect")
   @UseGuards(AuthGuard("google"))
-  googleRedirect(@Req() req: Request) {
-    //req.user의 role에 따라 분기처리 예정
-    console.log(req.user);
-  }
+  googleRedirect(@Req() req: Request) {}
 
   @Post("refresh")
   @ApiOperation({ summary: "AccessToken 갱신" })

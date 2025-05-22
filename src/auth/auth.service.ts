@@ -8,6 +8,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Auth } from "./auth.entity";
 import { Repository } from "typeorm";
 import { recordLoginDto } from "src/common/dto/auth-record-login.dto";
+import { IsNull } from "typeorm";
 
 @Injectable()
 export class AuthService {
@@ -34,21 +35,26 @@ export class AuthService {
       where: {
         userType: recordLogin.userType,
         userId: recordLogin.userId,
+        logoutAt: IsNull(),
       },
     });
 
     if (existing) {
       if (!existing.logoutAt) {
-        // 기존 레코드가 유효한 경우 updatedAt만 갱신
-        existing.updatedAt = new Date();
-        await this.authRepository.save(existing);
+        await this.authRepository.update(existing.id, {
+          accessToken: recordLogin.accessToken,
+          refreshToken: recordLogin.refreshToken,
+          updatedAt: new Date(),
+        });
         return;
       }
     }
 
-    // 새로운 Auth 레코드 생성
-    const record = this.authRepository.create({ ...recordLogin, logoutAt: null });
-    await this.authRepository.save(record);
+    const record = this.authRepository.create({
+      ...recordLogin,
+      logoutAt: null,
+    });
+    const savedRecord = await this.authRepository.save(record);
   }
 
   async logout(accessToken: string): Promise<void> {
@@ -111,6 +117,11 @@ export class AuthService {
         },
       );
 
+      await this.authRepository.update(existingRecord.id, {
+        accessToken: newAccessToken,
+        refreshToken,
+        updatedAt: new Date(),
+      });
       return { accessToken: newAccessToken, refreshToken };
     } catch (error) {
       throw new NotFoundException("refreshToken 검증에 실패했습니다.");
