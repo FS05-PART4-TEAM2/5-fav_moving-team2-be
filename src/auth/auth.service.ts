@@ -9,6 +9,7 @@ import { Auth } from "./auth.entity";
 import { Repository } from "typeorm";
 import { recordLoginDto } from "src/common/dto/auth-record-login.dto";
 import { IsNull } from "typeorm";
+import { RefreshTokenResponseDto } from "src/common/dto/refreshToken.response.dto";
 
 @Injectable()
 export class AuthService {
@@ -30,6 +31,7 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
+  // Auth 테이블 조회 후 logoutAt가 Null이면 업데이트 , 값이 있다면 새로 생성
   async recordLogin(recordLogin: recordLoginDto) {
     const existing = await this.authRepository.findOne({
       where: {
@@ -92,7 +94,7 @@ export class AuthService {
 
   async refreshAccessToken(
     refreshToken: string,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  ): Promise<RefreshTokenResponseDto> {
     try {
       const payload = this.jwtService.verify(refreshToken, {
         secret: process.env.JWT_REFRESH_SECRET,

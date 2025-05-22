@@ -51,17 +51,4 @@ export class CustomerAuthController {
 
     return ApiResponse.success(loginResponse, "로그인 완료");
   }
-
-  @Post("logout")
-  @ApiOperation({ summary: "소비자 로그아웃" })
-  @UseGuards(AuthGuard("jwt"))
-  async logoutCustomer(
-    @Req() req: any,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<ApiResponse<null>> {
-    const token = req.cookies["accessToken"];
-    await this.sharedAuthService.logout(token);
-    res.clearCookie("accessToken");
-    return ApiResponse.success(null, "로그아웃 완료");
-  }
 }
