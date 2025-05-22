@@ -11,11 +11,6 @@ export class AuthController {
     private readonly configService: ConfigService,
   ) {}
 
-  /* 
-  가장 핵심적인 문제. 어떻게 역할마다 분리해서 로그인 다르게 처리 할 수 있을까?
-  1. strategy를 customer, mover별로 분리해서 각기 다르게 분리 처리한다 (확장성이 낮고 유지보수 떨어짐)
-  2. role에 대한 param값을 state에 저장하여 strategy에서 해당 부분을 req에서 읽어온다.
-  */
   @Get("google/:role/login")
   async setRoleAndRedirect(@Param("role") role: string, @Res() res: Response) {
     const state = encodeURIComponent(JSON.stringify({ role }));

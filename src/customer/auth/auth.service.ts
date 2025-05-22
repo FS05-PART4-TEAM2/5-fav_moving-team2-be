@@ -8,6 +8,7 @@ import * as bcrypt from "bcrypt";
 import { LoginRequestDto } from "src/common/dto/login.request.dto";
 import { error } from "console";
 import { LoginResponseDto } from "src/common/dto/login.response.dto";
+import { OauthLoginDto } from "./dto/oauthLogin.dto";
 
 @Injectable()
 export class CustomerAuthService {
@@ -16,9 +17,38 @@ export class CustomerAuthService {
     private readonly customerRepository: Repository<Customer>,
   ) {}
 
-  // async signUpOrSignInByOauth(): Promise<Customer> {
-    
-  // }
+  async signUpOrSignInByOauthCustomer(
+    oAuthLoginDto: OauthLoginDto,
+  ): Promise<Customer> {
+    const existedCustomer = await this.customerRepository.findOne({
+      where: {
+        email: oAuthLoginDto.email,
+      },
+    });
+
+    if (existedCustomer) {
+      // 이미 가입한 손님일 때
+
+      // 만약 가입한 provider와 일치하지 않으면 예외처리 (중복 가입 방지)
+
+      // access token, refresh token 발급
+
+      return existedCustomer;
+    }
+
+    // 아직 가입하지 않은 손님일 때
+
+    const newCustomerObject = this.customerRepository.create({
+      username: oAuthLoginDto.name,
+      email: oAuthLoginDto.email,
+      profileImage: oAuthLoginDto.photo,
+      phoneNumber: "000-0000-0000",
+      provider: oAuthLoginDto.provider,
+    });
+
+    const newCustomer = await this.customerRepository.save(newCustomerObject);
+    return newCustomer;
+  }
 
   async signUp(SignUpRequestDto: SignUpRequestDto): Promise<Customer> {
     const { username, email, password, phoneNumber } = SignUpRequestDto;
