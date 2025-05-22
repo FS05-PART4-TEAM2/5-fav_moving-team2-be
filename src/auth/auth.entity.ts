@@ -34,4 +34,7 @@ export class Auth {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @UpdateDateColumn()
+  logoutAt?: Date;
 }

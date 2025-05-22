@@ -16,7 +16,7 @@ import { InvalidCredentialsException } from "src/common/exceptions/invalid-crede
 import { JwtService } from "@nestjs/jwt";
 import { CustomerLoginResponseDto } from "src/common/dto/login.response.dto";
 import { AuthService as SharedAuthService } from "src/auth/auth.service";
-
+import { RefreshTokenResponseDto } from "src/common/dto/refreshToken.response.dto";
 @Injectable()
 export class CustomerAuthService {
   constructor(
@@ -89,5 +89,13 @@ export class CustomerAuthService {
     });
 
     return response;
+  }
+
+  async refreshAccessToken(
+    refreshToken: string,
+  ): Promise<RefreshTokenResponseDto> {
+    const tokens =
+      await this.sharedAuthService.refreshAccessToken(refreshToken);
+    return tokens;
   }
 }

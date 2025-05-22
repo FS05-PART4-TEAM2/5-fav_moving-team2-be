@@ -7,16 +7,27 @@ import { CustomerAuthModule } from "src/customer/auth/auth.module";
 import { JwtModule } from "@nestjs/jwt";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Auth } from "./auth.entity";
+import { JwtStrategy } from "./strategies/jwt.strategy";
+import { CustomerAuthService } from "../customer/auth/auth.service";
+import { AuthService as MoverAuthService } from "../mover/auth/auth.service";
+import { Customer } from "../customer/customer.entity";
+import { Mover } from "../mover/mover.entity";
 
 @Module({
   imports: [
     PassportModule,
     CustomerAuthModule,
     JwtModule.register({}),
-    TypeOrmModule.forFeature([Auth]),
+    TypeOrmModule.forFeature([Auth, Customer, Mover]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, GoogleStrategy],
+  providers: [
+    AuthService,
+    GoogleStrategy,
+    JwtStrategy,
+    CustomerAuthService,
+    MoverAuthService,
+  ],
   exports: [AuthService],
 })
 export class AuthModule {}
