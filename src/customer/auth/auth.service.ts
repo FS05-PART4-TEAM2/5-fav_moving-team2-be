@@ -16,9 +16,9 @@ import { InvalidCredentialsException } from "src/common/exceptions/invalid-crede
 import { CustomerLoginResponseDto } from "src/common/dto/login.response.dto";
 import { AuthService as SharedAuthService } from "src/auth/auth.service";
 import {
-  CustomerOauthLoginResponseDto,
+  CustomerGoogleOauthLoginResponseDto,
   OauthLoginRequestDto,
-} from "./dto/oauthLogin.dto";
+} from "../../common/dto/oauthLogin.dto";
 import { OauthProviderConflictException } from "src/common/exceptions/oauth-provider-conflict.exception";
 
 @Injectable()
@@ -32,7 +32,7 @@ export class CustomerAuthService {
 
   async signUpOrSignInByOauthCustomer(
     oAuthLoginRequestDto: OauthLoginRequestDto,
-  ): Promise<CustomerOauthLoginResponseDto> {
+  ): Promise<CustomerGoogleOauthLoginResponseDto> {
     const existedCustomer = await this.customerRepository.findOne({
       where: {
         email: oAuthLoginRequestDto.email,
@@ -67,7 +67,6 @@ export class CustomerAuthService {
     });
 
     const newCustomer = await this.customerRepository.save(newCustomerObject);
-    
 
     // access token, refresh token 발급
     const payload = { sub: newCustomer.id, email: newCustomer.email };
@@ -82,8 +81,8 @@ export class CustomerAuthService {
     const { username, email, password, phoneNumber } = SignUpRequestDto;
 
     // OAuth 설정으로 인해 password 빈 값인지 추가 검증 필요
-    if(!password){
-      throw new BadRequestException('패스워드가 비어있으면 안됩니다.')
+    if (!password) {
+      throw new BadRequestException("패스워드가 비어있으면 안됩니다.");
     }
     const existing = await this.customerRepository.findOne({
       where: { email },
@@ -115,7 +114,7 @@ export class CustomerAuthService {
       throw new InvalidCredentialsException();
     }
     // 로그인 할 때 provider 일치하지 않으면 예외처리
-    if (customer.provider !== 'default'){
+    if (customer.provider !== "default") {
       throw new InvalidCredentialsException();
     }
     const isPasswordValid = await bcrypt.compare(password, customer.password);

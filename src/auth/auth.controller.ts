@@ -14,14 +14,16 @@ import { ConfigService } from "@nestjs/config";
 import { CustomerAuthService } from "src/customer/auth/auth.service";
 import { ApiResponse } from "src/common/dto/api-response.dto";
 import {
-  CustomerOauthLoginResponseDto,
-  MoverOauthLoginResponseDto,
-} from "src/customer/auth/dto/oauthLogin.dto";
+  CustomerGoogleOauthLoginResponseDto,
+  MoverGoogleOauthLoginResponseDto,
+} from "src/common/dto/oauthLogin.dto";
 import { SafeCustomer } from "src/customer/types/customerWithoutPw";
 import { SafeMover } from "src/customer/types/moverWithoutPw";
 import { MoverAuthService } from "src/mover/auth/auth.service";
 import { SetAuthCookies } from "src/common/utils/set-auth-cookies.util";
+import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 
+@ApiTags("OAuth") // Swagger 그룹화
 @Controller("api/auth")
 export class AuthController {
   constructor(
@@ -32,6 +34,11 @@ export class AuthController {
   ) {}
 
   @Get("google/:role/login")
+  @ApiOperation({
+    summary: "구글 OAuth 로그인",
+    description: "구글 OAuth를 사용한 로그인을 진행합니다.",
+  })
+  @ApiOkResponse({ description: "성공 시 응답 데이터", type: CustomerGoogleOauthLoginResponseDto })
   async setRoleAndRedirect(@Param("role") role: string, @Res() res: Response) {
     const state = encodeURIComponent(JSON.stringify({ role }));
     const clientId = this.configService.get("GOOGLE_CLIENT_ID");
@@ -49,11 +56,17 @@ export class AuthController {
 
   @Get("google/redirect")
   @UseGuards(AuthGuard("google"))
+  @ApiOperation({
+    summary: "구글 로그인 성공 시 리다이렉트 (직접 연결 x)",
+    description: "구글 로그인을 성공했을 때 자동으로 리다이렉트하여 실행되는 api"
+  })
   async googleRedirect(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<ApiResponse<SafeCustomer | SafeMover>> {
-    let userInfo: CustomerOauthLoginResponseDto | MoverOauthLoginResponseDto;
+    let userInfo:
+      | CustomerGoogleOauthLoginResponseDto
+      | MoverGoogleOauthLoginResponseDto;
     //req.user의 role에 따라 분기처리 예정
     if (req.user?.role === "customer") {
       // 손님 OAuth 로그인 일 때

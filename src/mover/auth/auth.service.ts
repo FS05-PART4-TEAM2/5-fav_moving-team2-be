@@ -18,9 +18,9 @@ import { AuthService as SharedAuthService } from "src/auth/auth.service";
 
 import { InvalidCredentialsException } from "src/common/exceptions/invalid-credentials.exception";
 import {
-  MoverOauthLoginResponseDto,
+  MoverGoogleOauthLoginResponseDto,
   OauthLoginRequestDto,
-} from "src/customer/auth/dto/oauthLogin.dto";
+} from "src/common/dto/oauthLogin.dto";
 import { OauthProviderConflictException } from "src/common/exceptions/oauth-provider-conflict.exception";
 
 @Injectable()
@@ -35,7 +35,7 @@ export class MoverAuthService {
 
   async signUpOrSignInByOauthMover(
     oAuthLoginRequestDto: OauthLoginRequestDto,
-  ): Promise<MoverOauthLoginResponseDto> {
+  ): Promise<MoverGoogleOauthLoginResponseDto> {
     const existedMover = await this.moverRepository.findOne({
       where: {
         email: oAuthLoginRequestDto.email,
@@ -84,8 +84,8 @@ export class MoverAuthService {
     const { username, email, password, phoneNumber } = SignUpRequestDto;
 
     // OAuth 설정으로 인해 password 빈 값인지 추가 검증 필요
-    if(!password){
-      throw new BadRequestException('패스워드가 비어있으면 안됩니다.')
+    if (!password) {
+      throw new BadRequestException("패스워드가 비어있으면 안됩니다.");
     }
 
     const existing = await this.moverRepository.findOne({ where: { email } });
@@ -115,7 +115,7 @@ export class MoverAuthService {
       throw new InvalidCredentialsException();
     }
     // 로그인 할 때 provider 일치하지 않으면 예외처리
-    if (mover.provider !== 'default') {
+    if (mover.provider !== "default") {
       throw new InvalidCredentialsException();
     }
     const isPasswordValid = await bcrypt.compare(password, mover.password);
