@@ -5,7 +5,7 @@ import { ApiResponse } from "src/common/dto/api-response.dto";
 import { Customer } from "../customer.entity";
 import { CustomerAuthService } from "./auth.service";
 import { LoginRequestDto } from "src/common/dto/login.request.dto";
-import { LoginResponseDto } from "src/common/dto/login.response.dto";
+import { CustomerLoginResponseDto } from "src/common/dto/login.response.dto";
 
 @ApiTags("Auth")
 @Controller("api/auth/customer")
@@ -25,7 +25,7 @@ export class CustomerAuthController {
   @ApiOperation({ summary: "소비자 로그인" })
   async loginCustomer(
     @Body() LoginRequestDto: LoginRequestDto,
-  ): Promise<ApiResponse<LoginResponseDto>> {
+  ): Promise<ApiResponse<CustomerLoginResponseDto>> {
     const loginResponse = await this.authService.login(LoginRequestDto);
     return ApiResponse.success(loginResponse, "로그인 완료");
   }
