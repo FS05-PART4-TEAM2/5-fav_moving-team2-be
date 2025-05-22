@@ -54,6 +54,14 @@ export class CustomerAuthService {
         this.sharedAuthService.generateTokens(payload);
 
       const { password, ...existedCustomerWithoutPw } = existedCustomer;
+
+      await this.sharedAuthService.recordLogin({
+        userType: "customer",
+        userId: existedCustomer.id,
+        accessToken,
+        refreshToken,
+      });
+
       return { refreshToken, accessToken, customer: existedCustomerWithoutPw };
     }
 
@@ -75,6 +83,14 @@ export class CustomerAuthService {
       this.sharedAuthService.generateTokens(payload);
 
     const { password, ...newCustomerWithoutPw } = newCustomer;
+
+    await this.sharedAuthService.recordLogin({
+      userType: "customer",
+      userId: newCustomer.id,
+      accessToken,
+      refreshToken,
+    });
+
     return { refreshToken, accessToken, customer: newCustomerWithoutPw };
   }
 

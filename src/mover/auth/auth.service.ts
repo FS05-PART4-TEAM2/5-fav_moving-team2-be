@@ -57,6 +57,14 @@ export class MoverAuthService {
         this.sharedAuthService.generateTokens(payload);
 
       const { password, ...existedMoverWithoutPw } = existedMover;
+
+      await this.sharedAuthService.recordLogin({
+        userType: "mover",
+        userId: existedMover.id,
+        accessToken,
+        refreshToken,
+      });
+
       return { refreshToken, accessToken, mover: existedMoverWithoutPw };
     }
 
@@ -78,6 +86,14 @@ export class MoverAuthService {
       this.sharedAuthService.generateTokens(payload);
 
     const { password, ...newMoverWithoutPw } = newMover;
+
+    await this.sharedAuthService.recordLogin({
+      userType: "mover",
+      userId: newMover.id,
+      accessToken,
+      refreshToken,
+    });
+
     return { refreshToken, accessToken, mover: newMoverWithoutPw };
   }
 
