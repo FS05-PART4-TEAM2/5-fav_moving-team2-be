@@ -8,7 +8,6 @@ import {
 import { CustomerProfileService } from "../services/customer-profile.service";
 import { ApiBody, ApiConsumes, ApiOperation } from "@nestjs/swagger";
 import { ApiResponse } from "src/common/dto/api-response.dto";
-import { CustomerProfileRequestDto } from "../dto/customer-profile.request.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
 import {
   SERVICE_TYPES,
@@ -52,18 +51,16 @@ export class CustomerProfileController {
   async signUpCustomer(
     @UploadedFile() file: Express.Multer.File,
     @Body()
-    createCustomerProfile: {
+    request: {
       wantService: ServiceTypeKey;
       livingPlace: RegionKey;
     },
   ): Promise<ApiResponse<null>> {
-    console.log("파일 업로드됨:", {
-      originalname: file?.originalname,
-      mimetype: file?.mimetype,
-      size: file?.size,
+    await this.customerProfileService.create({
+      file,
+      wantService: request.wantService,
+      livingPlace: request.livingPlace,
     });
-
-    //await this.customerProfileService.create(createCustomerProfile);
     return ApiResponse.success(null, "프로필 등록이 완료되었습니다.");
   }
 }
