@@ -1,6 +1,9 @@
-import { IsOptional, IsString } from "class-validator";
+import { Type } from "class-transformer";
+import { IsOptional, IsString, ValidateNested } from "class-validator";
+import { SafeCustomer } from "src/customer/types/customerWithoutPw";
+import { SafeMover } from "src/customer/types/moverWithoutPw";
 
-export class OauthLoginDto {
+export class OauthLoginRequestDto {
   @IsString()
   email: string;
 
@@ -16,4 +19,24 @@ export class OauthLoginDto {
 
   @IsString()
   role: string;
+}
+
+export class MoverOauthLoginResponseDto {
+  @IsString()
+  refreshToken: string;
+
+  @IsString()
+  accessToken: string;
+
+  mover: SafeMover
+}
+
+export class CustomerOauthLoginResponseDto {
+  @IsString()
+  refreshToken: string;
+
+  @IsString()
+  accessToken: string;
+
+  customer: SafeCustomer
 }

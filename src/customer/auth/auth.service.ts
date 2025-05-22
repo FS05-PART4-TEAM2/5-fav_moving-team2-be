@@ -1,4 +1,10 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import {
+  Injectable,
+  UnauthorizedException,
+  Inject,
+  forwardRef,
+  BadRequestException,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Customer } from "../customer.entity";
@@ -6,11 +12,13 @@ import { SignUpRequestDto } from "src/common/dto/signup.request.dto";
 import { UserExistsException } from "src/common/exceptions/user-exists.exception";
 import * as bcrypt from "bcrypt";
 import { LoginRequestDto } from "src/common/dto/login.request.dto";
-import { error } from "console";
-import { CustomerLoginResponseDto } from "src/common/dto/login.response.dto";
 import { InvalidCredentialsException } from "src/common/exceptions/invalid-credentials.exception";
-import { JwtService } from "@nestjs/jwt";
-import { OauthLoginDto } from "./dto/oauthLogin.dto";
+import { CustomerLoginResponseDto } from "src/common/dto/login.response.dto";
+import { AuthService as SharedAuthService } from "src/auth/auth.service";
+import {
+  CustomerOauthLoginResponseDto,
+  OauthLoginRequestDto,
+} from "./dto/oauthLogin.dto";
 import { OauthProviderConflictException } from "src/common/exceptions/oauth-provider-conflict.exception";
 
 @Injectable()
@@ -18,15 +26,16 @@ export class CustomerAuthService {
   constructor(
     @InjectRepository(Customer)
     private readonly customerRepository: Repository<Customer>,
-    private readonly jwtService: JwtService,
+    @Inject(forwardRef(() => SharedAuthService))
+    private readonly sharedAuthService: SharedAuthService,
   ) {}
 
   async signUpOrSignInByOauthCustomer(
-    oAuthLoginDto: OauthLoginDto,
-  ): Promise<Customer> {
+    oAuthLoginRequestDto: OauthLoginRequestDto,
+  ): Promise<CustomerOauthLoginResponseDto> {
     const existedCustomer = await this.customerRepository.findOne({
       where: {
-        email: oAuthLoginDto.email,
+        email: oAuthLoginRequestDto.email,
       },
     });
 
@@ -34,32 +43,48 @@ export class CustomerAuthService {
       /** 이미 가입한 손님일 때 */
 
       // 만약 가입한 provider와 일치하지 않으면 예외처리 (중복 가입 방지)
-      if (existedCustomer.provider !== oAuthLoginDto.provider) {
+      if (existedCustomer.provider !== oAuthLoginRequestDto.provider) {
         throw new OauthProviderConflictException(existedCustomer.provider);
       }
 
       // access token, refresh token 발급
+      const payload = { sub: existedCustomer.id, email: existedCustomer.email };
+      const { accessToken, refreshToken } =
+        this.sharedAuthService.generateTokens(payload);
 
-      return existedCustomer;
+      const { password, ...existedCustomerWithoutPw } = existedCustomer;
+      return { refreshToken, accessToken, customer: existedCustomerWithoutPw };
     }
 
     /** 아직 가입하지 않은 손님일 때 */
 
     const newCustomerObject = this.customerRepository.create({
-      username: oAuthLoginDto.name,
-      email: oAuthLoginDto.email,
-      profileImage: oAuthLoginDto.photo,
+      username: oAuthLoginRequestDto.name,
+      email: oAuthLoginRequestDto.email,
+      profileImage: oAuthLoginRequestDto.photo,
       phoneNumber: "000-0000-0000",
-      provider: oAuthLoginDto.provider,
+      provider: oAuthLoginRequestDto.provider,
     });
 
     const newCustomer = await this.customerRepository.save(newCustomerObject);
-    return newCustomer;
+    
+
+    // access token, refresh token 발급
+    const payload = { sub: newCustomer.id, email: newCustomer.email };
+    const { accessToken, refreshToken } =
+      this.sharedAuthService.generateTokens(payload);
+
+    const { password, ...newCustomerWithoutPw } = newCustomer;
+    return { refreshToken, accessToken, customer: newCustomerWithoutPw };
   }
 
   async signUp(SignUpRequestDto: SignUpRequestDto): Promise<Customer> {
     const { username, email, password, phoneNumber } = SignUpRequestDto;
 
+    // OAuth 설정으로 인해 password 빈 값인지 추가 검증 필요
+    if(!password){
+      throw new BadRequestException('패스워드가 비어있으면 안됩니다.')
+    }
     const existing = await this.customerRepository.findOne({
       where: { email },
     });
@@ -73,6 +98,7 @@ export class CustomerAuthService {
       email,
       password: hashedPassword,
       phoneNumber,
+      provider: "default", // 기본 로그인 방식
     });
 
     return this.customerRepository.save(newCustomer);
@@ -88,21 +114,17 @@ export class CustomerAuthService {
     if (!customer) {
       throw new InvalidCredentialsException();
     }
+    // 로그인 할 때 provider 일치하지 않으면 예외처리
+    if (customer.provider !== 'default'){
+      throw new InvalidCredentialsException();
+    }
     const isPasswordValid = await bcrypt.compare(password, customer.password);
     if (!isPasswordValid) {
       throw new InvalidCredentialsException();
     }
-
     const payload = { sub: customer.id, email: customer.email };
-    const accessToken = this.jwtService.sign(payload, {
-      secret: process.env.JWT_SECRET,
-      expiresIn: process.env.JWT_EXPIRES_IN,
-    });
-    const refreshToken = this.jwtService.sign(payload, {
-      secret: process.env.JWT_REFRESH_SECRET,
-      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN,
-    }); // Auth 엔티티에 refreshToken을 저장하는 로직 추가 예정
-
+    const { accessToken, refreshToken } =
+      this.sharedAuthService.generateTokens(payload);
     const response: CustomerLoginResponseDto = {
       accessToken,
       refreshToken,

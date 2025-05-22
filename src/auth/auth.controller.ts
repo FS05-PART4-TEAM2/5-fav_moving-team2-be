@@ -1,9 +1,14 @@
-import { Controller, Get, Param, Req, Res, UseGuards } from "@nestjs/common";
+import { BadRequestException, Controller, Get, Param, Req, Res, UseGuards } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { AuthGuard } from "@nestjs/passport";
 import { Request, Response } from "express";
 import { ConfigService } from "@nestjs/config";
 import { CustomerAuthService } from "src/customer/auth/auth.service";
+import { ApiResponse } from "src/common/dto/api-response.dto";
+import { CustomerOauthLoginResponseDto, MoverOauthLoginResponseDto } from "src/customer/auth/dto/oauthLogin.dto";
+import { SafeCustomer } from "src/customer/types/customerWithoutPw";
+import { SafeMover } from "src/customer/types/moverWithoutPw";
+import { MoverAuthService } from "src/mover/auth/auth.service";
 
 @Controller("api/auth")
 export class AuthController {
@@ -11,6 +16,7 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
     private readonly customerAuthService: CustomerAuthService,
+    private readonly moverAuthService: MoverAuthService,
   ) {}
 
   @Get("google/:role/login")
@@ -31,8 +37,19 @@ export class AuthController {
 
   @Get("google/redirect")
   @UseGuards(AuthGuard("google"))
-  googleRedirect(@Req() req: Request) {
+  async googleRedirect(@Req() req: Request): Promise<ApiResponse<SafeCustomer | SafeMover>> {
+    let userInfo: CustomerOauthLoginResponseDto | MoverOauthLoginResponseDto;
     //req.user의 role에 따라 분기처리 예정
-    console.log(req.user)
+    if(req.user?.role === 'customer') {
+      // 손님 OAuth 로그인 일 때
+      userInfo = await this.customerAuthService.signUpOrSignInByOauthCustomer(req.user);
+      return ApiResponse.success(userInfo.customer, "로그인 완료");
+    }
+    if(req.user?.role === 'mover') {
+      // 기사 OAuth 로그인 일 때
+      userInfo = await this.moverAuthService.signUpOrSignInByOauthMover(req.user);
+      return ApiResponse.success(userInfo.mover, "로그인 완료");
+    }
+    throw new BadRequestException();
   }
 }
