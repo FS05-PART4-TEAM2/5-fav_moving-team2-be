@@ -21,7 +21,12 @@ import { SafeCustomer } from "src/customer/types/customerWithoutPw";
 import { SafeMover } from "src/customer/types/moverWithoutPw";
 import { MoverAuthService } from "src/mover/auth/auth.service";
 import { SetAuthCookies } from "src/common/utils/set-auth-cookies.util";
-import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBadGatewayResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from "@nestjs/swagger";
 
 @ApiTags("OAuth") // Swagger 그룹화
 @Controller("api/auth")
@@ -38,7 +43,36 @@ export class AuthController {
     summary: "구글 OAuth 로그인",
     description: "구글 OAuth를 사용한 로그인을 진행합니다.",
   })
-  @ApiOkResponse({ description: "성공 시 응답 데이터", type: CustomerGoogleOauthLoginResponseDto })
+  @ApiOkResponse({
+    description: "성공 시 응답 데이터",
+    example: {
+      success: true,
+      data: {
+        id: "1be1a0c8-2e45-4a45-981f-f5b756dee42c",
+        username: "동혁",
+        email: "hyuk.development@gmail.com",
+        isProfile: null,
+        authType: null,
+        provider: "google",
+        phoneNumber: "000-0000-0000",
+        profileImage:
+          "https://lh3.googleusercontent.com/a/ACg8ocIDnlUuGZT05pI-d9KsJO5_6ouGlbFgej4zTT1Fqh5ai_Lclrw=s96-c",
+        wantService: null,
+        livingPlace: null,
+        createdAt: "2025-05-22T02:33:41.240Z",
+      },
+      message: "로그인 완료",
+    },
+  })
+  @ApiBadGatewayResponse({
+    description: "잘못된 역할 정보일 때",
+    example: {
+      success: false,
+      data: null,
+      message: "존재하지 않는 역할 정보입니다.",
+      errorCode: "UnauthorizedException",
+    },
+  })
   async setRoleAndRedirect(@Param("role") role: string, @Res() res: Response) {
     const state = encodeURIComponent(JSON.stringify({ role }));
     const clientId = this.configService.get("GOOGLE_CLIENT_ID");
@@ -58,7 +92,8 @@ export class AuthController {
   @UseGuards(AuthGuard("google"))
   @ApiOperation({
     summary: "구글 로그인 성공 시 리다이렉트 (직접 연결 x)",
-    description: "구글 로그인을 성공했을 때 자동으로 리다이렉트하여 실행되는 api"
+    description:
+      "구글 로그인을 성공했을 때 자동으로 리다이렉트하여 실행되는 api",
   })
   async googleRedirect(
     @Req() req: Request,
