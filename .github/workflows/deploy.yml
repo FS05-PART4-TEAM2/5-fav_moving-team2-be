@@ -34,6 +34,9 @@ jobs:
           echo "DB_SSL=${{ secrets.DB_SSL }}" >> .env.production
           echo "S3_ACCESS_KEY=${{ secrets.S3_ACCESS_KEY }}" >> .env.production
           echo "S3_SECRET_KEY=${{ secrets.S3_SECRET_KEY }}" >> .env.production
+          echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env.production
+          echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env.production
+          echo "GOOGLE_REDIRECT_URI=${{ secrets.GOOGLE_REDIRECT_URI }}" >> .env.production
           echo "NODE_ENV=production" >> .env.production
 
       - name: 📥 Download RDS SSL cert
