@@ -3,6 +3,8 @@ import {
   CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
 } from "typeorm";
 
 @Entity()
@@ -37,9 +39,9 @@ export class Quotation {
   @CreateDateColumn()
   createdAt: Date;
 
-  @CreateDateColumn({ nullable: true })
+  @UpdateDateColumn({ nullable: true })
   updatedAt: Date;
 
-  @CreateDateColumn({ nullable: true })
-  deletedAt: Date | null;
+  @DeleteDateColumn({ nullable: true })
+  deletedAt: Date;
 }
