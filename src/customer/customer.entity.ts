@@ -19,7 +19,7 @@ export class Customer {
   @Column({ nullable: true }) // OAuth 가입의 경우에는 패스워드 X
   password: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: false })
   isProfile: boolean; // 프로필 정보 등록했는지 여부
 
   @Column({ nullable: true })
