@@ -1,6 +1,6 @@
 import { forwardRef, Module } from "@nestjs/common";
-import { AuthService } from "./auth.service";
-import { AuthController } from "./auth.controller";
+import { MoverAuthService } from "./auth.service";
+import { MoverAuthController } from "./auth.controller";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Mover } from "../mover.entity";
 import { JwtModule } from "@nestjs/jwt";
@@ -12,7 +12,8 @@ import { AuthModule as CommonAuthModule } from "src/auth/auth.module";
     JwtModule.register({}),
     forwardRef(() => CommonAuthModule), // Use forwardRef for circular DI
   ],
-  providers: [AuthService],
-  controllers: [AuthController],
+  providers: [MoverAuthService],
+  controllers: [MoverAuthController],
+  exports: [MoverAuthService],
 })
-export class AuthModule {}
+export class MoverAuthModule {}
