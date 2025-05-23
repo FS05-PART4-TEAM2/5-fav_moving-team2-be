@@ -1,3 +1,4 @@
+// For libraries expecting Web Crypto API in Node.js (e.g. `crypto.subtle`)
 import * as crypto from "crypto";
 if (typeof globalThis.crypto === "undefined") {
   // @ts-ignore
@@ -31,9 +32,19 @@ async function bootstrap() {
     .setTitle("NestJS Tutorial - Panda Market Migration")
     .setDescription("The Panda Markets API description")
     .setVersion("1.0")
+    .addBearerAuth(
+      {
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "JWT",
+        name: "Authorization",
+        in: "header",
+      },
+      "access-token", // 이 이름은 아래 @ApiBearerAuth()에 사용됨
+    )
     .build();
-  const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup("api-docs", app, documentFactory);
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup("api-docs", app, document);
 
   app.use(cookieParser());
 
