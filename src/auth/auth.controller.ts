@@ -109,7 +109,7 @@ export class AuthController {
         id: "3392fd0f-0c69-47d6-bcc4-61b0eb5a663a",
         username: null,
         email: "lnetwork@naver.com",
-        isProfile: null,
+        isProfile: false,
         authType: null,
         provider: "naver",
         phoneNumber: "000-0000-0000",
