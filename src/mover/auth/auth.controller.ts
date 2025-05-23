@@ -30,7 +30,6 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<ApiResponse<MoverLoginResponseDto>> {
     const loginResponse = await this.authService.login(LoginRequestDto);
-    console.log("loginResponse", loginResponse);
     SetAuthCookies.set(
       res,
       loginResponse.accessToken,
