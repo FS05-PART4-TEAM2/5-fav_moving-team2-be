@@ -33,14 +33,17 @@ export class Quotation {
   @Column()
   customerId: string;
 
+  @Column({ type: "simple-array", nullable: true })
+  assignMover: string[];
+
   @Column({ nullable: true })
   confirmedMoverId: string;
 
   @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn({ nullable: true })
-  updatedAt: Date;
+  @UpdateDateColumn({ type: "timestamp", nullable: true })
+  updatedAt: Date | null;
 
   @DeleteDateColumn({ nullable: true })
   deletedAt: Date;
