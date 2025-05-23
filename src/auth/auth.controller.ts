@@ -78,7 +78,10 @@ export class AuthController {
       errorCode: "UnauthorizedException",
     },
   })
-  async setRoleAndRedirect(@Param("role") role: string, @Res() res: Response) {
+  async setRoleAndRedirectGoogle(
+    @Param("role") role: string,
+    @Res() res: Response,
+  ) {
     const state = encodeURIComponent(JSON.stringify({ role }));
     const clientId = this.configService.get("GOOGLE_CLIENT_ID");
     const redirectUri = this.configService.get("GOOGLE_REDIRECT_URI");
@@ -91,6 +94,103 @@ export class AuthController {
       `&state=${state}`;
 
     return res.redirect(redirectUrl);
+  }
+
+  @Get("naver/:role/login")
+  @ApiOperation({
+    summary: "네이버 OAuth 로그인",
+    description: "네이버 OAuth를 사용한 로그인을 진행합니다.",
+  })
+  @ApiOkResponse({
+    description: "성공 시 응답 데이터",
+    example: {
+      success: true,
+      data: {
+        id: "3392fd0f-0c69-47d6-bcc4-61b0eb5a663a",
+        username: null,
+        email: "lnetwork@naver.com",
+        isProfile: null,
+        authType: null,
+        provider: "naver",
+        phoneNumber: "000-0000-0000",
+        profileImage:
+          "https://ssl.pstatic.net/static/pwe/address/img_profile.png",
+        wantService: null,
+        livingPlace: null,
+        createdAt: "2025-05-23T06:17:20.566Z",
+      },
+      message: "로그인 완료",
+    },
+  })
+  async setRoleAndRedirectNaver(
+    @Param("role") role: string,
+    @Res() res: Response,
+  ) {
+    const rawState = JSON.stringify({ role });
+    const base64State = Buffer.from(rawState).toString("base64"); // ✅ base64 인코딩
+
+    const clientId = this.configService.get("NAVER_CLIENT_ID");
+    const redirectUri = this.configService.get("NAVER_REDIRECT_URI");
+
+    const redirectUrl =
+      `https://nid.naver.com/oauth2.0/authorize` +
+      `?response_type=code` +
+      `&client_id=${clientId}` +
+      `&redirect_uri=${redirectUri}` +
+      `&state=${base64State}`;
+
+    return res.redirect(redirectUrl);
+  }
+
+  @Get("google/redirect")
+  @UseGuards(AuthGuard("google"))
+  @ApiOperation({
+    summary: "구글 로그인 성공 시 리다이렉트 (직접 연결 x)",
+    description:
+      "구글 로그인을 성공했을 때 자동으로 리다이렉트하여 실행되는 api",
+  })
+  async googleRedirect(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.handleOauthRedirect(req, res);
+  }
+
+  @Get("naver/redirect")
+  @UseGuards(AuthGuard("naver"))
+  async naverRedirect(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.handleOauthRedirect(req, res);
+  }
+
+  //OauthRedirect 공통 로직 분리
+  private async handleOauthRedirect(
+    req: Request,
+    res: Response,
+  ): Promise<CommonApiResponse<SafeCustomer | SafeMover>> {
+    let userInfo:
+      | CustomerGoogleOauthLoginResponseDto
+      | MoverGoogleOauthLoginResponseDto;
+
+    if (req.user?.role === "customer") {
+      userInfo = await this.customerAuthService.signUpOrSignInByOauthCustomer(
+        req.user,
+      );
+      SetAuthCookies.set(res, userInfo.accessToken, userInfo.refreshToken);
+      return CommonApiResponse.success(userInfo.customer, "로그인 완료");
+    }
+
+    if (req.user?.role === "mover") {
+      userInfo = await this.moverAuthService.signUpOrSignInByOauthMover(
+        req.user,
+      );
+      SetAuthCookies.set(res, userInfo.accessToken, userInfo.refreshToken);
+      return CommonApiResponse.success(userInfo.mover, "로그인 완료");
+    }
+
+    throw new BadRequestException();
   }
 
   @Post("refresh")
@@ -134,39 +234,5 @@ export class AuthController {
     res.clearCookie("refreshToken");
 
     return CommonApiResponse.success(null, "로그아웃되었습니다.");
-  }
-  
-  @Get("google/redirect")
-  @UseGuards(AuthGuard("google"))
-  @ApiOperation({
-    summary: "구글 로그인 성공 시 리다이렉트 (직접 연결 x)",
-    description:
-      "구글 로그인을 성공했을 때 자동으로 리다이렉트하여 실행되는 api",
-  })
-  async googleRedirect(
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<CommonApiResponse<SafeCustomer | SafeMover>> {
-    let userInfo:
-      | CustomerGoogleOauthLoginResponseDto
-      | MoverGoogleOauthLoginResponseDto;
-    //req.user의 role에 따라 분기처리 예정
-    if (req.user?.role === "customer") {
-      // 손님 OAuth 로그인 일 때
-      userInfo = await this.customerAuthService.signUpOrSignInByOauthCustomer(
-        req.user,
-      );
-      SetAuthCookies.set(res, userInfo.accessToken, userInfo.refreshToken);
-      return CommonApiResponse.success(userInfo.customer, "로그인 완료");
-    }
-    if (req.user?.role === "mover") {
-      // 기사 OAuth 로그인 일 때
-      userInfo = await this.moverAuthService.signUpOrSignInByOauthMover(
-        req.user,
-      );
-      SetAuthCookies.set(res, userInfo.accessToken, userInfo.refreshToken);
-      return CommonApiResponse.success(userInfo.mover, "로그인 완료");
-    }
-    throw new BadRequestException();
   }
 }
