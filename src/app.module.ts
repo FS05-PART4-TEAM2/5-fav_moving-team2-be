@@ -4,6 +4,7 @@ import { DatabaseModule } from "./database/database.module";
 import { MoverModule } from "./mover/mover.module";
 import { CustomerModule } from "./customer/customer.module";
 import { StorageModule } from "./common/storage/storage.module";
+import { QuotationModule } from './quotation/quotation.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { StorageModule } from "./common/storage/storage.module";
     MoverModule,
     CustomerModule,
     StorageModule,
+    QuotationModule,
   ],
 })
 export class AppModule {}
