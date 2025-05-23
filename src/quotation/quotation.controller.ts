@@ -11,12 +11,9 @@ import { QuotationService } from "./quotation.service";
 import { ApiOperation } from "@nestjs/swagger";
 import { JwtCookieAuthGuard } from "../common/guards/jwt-cookie-auth.guard";
 import { CustomerCreateQuotationRequestDto } from "src/common/dto/quotation.request.dto";
-import { ApiResponse } from "src/common/dto/api-response.dto";
+import { CommonApiResponse } from "src/common/dto/api-response.dto";
 import { Quotation } from "./quotation.entity";
-import {
-  PaginatedResponseDto,
-  PaginationDto,
-} from "src/common/dto/pagination.dto";
+import { PaginatedResponseDto } from "src/common/dto/pagination.dto";
 
 @Controller("api/quotation")
 export class QuotationController {
@@ -29,12 +26,15 @@ export class QuotationController {
   async createCustomerQuotation(
     @Body() createQuotationDto: CustomerCreateQuotationRequestDto,
     @Req() req,
-  ): Promise<ApiResponse<Quotation | null>> {
+  ): Promise<CommonApiResponse<Quotation | null>> {
     createQuotationDto.customerId = req.user.userId;
 
     const newQuotation =
       await this.quotationService.createQuotation(createQuotationDto);
-    return ApiResponse.success(newQuotation, "견적 요청이 완료되었습니다.");
+    return CommonApiResponse.success(
+      newQuotation,
+      "견적 요청이 완료되었습니다.",
+    );
   }
 
   @Get("customer")
@@ -42,12 +42,12 @@ export class QuotationController {
   async getAllQuotations(
     @Query("page") page: number = 1,
     @Query("limit") limit: number = 10,
-  ): Promise<ApiResponse<PaginatedResponseDto<Quotation>>> {
+  ): Promise<CommonApiResponse<PaginatedResponseDto<Quotation>>> {
     const { data, total } = await this.quotationService.getAllQuotations(
       page,
       limit,
     );
-    return ApiResponse.success(
+    return CommonApiResponse.success(
       new PaginatedResponseDto(data, total),
       "모든 견적 요청 조회",
     );

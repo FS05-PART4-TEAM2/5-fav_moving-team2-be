@@ -20,8 +20,6 @@ export class CustomerProfileService {
     wantService: ServiceTypeKey;
     livingPlace: RegionKey;
   }): Promise<null> {
-    // TODO: 고객 프로필 생성 로직 구현 예정
-    console.log("create() 호출됨. 요청 데이터:", request);
     let url = await this.storageService.upload(request.file);
 
     if (this.storageService.getSignedUrlFromS3Url) {
