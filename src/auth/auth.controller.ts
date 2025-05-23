@@ -28,6 +28,7 @@ import {
   ApiBadGatewayResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiResponse,
   ApiTags,
 } from "@nestjs/swagger";
 
@@ -67,7 +68,8 @@ export class AuthController {
       message: "로그인 완료",
     },
   })
-  @ApiBadGatewayResponse({
+  @ApiResponse({
+    status: 401,
     description: "잘못된 역할 정보일 때",
     example: {
       success: false,
