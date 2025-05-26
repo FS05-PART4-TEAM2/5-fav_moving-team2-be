@@ -136,23 +136,57 @@ export class AuthController {
   })
   @ApiOkResponse({
     description: "성공 시 응답 데이터",
-    example: {
-      success: true,
-      data: {
-        id: "3392fd0f-0c69-47d6-bcc4-61b0eb5a663a",
-        username: null,
-        email: "lnetwork@naver.com",
-        isProfile: false,
-        authType: null,
-        provider: "naver",
-        phoneNumber: "000-0000-0000",
-        profileImage:
-          "https://ssl.pstatic.net/static/pwe/address/img_profile.png",
-        wantService: null,
-        livingPlace: null,
-        createdAt: "2025-05-23T06:17:20.566Z",
+    examples: {
+      customerLoginSuccess: {
+        summary: "손님 로그인 성공",
+        value: {
+          success: true,
+          data: {
+            id: "098775a4-101c-482f-bd13-4a0ccb73f869",
+            username: "이동혁",
+            email: "lnetwork@naver.com",
+            isProfile: false,
+            authType: null,
+            provider: "naver",
+            phoneNumber: "000-0000-0000",
+            profileImage:
+              "https://ssl.pstatic.net/static/pwe/address/img_profile.png",
+            wantService: null,
+            livingPlace: null,
+            createdAt: "2025-05-23T07:27:05.972Z",
+            updatedAt: "2025-05-26T02:16:52.823Z",
+          },
+          message: "손님 로그인 완료",
+        },
       },
-      message: "손님 로그인 완료",
+      moverLoginSuccess: {
+        summary: "기사 로그인 성공",
+        value: {
+          success: true,
+          data: {
+            id: "dbfbe32a-3c98-432c-9622-3f48c50ca905",
+            username: "이동혁",
+            nickname: null,
+            isProfile: false,
+            email: "lnetwork@naver.com",
+            phoneNumber: "000-0000-0000",
+            provider: "naver",
+            profileImage:
+              "https://ssl.pstatic.net/static/pwe/address/img_profile.png",
+            img: null,
+            serviceArea: null,
+            serviceList: null,
+            intro: null,
+            career: null,
+            detailDescription: null,
+            likeCount: 0,
+            totalRating: 0,
+            reviewCounts: 0,
+            createdAt: "2025-05-23T07:39:58.238Z",
+          },
+          message: "기사 로그인 완료",
+        },
+      },
     },
   })
   @ApiResponse({
@@ -192,24 +226,57 @@ export class AuthController {
   })
   @ApiOkResponse({
     description: "성공 시 응답 데이터",
-    example: {
-      success: true,
-      data: {
-        id: "af8d1f50-8cff-4627-bb7e-6acdd2203d7c",
-        username: "이동혁",
-        email: "kakao@test.email",
-        isProfile: false,
-        authType: null,
-        provider: "kakao",
-        phoneNumber: "000-0000-0000",
-        profileImage:
-          "http://img1.kakaocdn.net/thumb/R640x640.q70/?fname=http://t1.kakaocdn.net/account_images/default_profile.jpeg",
-        wantService: null,
-        livingPlace: null,
-        createdAt: "2025-05-26T02:27:06.202Z",
-        updatedAt: "2025-05-26T02:27:06.202Z",
+    examples: {
+      customerLoginSuccess: {
+        summary: "손님 로그인 성공",
+        value: {
+          success: true,
+          data: {
+            id: "af8d1f50-8cff-4627-bb7e-6acdd2203d7c",
+            username: "이동혁",
+            email: "kakao@test.email",
+            isProfile: false,
+            authType: null,
+            provider: "kakao",
+            phoneNumber: "000-0000-0000",
+            profileImage:
+              "http://img1.kakaocdn.net/thumb/R640x640.q70/?fname=http://t1.kakaocdn.net/account_images/default_profile.jpeg",
+            wantService: null,
+            livingPlace: null,
+            createdAt: "2025-05-26T02:27:06.202Z",
+            updatedAt: "2025-05-26T02:27:06.202Z",
+          },
+          message: "손님 로그인 완료",
+        },
       },
-      message: "손님 로그인 완료",
+      moverLoginSuccess: {
+        summary: "기사 로그인 성공",
+        value: {
+          success: true,
+          data: {
+            id: "693e520a-95ef-410f-add7-f7734ace85fa",
+            username: "이동혁",
+            nickname: null,
+            isProfile: false,
+            email: "kakao@test.email",
+            phoneNumber: "000-0000-0000",
+            provider: "kakao",
+            profileImage:
+              "http://img1.kakaocdn.net/thumb/R640x640.q70/?fname=http://t1.kakaocdn.net/account_images/default_profile.jpeg",
+            img: null,
+            serviceArea: null,
+            serviceList: null,
+            intro: null,
+            career: null,
+            detailDescription: null,
+            likeCount: 0,
+            totalRating: 0,
+            reviewCounts: 0,
+            createdAt: "2025-05-26T04:16:13.817Z",
+          },
+          message: "기사 로그인 완료",
+        },
+      },
     },
   })
   @ApiResponse({
