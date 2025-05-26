@@ -27,6 +27,13 @@ async function bootstrap() {
   /** 전역 예외 설정 */
   app.useGlobalFilters(new AllExceptionsFilter());
 
+  app.enableCors({
+    origin: ["http://localhost:3000"], // 허용할 Origin
+    credentials: true, // 쿠키 허용
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // 허용할 HTTP 메서드
+    allowedHeaders: "Content-Type, Authorization", // 허용할 헤더
+  });
+
   /** swagger 설정 */
   const config = new DocumentBuilder()
     .setTitle("NestJS Tutorial - Panda Market Migration")
