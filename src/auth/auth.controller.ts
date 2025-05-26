@@ -49,23 +49,56 @@ export class AuthController {
   })
   @ApiOkResponse({
     description: "성공 시 응답 데이터",
-    example: {
-      success: true,
-      data: {
-        id: "1be1a0c8-2e45-4a45-981f-f5b756dee42c",
-        username: "동혁",
-        email: "hyuk.development@gmail.com",
-        isProfile: null,
-        authType: null,
-        provider: "google",
-        phoneNumber: "000-0000-0000",
-        profileImage:
-          "https://lh3.googleusercontent.com/a/ACg8ocIDnlUuGZT05pI-d9KsJO5_6ouGlbFgej4zTT1Fqh5ai_Lclrw=s96-c",
-        wantService: null,
-        livingPlace: null,
-        createdAt: "2025-05-22T02:33:41.240Z",
+    examples: {
+      customerLoginSuccess: {
+        summary: "손님 로그인 성공",
+        value: {
+          success: true,
+          data: {
+            id: "1be1a0c8-2e45-4a45-981f-f5b756dee42c",
+            username: "동혁",
+            email: "hyuk.development@gmail.com",
+            isProfile: null,
+            authType: null,
+            provider: "google",
+            phoneNumber: "000-0000-0000",
+            profileImage:
+              "https://lh3.googleusercontent.com/a/ACg8ocIDnlUuGZT05pI-d9KsJO5_6ouGlbFgej4zTT1Fqh5ai_Lclrw=s96-c",
+            wantService: null,
+            livingPlace: null,
+            createdAt: "2025-05-22T02:33:41.240Z",
+          },
+          message: "손님 로그인 완료",
+        },
       },
-      message: "로그인 완료",
+      moverLoginSuccess: {
+        summary: "기사 로그인 성공",
+        value: {
+          success: true,
+          data: {
+            id: "93f6c859-c606-4213-93a7-0fa3ff59fcc6",
+            username: "동혁",
+            nickname: null,
+            isProfile: null,
+            email: "hyuk.development@gmail.com",
+            phoneNumber: "000-0000-0000",
+            provider: "google",
+            profileImage:
+              "https://lh3.googleusercontent.com/a/ACg8ocIDnlUuGZT05pI-d9KsJO5_6ouGlbFgej4zTT1Fqh5ai_Lclrw=s96-c",
+            img: null,
+            serviceArea: null,
+            serviceList: null,
+            intro: null,
+            career: null,
+            detailDescription: null,
+            likeCount: 0,
+            totalRating: 0,
+            reviewCounts: 0,
+            createdAt: "2025-05-22T05:48:57.417Z",
+          },
+          message: "기사 로그인 완료",
+        },
+      },
     },
   })
   @ApiResponse({
@@ -119,7 +152,17 @@ export class AuthController {
         livingPlace: null,
         createdAt: "2025-05-23T06:17:20.566Z",
       },
-      message: "로그인 완료",
+      message: "손님 로그인 완료",
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description: "잘못된 역할 정보일 때",
+    example: {
+      success: false,
+      data: null,
+      message: "존재하지 않는 역할 정보입니다.",
+      errorCode: "UnauthorizedException",
     },
   })
   async setRoleAndRedirectNaver(
@@ -142,6 +185,61 @@ export class AuthController {
     return res.redirect(redirectUrl);
   }
 
+  @Get("kakao/:role/login")
+  @ApiOperation({
+    summary: "카카오 OAuth 로그인",
+    description: "카카오 OAuth를 사용한 로그인을 진행합니다.",
+  })
+  @ApiOkResponse({
+    description: "성공 시 응답 데이터",
+    example: {
+      success: true,
+      data: {
+        id: "af8d1f50-8cff-4627-bb7e-6acdd2203d7c",
+        username: "이동혁",
+        email: "kakao@test.email",
+        isProfile: false,
+        authType: null,
+        provider: "kakao",
+        phoneNumber: "000-0000-0000",
+        profileImage:
+          "http://img1.kakaocdn.net/thumb/R640x640.q70/?fname=http://t1.kakaocdn.net/account_images/default_profile.jpeg",
+        wantService: null,
+        livingPlace: null,
+        createdAt: "2025-05-26T02:27:06.202Z",
+        updatedAt: "2025-05-26T02:27:06.202Z",
+      },
+      message: "손님 로그인 완료",
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description: "잘못된 역할 정보일 때",
+    example: {
+      success: false,
+      data: null,
+      message: "존재하지 않는 역할 정보입니다.",
+      errorCode: "UnauthorizedException",
+    },
+  })
+  async setRoleAndRedirectKakao(
+    @Param("role") role: string,
+    @Res() res: Response,
+  ) {
+    const state = encodeURIComponent(JSON.stringify({ role }));
+    const clientId = this.configService.get<string>("KAKAO_CLIENT_ID");
+    const redirectUri = this.configService.get<string>("KAKAO_REDIRECT_URI");
+
+    const redirectUrl =
+      "https://kauth.kakao.com/oauth/authorize" +
+      `?client_id=${clientId}` +
+      `&redirect_uri=${redirectUri}` +
+      `&response_type=code` +
+      `&state=${state}`;
+
+    return res.redirect(redirectUrl);
+  }
+
   @Get("google/redirect")
   @UseGuards(AuthGuard("google"))
   @ApiOperation({
@@ -158,7 +256,26 @@ export class AuthController {
 
   @Get("naver/redirect")
   @UseGuards(AuthGuard("naver"))
+  @ApiOperation({
+    summary: "네이버 로그인 성공 시 리다이렉트 (직접 연결 x)",
+    description:
+      "네이버 로그인을 성공했을 때 자동으로 리다이렉트하여 실행되는 api",
+  })
   async naverRedirect(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.handleOauthRedirect(req, res);
+  }
+
+  @Get("kakao/redirect")
+  @UseGuards(AuthGuard("kakao"))
+  @ApiOperation({
+    summary: "카카오 로그인 성공 시 리다이렉트 (직접 연결 x)",
+    description:
+      "카카오 로그인을 성공했을 때 자동으로 리다이렉트하여 실행되는 api",
+  })
+  async kakaoRedirect(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
@@ -179,7 +296,7 @@ export class AuthController {
         req.user,
       );
       SetAuthCookies.set(res, userInfo.accessToken, userInfo.refreshToken);
-      return CommonApiResponse.success(userInfo.customer, "로그인 완료");
+      return CommonApiResponse.success(userInfo.customer, "손님 로그인 완료");
     }
 
     if (req.user?.role === "mover") {
@@ -187,7 +304,7 @@ export class AuthController {
         req.user,
       );
       SetAuthCookies.set(res, userInfo.accessToken, userInfo.refreshToken);
-      return CommonApiResponse.success(userInfo.mover, "로그인 완료");
+      return CommonApiResponse.success(userInfo.mover, "기사 로그인 완료");
     }
 
     throw new BadRequestException();

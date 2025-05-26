@@ -14,6 +14,7 @@ import { Customer } from "../customer/customer.entity";
 import { Mover } from "../mover/mover.entity";
 import { MoverAuthService } from "src/mover/auth/auth.service";
 import { NaverStrategy } from "./strategies/naver.strategy";
+import { KakaoStrategy } from "./strategies/kakao.strategy";
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { NaverStrategy } from "./strategies/naver.strategy";
     AuthService,
     GoogleStrategy,
     NaverStrategy,
+    KakaoStrategy,
     JwtStrategy,
     CustomerAuthService,
     MoverAuthService,
