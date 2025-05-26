@@ -19,7 +19,7 @@ export class QuotationService {
 
     const newQuotation = this.quotationRepository.create({
       moveType,
-      moveDate,
+      moveDate: new Date(moveDate).toISOString(), // moveDate를 UTC로 변환
       startAddress,
       endAddress,
       customerId,

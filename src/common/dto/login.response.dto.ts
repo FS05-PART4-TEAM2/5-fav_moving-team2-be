@@ -6,10 +6,12 @@ export class CustomerLoginResponseDto {
     username: string;
     email: string;
     phoneNumber: string;
+    isProfile: boolean;
     profileImage: string | null;
-    wantService: string | null;
-    livingPlace: string | null;
+    wantService: string[] | null;
+    livingPlace: string[] | null;
     createdAt: Date;
+    hasQuotation: boolean;
   };
 }
 
@@ -19,11 +21,13 @@ export class MoverLoginResponseDto {
   mover: {
     id: string;
     username: string;
+    nickname: string;
     email: string;
     phoneNumber: string;
+    isProfile: boolean;
     profileImage: string | null;
-    serviceArea: string | null;
-    serviceList: string | null;
+    serviceArea: string[] | null;
+    serviceList: string[] | null;
     intro: string | null;
     career: string | null;
     detailDescription: string | null;
