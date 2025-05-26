@@ -358,6 +358,8 @@ export class AuthController {
       | CustomerGoogleOauthLoginResponseDto
       | MoverGoogleOauthLoginResponseDto;
 
+    console.log(req.user)
+
     if (req.user?.role === "customer") {
       userInfo = await this.customerAuthService.signUpOrSignInByOauthCustomer(
         req.user,
