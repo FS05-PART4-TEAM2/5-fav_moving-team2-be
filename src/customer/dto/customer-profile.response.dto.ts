@@ -8,7 +8,7 @@ export class CustomerProfileResponseDto {
   email: string;
   isProfile: boolean;
   phoneNumber: string;
-  profileImage: string;
+  profileImage: string | null;
   wantService: ServiceTypeKey[];
   livingPlace: RegionKey[];
 

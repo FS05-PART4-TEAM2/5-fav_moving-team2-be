@@ -32,7 +32,7 @@ export class CustomerProfileController {
 
   @Put("")
   @ApiBearerAuth("access-token")
-  @UseInterceptors(FileInterceptor("profileImg")) // multer가 'profileImg' 필드 파싱
+  @UseInterceptors(FileInterceptor("profileImage")) // multer가 'profileImg' 필드 파싱
   @ApiConsumes("multipart/form-data")
   @ApiBody({
     schema: {

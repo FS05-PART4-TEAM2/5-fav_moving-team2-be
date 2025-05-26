@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { ForbiddenException, Inject, Injectable } from "@nestjs/common";
 import { Customer } from "../customer.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
@@ -26,6 +26,7 @@ export class CustomerProfileService {
   ): Promise<CustomerProfileResponseDto> {
     let url: string | null = null;
 
+    console.log("11111");
     if (request.file) {
       url = await this.storageService.upload(request.file);
 
@@ -34,9 +35,13 @@ export class CustomerProfileService {
       }
     }
 
-    const customer = await this.customerRepository.findOneByOrFail({
+    console.log("22222");
+    const customer = await this.customerRepository.findOneBy({
       id: userId,
     });
+    console.log("33333");
+
+    if (!customer) throw new ForbiddenException();
 
     const updated = this.customerRepository.merge(customer, {
       profileImage: url,
