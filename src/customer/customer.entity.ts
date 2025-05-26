@@ -1,8 +1,11 @@
+import { RegionKey } from "src/common/constants/region.constant";
+import { ServiceTypeKey } from "src/common/constants/service-type.constant";
 import {
   Column,
   CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from "typeorm";
 
 @Entity()
@@ -35,11 +38,14 @@ export class Customer {
   profileImage: string;
 
   @Column("simple-array", { nullable: true })
-  wantService: string[];
+  wantService: ServiceTypeKey[];
 
   @Column("simple-array", { nullable: true })
-  livingPlace: string[];
+  livingPlace: RegionKey[];
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
