@@ -91,6 +91,7 @@ export class CustomerAuthService {
       userId: newCustomer.id,
       accessToken,
       refreshToken,
+      provider: newCustomer.provider,
     });
 
     return { refreshToken, accessToken, customer: newCustomerWithoutPw };
