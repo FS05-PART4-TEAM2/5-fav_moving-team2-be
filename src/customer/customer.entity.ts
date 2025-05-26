@@ -1,8 +1,11 @@
+import { RegionKey } from "src/common/constants/region.constant";
+import { ServiceTypeKey } from "src/common/constants/service-type.constant";
 import {
   Column,
   CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from "typeorm";
 
 @Entity()
@@ -19,7 +22,7 @@ export class Customer {
   @Column({ nullable: true }) // OAuth 가입의 경우에는 패스워드 X
   password: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: false })
   isProfile: boolean; // 프로필 정보 등록했는지 여부
 
   @Column({ nullable: true })
@@ -35,11 +38,14 @@ export class Customer {
   profileImage: string;
 
   @Column("simple-array", { nullable: true })
-  wantService: string[];
+  wantService: ServiceTypeKey[];
 
   @Column("simple-array", { nullable: true })
-  livingPlace: string[];
+  livingPlace: RegionKey[];
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

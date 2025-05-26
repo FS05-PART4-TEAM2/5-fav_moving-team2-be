@@ -1,7 +1,7 @@
 import {
   Body,
   Controller,
-  Post,
+  Put,
   Req,
   UploadedFile,
   UseGuards,
@@ -22,6 +22,7 @@ import {
 import { RegionKey, REGIONS } from "src/common/constants/region.constant";
 import { JwtCookieAuthGuard } from "src/common/guards/jwt-cookie-auth.guard";
 import { CommonApiResponse } from "src/common/dto/api-response.dto";
+import { CustomerProfileResponseDto } from "../dto/customer-profile.response.dto";
 
 @Controller("api/profile/customer")
 export class CustomerProfileController {
@@ -29,7 +30,7 @@ export class CustomerProfileController {
     private readonly customerProfileService: CustomerProfileService,
   ) {}
 
-  @Post("")
+  @Put("")
   @ApiBearerAuth("access-token")
   @UseInterceptors(FileInterceptor("profileImg")) // multer가 'profileImg' 필드 파싱
   @ApiConsumes("multipart/form-data")
@@ -43,14 +44,20 @@ export class CustomerProfileController {
           description: "업로드할 이미지 파일",
         },
         wantService: {
-          type: "string",
-          enum: SERVICE_TYPES.map((s) => s.key),
-          example: "SMALL_MOVE",
+          type: "array",
+          items: {
+            type: "string",
+            enum: SERVICE_TYPES.map((s) => s.key),
+          },
+          example: ["SMALL_MOVE", "BIG_MOVE"],
         },
         livingPlace: {
-          type: "string",
-          enum: REGIONS.map((r) => r.key),
-          example: "SEOUL",
+          type: "array",
+          items: {
+            type: "string",
+            enum: REGIONS.map((r) => r.key),
+          },
+          example: ["SEOUL", "BUSAN"],
         },
       },
       required: ["profileImg", "wantService", "livingPlace"],
@@ -63,15 +70,17 @@ export class CustomerProfileController {
     @UploadedFile() file: Express.Multer.File,
     @Body()
     request: {
-      wantService: ServiceTypeKey;
-      livingPlace: RegionKey;
+      wantService: string;
+      livingPlace: string;
     },
-  ): Promise<CommonApiResponse<null>> {
-    await this.customerProfileService.create({
+  ): Promise<CommonApiResponse<CustomerProfileResponseDto>> {
+    const userId = req.user.userId as string;
+
+    const profile = await this.customerProfileService.create(userId, {
       file,
-      wantService: request.wantService,
-      livingPlace: request.livingPlace,
+      wantService: request.wantService.split(",") as ServiceTypeKey[],
+      livingPlace: request.livingPlace.split(",") as RegionKey[],
     });
-    return CommonApiResponse.success(null, "프로필 등록이 완료되었습니다.");
+    return CommonApiResponse.success(profile, "프로필 등록이 완료되었습니다.");
   }
 }

@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Post,
-  Req,
-  Res,
-  UseGuards,
-  BadRequestException,
-} from "@nestjs/common";
+import { Body, Controller, Post, Res } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { SignUpRequestDto } from "src/common/dto/signup.request.dto";
 import { CommonApiResponse } from "src/common/dto/api-response.dto";
@@ -16,7 +8,6 @@ import { LoginRequestDto } from "src/common/dto/login.request.dto";
 import { CustomerLoginResponseDto } from "src/common/dto/login.response.dto";
 import { Response } from "express";
 import { SetAuthCookies } from "src/common/utils/set-auth-cookies.util";
-import { AuthGuard } from "@nestjs/passport";
 import { AuthService } from "src/auth/auth.service";
 
 @ApiTags("Auth")
