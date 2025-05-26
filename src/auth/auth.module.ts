@@ -14,6 +14,7 @@ import { Customer } from "../customer/customer.entity";
 import { Mover } from "../mover/mover.entity";
 import { MoverAuthService } from "src/mover/auth/auth.service";
 import { NaverStrategy } from "./strategies/naver.strategy";
+import { QuotationModule } from "src/quotation/quotation.module";
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { NaverStrategy } from "./strategies/naver.strategy";
     forwardRef(() => MoverAuthModule),
     JwtModule.register({}),
     TypeOrmModule.forFeature([Auth, Customer, Mover]),
+    forwardRef(() => QuotationModule),
   ],
   controllers: [AuthController],
   providers: [

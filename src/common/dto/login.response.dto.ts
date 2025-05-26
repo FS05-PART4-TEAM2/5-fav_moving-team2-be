@@ -11,6 +11,7 @@ export class CustomerLoginResponseDto {
     wantService: string | null;
     livingPlace: string | null;
     createdAt: Date;
+    hasQuotation: boolean;
   };
 }
 
