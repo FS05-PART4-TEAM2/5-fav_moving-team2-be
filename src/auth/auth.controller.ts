@@ -318,7 +318,8 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    return this.handleOauthRedirect(req, res);
+    await this.handleOauthRedirect(req, res);
+    return res.redirect(`${this.configService.get('FRONT_URL') ?? "http://localhost:3000"}/oauth/callback`);
   }
 
   @Get("naver/redirect")
@@ -332,7 +333,8 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    return this.handleOauthRedirect(req, res);
+    await this.handleOauthRedirect(req, res);
+    return res.redirect(`${this.configService.get('FRONT_URL') ?? "http://localhost:3000"}/oauth/callback`);
   }
 
   @Get("kakao/redirect")
@@ -346,7 +348,8 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    return this.handleOauthRedirect(req, res);
+    await this.handleOauthRedirect(req, res);
+    return res.redirect(`${this.configService.get('FRONT_URL') ?? "http://localhost:3000"}/oauth/callback`);
   }
 
   //OauthRedirect 공통 로직 분리
