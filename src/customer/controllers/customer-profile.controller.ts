@@ -7,7 +7,7 @@ import {
 } from "@nestjs/common";
 import { CustomerProfileService } from "../services/customer-profile.service";
 import { ApiBody, ApiConsumes, ApiOperation } from "@nestjs/swagger";
-import { ApiResponse } from "src/common/dto/api-response.dto";
+import { CommonApiResponse } from "src/common/dto/api-response.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
 import {
   SERVICE_TYPES,
@@ -55,12 +55,12 @@ export class CustomerProfileController {
       wantService: ServiceTypeKey;
       livingPlace: RegionKey;
     },
-  ): Promise<ApiResponse<null>> {
+  ): Promise<CommonApiResponse<null>> {
     await this.customerProfileService.create({
       file,
       wantService: request.wantService,
       livingPlace: request.livingPlace,
     });
-    return ApiResponse.success(null, "프로필 등록이 완료되었습니다.");
+    return CommonApiResponse.success(null, "프로필 등록이 완료되었습니다.");
   }
 }

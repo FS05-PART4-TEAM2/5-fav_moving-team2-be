@@ -148,6 +148,7 @@ export class MoverAuthService {
       mover: {
         id: mover.id,
         username: mover.username,
+        nickname: mover.nickname,
         email: mover.email,
         phoneNumber: mover.phoneNumber,
         profileImage: null,

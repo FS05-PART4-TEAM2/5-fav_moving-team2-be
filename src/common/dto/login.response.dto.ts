@@ -19,6 +19,7 @@ export class MoverLoginResponseDto {
   mover: {
     id: string;
     username: string;
+    nickname: string;
     email: string;
     phoneNumber: string;
     profileImage: string | null;
