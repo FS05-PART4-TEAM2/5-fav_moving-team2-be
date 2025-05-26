@@ -35,7 +35,7 @@ export class Customer {
   phoneNumber: string;
 
   @Column({ nullable: true })
-  profileImage: string;
+  profileImage: string | null;
 
   @Column("simple-array", { nullable: true })
   wantService: ServiceTypeKey[];

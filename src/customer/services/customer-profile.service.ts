@@ -19,15 +19,19 @@ export class CustomerProfileService {
   async create(
     userId: string,
     request: {
-      file: Express.Multer.File;
+      file: Express.Multer.File | undefined;
       wantService: ServiceTypeKey[];
       livingPlace: RegionKey[];
     },
   ): Promise<CustomerProfileResponseDto> {
-    let url = await this.storageService.upload(request.file);
+    let url: string | null = null;
 
-    if (this.storageService.getSignedUrlFromS3Url) {
-      url = await this.storageService.getSignedUrlFromS3Url(url);
+    if (request.file) {
+      url = await this.storageService.upload(request.file);
+
+      if (typeof this.storageService.getSignedUrlFromS3Url === "function") {
+        url = await this.storageService.getSignedUrlFromS3Url(url);
+      }
     }
 
     const customer = await this.customerRepository.findOneByOrFail({

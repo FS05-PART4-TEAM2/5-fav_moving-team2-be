@@ -38,10 +38,10 @@ export class CustomerProfileController {
     schema: {
       type: "object",
       properties: {
-        profileImg: {
+        profileImage: {
           type: "string",
           format: "binary",
-          description: "업로드할 이미지 파일",
+          description: "업로드할 이미지 파일 (선택)",
         },
         wantService: {
           type: "array",
@@ -60,14 +60,14 @@ export class CustomerProfileController {
           example: ["SEOUL", "BUSAN"],
         },
       },
-      required: ["profileImg", "wantService", "livingPlace"],
+      required: ["wantService", "livingPlace"],
     },
   })
-  @ApiOperation({ summary: "소비자 프로필 등록" })
+  @ApiOperation({ summary: "소비자 프로필 등록/수정" })
   @UseGuards(JwtCookieAuthGuard)
   async signUpCustomer(
     @Req() req,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file: Express.Multer.File | undefined,
     @Body()
     request: {
       wantService: string;
