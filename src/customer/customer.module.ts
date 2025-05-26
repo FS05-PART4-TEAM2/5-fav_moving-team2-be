@@ -5,12 +5,14 @@ import { CustomerProfileService } from "src/customer/services/customer-profile.s
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Customer } from "./customer.entity";
 import { StorageModule } from "src/common/storage/storage.module";
+import { AuthModule } from "src/auth/auth.module";
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Customer]),
     CustomerAuthModule,
     StorageModule,
+    AuthModule,
   ],
   controllers: [CustomerProfileController],
   providers: [CustomerProfileService],
