@@ -6,6 +6,7 @@ export class CustomerLoginResponseDto {
     username: string;
     email: string;
     phoneNumber: string;
+    isProfile: boolean;
     profileImage: string | null;
     wantService: string | null;
     livingPlace: string | null;
@@ -22,6 +23,7 @@ export class MoverLoginResponseDto {
     nickname: string;
     email: string;
     phoneNumber: string;
+    isProfile: boolean;
     profileImage: string | null;
     serviceArea: string | null;
     serviceList: string | null;

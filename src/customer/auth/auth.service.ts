@@ -150,6 +150,7 @@ export class CustomerAuthService {
         username: customer.username,
         email: customer.email,
         phoneNumber: customer.phoneNumber,
+        isProfile: !!customer.profileImage,
         profileImage: null,
         wantService: null,
         livingPlace: null,
