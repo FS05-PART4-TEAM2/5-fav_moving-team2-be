@@ -26,7 +26,7 @@ export class CustomerProfileRequestDto {
 
   @IsString()
   @IsOptional()
-  phoneNumber: string;
+  phoneNumber?: string;
 
   @IsString()
   wantService: string;

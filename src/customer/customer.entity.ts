@@ -34,7 +34,7 @@ export class Customer {
   @Column()
   phoneNumber: string;
 
-  @Column({ nullable: true })
+  @Column({ type: "varchar", nullable: true })
   profileImage: string | null;
 
   @Column("simple-array", { nullable: true })

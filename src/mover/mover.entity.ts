@@ -1,3 +1,5 @@
+import { RegionKey } from "src/common/constants/region.constant";
+import { ServiceTypeKey } from "src/common/constants/service-type.constant";
 import {
   Column,
   CreateDateColumn,
@@ -31,17 +33,14 @@ export class Mover {
   @Column({ nullable: true })
   provider: string; // OAuth 제공자 : google, naver, kakao 등
 
-  @Column({ nullable: true })
-  profileImage: string;
-
-  @Column({ nullable: true })
-  img: string;
+  @Column({ type: "varchar", nullable: true })
+  profileImage: string | null;
 
   @Column("simple-array", { nullable: true })
-  serviceArea: string[];
+  serviceArea: RegionKey[];
 
   @Column("simple-array", { nullable: true })
-  serviceList: string[];
+  serviceList: ServiceTypeKey[];
 
   @Column({ nullable: true, type: "text" })
   intro: string;

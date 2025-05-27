@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus } from '@nestjs/common';
+import { HttpException, HttpStatus } from "@nestjs/common";
 
 export class OauthProviderConflictException extends HttpException {
   constructor(currentProvider: string) {
@@ -6,7 +6,7 @@ export class OauthProviderConflictException extends HttpException {
       {
         statusCode: HttpStatus.CONFLICT,
         message: `${currentProvider} 계정으로 가입되어 있는 회원입니다.`,
-        error: 'OauthProviderConflictException',
+        error: "OauthProviderConflictException",
       },
       HttpStatus.CONFLICT,
     );

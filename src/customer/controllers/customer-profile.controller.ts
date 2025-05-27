@@ -15,14 +15,12 @@ import {
   ApiOperation,
 } from "@nestjs/swagger";
 import { FileInterceptor } from "@nestjs/platform-express";
-import {
-  SERVICE_TYPES,
-  ServiceTypeKey,
-} from "src/common/constants/service-type.constant";
-import { RegionKey, REGIONS } from "src/common/constants/region.constant";
+import { ServiceTypeKey } from "src/common/constants/service-type.constant";
+import { RegionKey } from "src/common/constants/region.constant";
 import { JwtCookieAuthGuard } from "src/common/guards/jwt-cookie-auth.guard";
 import { CommonApiResponse } from "src/common/dto/api-response.dto";
 import { CustomerProfileResponseDto } from "../dto/customer-profile.response.dto";
+import { CustomerProfileRequestDto } from "../dto/customer-profile.request.dto";
 
 @Controller("api/profile/customer")
 export class CustomerProfileController {
@@ -32,7 +30,7 @@ export class CustomerProfileController {
 
   @Put("")
   @ApiBearerAuth("access-token")
-  @UseInterceptors(FileInterceptor("profileImg")) // multer가 'profileImg' 필드 파싱
+  @UseInterceptors(FileInterceptor("profileImage")) // multer가 'profileImg' 필드 파싱
   @ApiConsumes("multipart/form-data")
   @ApiBody({
     schema: {
@@ -43,21 +41,38 @@ export class CustomerProfileController {
           format: "binary",
           description: "업로드할 이미지 파일 (선택)",
         },
+        username: {
+          type: "string",
+          description: "사용자 이름 (선택)",
+          example: "john_doe",
+          nullable: true,
+        },
+        currPassword: {
+          type: "string",
+          description: "현재 비밀번호 (비밀번호 변경 시 필요)",
+          example: "current123!",
+          nullable: true,
+        },
+        newPassword: {
+          type: "string",
+          description: "새 비밀번호 (비밀번호 변경 시 필요)",
+          example: "newSecurePassword!",
+          nullable: true,
+        },
+        phoneNumber: {
+          type: "string",
+          description: "전화번호",
+          example: "101-0000-0000",
+        },
         wantService: {
-          type: "array",
-          items: {
-            type: "string",
-            enum: SERVICE_TYPES.map((s) => s.key),
-          },
-          example: ["SMALL_MOVE", "BIG_MOVE"],
+          type: "string",
+          description: "원하는 서비스 (문자열, 쉼표로 구분)",
+          example: "SMALL_MOVE,BIG_MOVE",
         },
         livingPlace: {
-          type: "array",
-          items: {
-            type: "string",
-            enum: REGIONS.map((r) => r.key),
-          },
-          example: ["SEOUL", "BUSAN"],
+          type: "string",
+          description: "사는 지역 (문자열, 쉼표로 구분)",
+          example: "SEOUL,BUSAN",
         },
       },
       required: ["wantService", "livingPlace"],
@@ -69,17 +84,16 @@ export class CustomerProfileController {
     @Req() req,
     @UploadedFile() file: Express.Multer.File | undefined,
     @Body()
-    request: {
-      wantService: string;
-      livingPlace: string;
-    },
+    request: CustomerProfileRequestDto,
   ): Promise<CommonApiResponse<CustomerProfileResponseDto>> {
     const userId = req.user.userId as string;
+    const { wantService, livingPlace, ...rest } = request;
 
     const profile = await this.customerProfileService.create(userId, {
       file,
-      wantService: request.wantService.split(",") as ServiceTypeKey[],
-      livingPlace: request.livingPlace.split(",") as RegionKey[],
+      wantService: wantService.split(",") as ServiceTypeKey[],
+      livingPlace: livingPlace.split(",") as RegionKey[],
+      ...rest,
     });
     return CommonApiResponse.success(profile, "프로필 등록이 완료되었습니다.");
   }
