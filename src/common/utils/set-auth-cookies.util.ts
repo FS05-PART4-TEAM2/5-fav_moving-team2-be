@@ -16,7 +16,13 @@ export class SetAuthCookies {
       sameSite: isLocal ? "lax" : "none", // 로컬은 lax, 운영은 none
     } as const;
 
-    res.cookie("accessToken", accessToken, cookieOptions);
-    res.cookie("refreshToken", refreshToken, cookieOptions);
+    res.cookie("accessToken", accessToken, {
+      ...cookieOptions,
+      maxAge: 1000 * 60 * 60,
+    });
+    res.cookie("refreshToken", refreshToken, {
+      ...cookieOptions,
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+    });
   }
 }
