@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Res } from "@nestjs/common";
+import { Body, Controller, Post, Req, Res } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { SignUpRequestDto } from "src/common/dto/signup.request.dto";
 import { CommonApiResponse } from "src/common/dto/api-response.dto";
@@ -6,7 +6,7 @@ import { Customer } from "../customer.entity";
 import { CustomerAuthService } from "./auth.service";
 import { LoginRequestDto } from "src/common/dto/login.request.dto";
 import { CustomerLoginResponseDto } from "src/common/dto/login.response.dto";
-import { Response } from "express";
+import { Request, Response } from "express";
 import { SetAuthCookies } from "src/common/utils/set-auth-cookies.util";
 import { AuthService } from "src/auth/auth.service";
 
@@ -31,10 +31,12 @@ export class CustomerAuthController {
   @ApiOperation({ summary: "소비자 로그인" })
   async loginCustomer(
     @Body() LoginRequestDto: LoginRequestDto,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<CommonApiResponse<CustomerLoginResponseDto>> {
     const loginResponse = await this.authService.login(LoginRequestDto);
     SetAuthCookies.set(
+      req,
       res,
       loginResponse.accessToken,
       loginResponse.refreshToken,

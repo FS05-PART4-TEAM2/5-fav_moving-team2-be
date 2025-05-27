@@ -5,7 +5,7 @@ import { Mover } from "../mover.entity";
 import { SignUpRequestDto } from "src/common/dto/signup.request.dto";
 import { LoginRequestDto } from "src/common/dto/login.request.dto";
 import { MoverLoginResponseDto } from "src/common/dto/login.response.dto";
-import { Response } from "express";
+import { Request, Response } from "express";
 import { SetAuthCookies } from "src/common/utils/set-auth-cookies.util";
 import { MoverAuthService } from "./auth.service";
 
@@ -27,10 +27,12 @@ export class MoverAuthController {
   @ApiOperation({ summary: "로그인" })
   async loginMover(
     @Body() LoginRequestDto: LoginRequestDto,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<CommonApiResponse<MoverLoginResponseDto>> {
     const loginResponse = await this.moverAuthService.login(LoginRequestDto);
     SetAuthCookies.set(
+      req,
       res,
       loginResponse.accessToken,
       loginResponse.refreshToken,

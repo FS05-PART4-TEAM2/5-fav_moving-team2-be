@@ -319,7 +319,9 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     await this.handleOauthRedirect(req, res);
-    res.redirect(`${this.configService.get('FRONT_URL') ?? "http://localhost:3000"}/oauth/callback`);
+    res.redirect(
+      `${this.configService.get("FRONT_URL") ?? "http://localhost:3000"}/oauth/callback`,
+    );
   }
 
   @Get("naver/redirect")
@@ -334,7 +336,9 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     await this.handleOauthRedirect(req, res);
-    res.redirect(`${this.configService.get('FRONT_URL') ?? "http://localhost:3000"}/oauth/callback`);
+    res.redirect(
+      `${this.configService.get("FRONT_URL") ?? "http://localhost:3000"}/oauth/callback`,
+    );
   }
 
   @Get("kakao/redirect")
@@ -349,7 +353,9 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     await this.handleOauthRedirect(req, res);
-    res.redirect(`${this.configService.get('FRONT_URL') ?? "http://localhost:3000"}/oauth/callback`);
+    res.redirect(
+      `${this.configService.get("FRONT_URL") ?? "http://localhost:3000"}/oauth/callback`,
+    );
   }
 
   //OauthRedirect 공통 로직 분리
@@ -361,13 +367,13 @@ export class AuthController {
       | CustomerGoogleOauthLoginResponseDto
       | MoverGoogleOauthLoginResponseDto;
 
-    console.log(req.user)
+    console.log(req.user);
 
     if (req.user?.role === "customer") {
       userInfo = await this.customerAuthService.signUpOrSignInByOauthCustomer(
         req.user,
       );
-      SetAuthCookies.set(res, userInfo.accessToken, userInfo.refreshToken);
+      SetAuthCookies.set(req, res, userInfo.accessToken, userInfo.refreshToken);
       return CommonApiResponse.success(userInfo.customer, "손님 로그인 완료");
     }
 
@@ -375,7 +381,7 @@ export class AuthController {
       userInfo = await this.moverAuthService.signUpOrSignInByOauthMover(
         req.user,
       );
-      SetAuthCookies.set(res, userInfo.accessToken, userInfo.refreshToken);
+      SetAuthCookies.set(req, res, userInfo.accessToken, userInfo.refreshToken);
       return CommonApiResponse.success(userInfo.mover, "기사 로그인 완료");
     }
 
@@ -403,7 +409,7 @@ export class AuthController {
     const { accessToken, refreshToken: newRefreshToken } =
       await service.refreshAccessToken(refreshToken);
 
-    SetAuthCookies.set(res, accessToken, newRefreshToken);
+    SetAuthCookies.set(req, res, accessToken, newRefreshToken);
     return CommonApiResponse.success(
       { accessToken },
       "AccessToken이 갱신되었습니다.",

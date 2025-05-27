@@ -1,16 +1,24 @@
-import { Response } from "express";
+import { Request, Response } from "express";
 
 export class SetAuthCookies {
-  static set(res: Response, accessToken: string, refreshToken: string) {
+  static set(
+    req: Request,
+    res: Response,
+    accessToken: string,
+    refreshToken: string,
+  ) {
+    const origin = req.headers.origin;
+    const isLocal = origin?.startsWith("http://localhost");
+
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+      secure: !isLocal,
+      sameSite: isLocal ? "lax" : "none",
     });
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+      secure: !isLocal,
+      sameSite: isLocal ? "lax" : "none",
     });
   }
 }
