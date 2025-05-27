@@ -8,18 +8,12 @@ export class SetAuthCookies {
     refreshToken: string,
   ) {
     const origin = req.headers.origin ?? "";
-    const apiProtocol = req.protocol; // 'http' or 'https'
     const isLocal = origin.startsWith("http://localhost");
-
-    const isSecure = apiProtocol === "https" && !isLocal;
-    const sameSite: "lax" | "none" = isLocal ? "lax" : "none";
-
-    console.log({ origin, apiProtocol, isLocal, isSecure, sameSite });
 
     const cookieOptions = {
       httpOnly: true,
-      secure: isSecure,
-      sameSite,
+      secure: !isLocal, // 로컬은 false, 운영은 true
+      sameSite: isLocal ? "lax" : "none", // 로컬은 lax, 운영은 none
     } as const;
 
     res.cookie("accessToken", accessToken, cookieOptions);
