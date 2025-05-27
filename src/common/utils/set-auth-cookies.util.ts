@@ -4,13 +4,13 @@ export class SetAuthCookies {
   static set(res: Response, accessToken: string, refreshToken: string) {
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+      secure: process.env.NODE_ENV === "production" || process.env.NODE_ENV === "develop",
+      sameSite: process.env.NODE_ENV === "production" || process.env.NODE_ENV === "develop" ? "none" : "lax",
     });
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+      secure: process.env.NODE_ENV === "production" || process.env.NODE_ENV === "develop",
+      sameSite: process.env.NODE_ENV === "production" || process.env.NODE_ENV === "develop" ? "none" : "lax",
     });
   }
 }
