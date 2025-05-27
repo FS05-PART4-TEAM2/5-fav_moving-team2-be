@@ -12,7 +12,14 @@ export class JwtCookieAuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const accessToken = request.cookies["accessToken"];
+    const accessToken = request.cookies["accessToken"] as string;
+
+    if (!accessToken) {
+      const authHeader = request.headers["authorization"];
+      if (authHeader?.startsWith("Bearer ")) {
+        accessToken = authHeader.replace("Bearer ", "");
+      }
+    }
 
     if (!accessToken) {
       throw new UnauthorizedException("Access token is missing in cookies.");

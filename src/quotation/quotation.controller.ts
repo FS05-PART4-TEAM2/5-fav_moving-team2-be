@@ -13,10 +13,7 @@ import { JwtCookieAuthGuard } from "../common/guards/jwt-cookie-auth.guard";
 import { CustomerCreateQuotationRequestDto } from "src/common/dto/quotation.request.dto";
 import { CommonApiResponse } from "src/common/dto/api-response.dto";
 import { Quotation } from "./quotation.entity";
-import {
-  PaginatedResponseDto,
-  PaginationDto,
-} from "src/common/dto/pagination.dto";
+import { PaginatedResponseDto } from "src/common/dto/pagination.dto";
 
 @Controller("api/quotation")
 export class QuotationController {
