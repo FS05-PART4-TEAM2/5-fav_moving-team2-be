@@ -25,7 +25,6 @@ import { SafeMover } from "src/customer/types/moverWithoutPw";
 import { MoverAuthService } from "src/mover/auth/auth.service";
 import { SetAuthCookies } from "src/common/utils/set-auth-cookies.util";
 import {
-  ApiBadGatewayResponse,
   ApiOkResponse,
   ApiOperation,
   ApiResponse,
