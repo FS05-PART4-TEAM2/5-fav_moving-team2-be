@@ -5,7 +5,7 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Repository, MoreThan } from "typeorm";
 import { Customer } from "../customer.entity";
 import { SignUpRequestDto } from "src/common/dto/signup.request.dto";
 import { UserExistsException } from "src/common/exceptions/user-exists.exception";
@@ -20,12 +20,15 @@ import {
   OauthLoginRequestDto,
 } from "../../common/dto/oauthLogin.dto";
 import { OauthProviderConflictException } from "src/common/exceptions/oauth-provider-conflict.exception";
+import { Quotation } from "src/quotation/quotation.entity";
 
 @Injectable()
 export class CustomerAuthService {
   constructor(
     @InjectRepository(Customer)
     private readonly customerRepository: Repository<Customer>,
+    @InjectRepository(Quotation)
+    private readonly quotationRepository: Repository<Quotation>,
     @Inject(forwardRef(() => SharedAuthService))
     private readonly sharedAuthService: SharedAuthService,
   ) {}
@@ -88,6 +91,7 @@ export class CustomerAuthService {
       userId: newCustomer.id,
       accessToken,
       refreshToken,
+      provider: newCustomer.provider,
     });
 
     return { refreshToken, accessToken, customer: newCustomerWithoutPw };
@@ -140,19 +144,29 @@ export class CustomerAuthService {
     const payload = { sub: customer.id, email: customer.email };
     const { accessToken, refreshToken } =
       this.sharedAuthService.generateTokens(payload);
+
+    const hasQuotation =
+      (await this.quotationRepository.count({
+        where: {
+          customerId: customer.id,
+          moveDate: MoreThan(new Date().toISOString()),
+        },
+      })) > 0;
+
     const response: CustomerLoginResponseDto = {
       accessToken,
       refreshToken,
-
       customer: {
         id: customer.id,
         username: customer.username,
         email: customer.email,
         phoneNumber: customer.phoneNumber,
-        profileImage: null,
-        wantService: null,
-        livingPlace: null,
+        isProfile: !!customer.profileImage,
+        profileImage: customer.profileImage || null,
+        wantService: customer.wantService || null,
+        livingPlace: customer.livingPlace || null,
         createdAt: customer.createdAt,
+        hasQuotation,
       },
     };
 

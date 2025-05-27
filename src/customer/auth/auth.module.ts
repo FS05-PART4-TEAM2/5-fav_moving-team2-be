@@ -5,12 +5,14 @@ import { Customer } from "../customer.entity";
 import { CustomerAuthService } from "./auth.service";
 import { JwtModule } from "@nestjs/jwt";
 import { AuthModule as CommonAuthModule } from "src/auth/auth.module";
+import { QuotationModule } from "src/quotation/quotation.module";
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Customer]),
     JwtModule.register({}),
     forwardRef(() => CommonAuthModule),
+    QuotationModule, // QuotationModule 추가
   ],
   providers: [CustomerAuthService],
   controllers: [CustomerAuthController],

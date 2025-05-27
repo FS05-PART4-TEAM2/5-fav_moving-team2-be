@@ -14,11 +14,11 @@ import {
   ApiConsumes,
   ApiOperation,
 } from "@nestjs/swagger";
-import { CommonApiResponse } from "src/common/dto/api-response.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ServiceTypeKey } from "src/common/constants/service-type.constant";
 import { RegionKey } from "src/common/constants/region.constant";
 import { JwtCookieAuthGuard } from "src/common/guards/jwt-cookie-auth.guard";
+import { CommonApiResponse } from "src/common/dto/api-response.dto";
 import { CustomerProfileResponseDto } from "../dto/customer-profile.response.dto";
 import { CustomerProfileRequestDto } from "../dto/customer-profile.request.dto";
 
@@ -95,7 +95,6 @@ export class CustomerProfileController {
       livingPlace: livingPlace.split(",") as RegionKey[],
       ...rest,
     });
-
     return CommonApiResponse.success(profile, "프로필 등록이 완료되었습니다.");
   }
 }
