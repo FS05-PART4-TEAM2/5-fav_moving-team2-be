@@ -60,6 +60,9 @@ export class Mover {
   @Column({ default: 0 })
   reviewCounts: number;
 
+  @Column({ default: 0})
+  confirmedCounts: number; // 확정 견적 개수
+
   @CreateDateColumn()
   createdAt: Date;
 }
