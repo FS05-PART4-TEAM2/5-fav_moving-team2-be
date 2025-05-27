@@ -7,7 +7,7 @@ import { Mover } from "./mover.entity";
 import { StorageModule } from "src/common/storage/storage.module";
 import { AuthModule } from "src/auth/auth.module";
 import { MoverInfoController } from "./controllers/mover-info.controller";
-import { MoverInfoService } from "./services/mover-list.service";
+import { MoverInfoService } from "./services/mover-info.service";
 
 @Module({
   imports: [

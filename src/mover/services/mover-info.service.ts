@@ -11,7 +11,8 @@ export class MoverInfoService {
     private moverRepository: Repository<Mover>
   ){}
 
-  async getMoverList(moverListRequestDto: MoverListRequestDto) {
+  async getMoverList(moverListRequestDto: MoverListRequestDto, userId: string, userType: string) {
     const { keyword, orderBy, region, service } = moverListRequestDto;
+    return "hi"
   }
 }

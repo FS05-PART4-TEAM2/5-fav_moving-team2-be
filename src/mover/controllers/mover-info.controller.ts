@@ -1,5 +1,5 @@
 import { Controller, Get, Query, Req, UseGuards } from "@nestjs/common";
-import { MoverInfoService } from "../services/mover-list.service";
+import { MoverInfoService } from "../services/mover-info.service";
 import { MoverListRequestDto } from "../dto/mover-list.request.dto";
 import { JustLookUserGuard } from "src/common/guards/just-look-user.guard";
 
@@ -9,9 +9,15 @@ export class MoverInfoController {
 
   @Get()
   @UseGuards(JustLookUserGuard)
-  async getMoverList(@Req() req,@Query() moverListRequestDto: MoverListRequestDto) {
-    console.log(req.user , "hi")
-    // return this.moverListService.getMoverList(moverListRequestDto);
-    return "test";
+  async getMoverList(
+    @Req() req,
+    @Query() moverListRequestDto: MoverListRequestDto,
+  ) {
+    console.log(typeof req.user.userId);
+    return this.moverInfoService.getMoverList(
+      moverListRequestDto,
+      req.user.userId,
+      req.user.userType,
+    );
   }
 }
