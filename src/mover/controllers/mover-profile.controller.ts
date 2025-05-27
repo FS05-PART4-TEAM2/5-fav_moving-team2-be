@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Put,
   Req,
   UploadedFile,
@@ -165,5 +166,20 @@ export class MoverProfileController {
     const updated = await this.moverProfileService.modifyInfo(userId, request);
 
     return CommonApiResponse.success(updated, "기본 정보가 수정되었습니다.");
+  }
+
+  /** */
+  @Get("")
+  @ApiBearerAuth("access-token")
+  @ApiOperation({ summary: "기사님 프로필 조회" })
+  @UseGuards(JwtCookieAuthGuard)
+  async getProfile(
+    @Req() req,
+  ): Promise<CommonApiResponse<MoverProfileResponseDto>> {
+    const userId = req.user.userId as string;
+
+    const profile = await this.moverProfileService.getProfile(userId);
+
+    return CommonApiResponse.success(profile, "프로필 조회에 성공하였습니다.");
   }
 }
