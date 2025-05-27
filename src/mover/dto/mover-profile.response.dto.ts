@@ -12,6 +12,7 @@ export class MoverProfileResponseDto {
   profileImage: string | null;
   intro: string;
   detailDescription: string;
+  career: string;
   likeCount: number;
   totalRating: number;
   reviewCounts: number;
@@ -29,6 +30,7 @@ export class MoverProfileResponseDto {
     dto.profileImage = mover.profileImage;
     dto.intro = mover.intro;
     dto.detailDescription = mover.detailDescription;
+    dto.career = mover.career;
     dto.likeCount = mover.likeCount;
     dto.totalRating = mover.totalRating;
     dto.reviewCounts = mover.reviewCounts;

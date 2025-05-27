@@ -1,4 +1,9 @@
-import { ForbiddenException, Inject, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+} from "@nestjs/common";
 import { Customer } from "../customer.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
@@ -6,6 +11,8 @@ import { ServiceTypeKey } from "src/common/constants/service-type.constant";
 import { RegionKey } from "src/common/constants/region.constant";
 import { StorageService } from "src/common/interfaces/storage.service";
 import { CustomerProfileResponseDto } from "../dto/customer-profile.response.dto";
+import * as bcrypt from "bcrypt";
+import { InvalidCredentialsException } from "src/common/exceptions/invalid-credentials.exception";
 
 @Injectable()
 export class CustomerProfileService {
@@ -20,36 +27,58 @@ export class CustomerProfileService {
     userId: string,
     request: {
       file: Express.Multer.File | undefined;
+      username?: string;
+      currPassword?: string;
+      newPassword?: string;
       wantService: ServiceTypeKey[];
       livingPlace: RegionKey[];
     },
   ): Promise<CustomerProfileResponseDto> {
     let url: string | null = null;
+    const { file, currPassword, newPassword, ...rest } = request;
 
-    console.log("11111");
-    if (request.file) {
-      url = await this.storageService.upload(request.file);
+    /** customer 조회 */
+    const customer = await this.customerRepository.findOneBy({
+      id: userId,
+    });
+
+    if (!customer) throw new ForbiddenException();
+
+    /** password 처리 */
+    let hashedPassword = customer.password;
+    if (currPassword && newPassword) {
+      if (!currPassword || !newPassword) {
+        throw new BadRequestException(
+          "Both current and new passwords must be provided.",
+        );
+      }
+      const isPasswordValid = await bcrypt.compare(
+        currPassword,
+        customer.password,
+      );
+      if (!isPasswordValid) {
+        throw new InvalidCredentialsException();
+      }
+
+      hashedPassword = await bcrypt.hash(newPassword, 10);
+    }
+
+    if (file) {
+      url = await this.storageService.upload(file);
 
       if (typeof this.storageService.getSignedUrlFromS3Url === "function") {
         url = await this.storageService.getSignedUrlFromS3Url(url);
       }
     }
 
-    console.log("22222");
-    const customer = await this.customerRepository.findOneBy({
-      id: userId,
-    });
-    console.log("33333");
-
-    if (!customer) throw new ForbiddenException();
-
     const updated = this.customerRepository.merge(customer, {
       profileImage: url,
-      wantService: request.wantService,
-      livingPlace: request.livingPlace,
       isProfile: true,
+      password: hashedPassword,
+      ...rest,
     });
 
-    return CustomerProfileResponseDto.of(updated);
+    const saved = await this.customerRepository.save(updated);
+    return CustomerProfileResponseDto.of(saved);
   }
 }
