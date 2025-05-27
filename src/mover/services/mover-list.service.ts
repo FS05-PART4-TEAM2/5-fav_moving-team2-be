@@ -5,7 +5,7 @@ import { Repository } from "typeorm";
 import { MoverListRequestDto } from "../dto/mover-list.request.dto";
 
 @Injectable()
-export class MoverListService {
+export class MoverInfoService {
   constructor(
     @InjectRepository(Mover)
     private moverRepository: Repository<Mover>

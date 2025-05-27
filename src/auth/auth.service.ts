@@ -71,6 +71,7 @@ export class AuthService {
   }
 
   async findByToken(accessToken: string): Promise<Auth | null> {
+    if (!accessToken) return null;
     return this.authRepository.findOne({ where: { accessToken } });
   }
 
