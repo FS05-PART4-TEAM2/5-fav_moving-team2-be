@@ -30,7 +30,7 @@ export class JwtCookieAuthGuard implements CanActivate {
       if (!user) {
         throw new UnauthorizedException("존재하지않는 AccessToken입니다.");
       }
-      request.user = { userId: user.userId };
+      request.user = { userId: user.userId, userType: user.userType };
       return true;
     } catch (error) {
       throw new UnauthorizedException("Invalid or expired access token.");
