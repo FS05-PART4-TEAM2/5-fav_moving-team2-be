@@ -30,33 +30,32 @@ export class AuthService {
     });
     return { accessToken, refreshToken };
   }
-
-  // Auth 테이블 조회 후 logoutAt가 Null이면 업데이트 , 값이 있다면 새로 생성
+  // Auth 테이블 조회 후 logoutAt가 Null이면 업데이트, 값이 있다면 새로 생성
   async recordLogin(recordLogin: recordLoginDto) {
     const existing = await this.authRepository.findOne({
       where: {
         userType: recordLogin.userType,
         userId: recordLogin.userId,
-        logoutAt: IsNull(),
+        logoutAt: IsNull(), // 로그아웃되지 않은 레코드만 찾기
       },
     });
 
     if (existing) {
-      if (!existing.logoutAt) {
-        await this.authRepository.update(existing.id, {
-          accessToken: recordLogin.accessToken,
-          refreshToken: recordLogin.refreshToken,
-          updatedAt: new Date(),
-        });
-        return;
-      }
+      // logoutAt가 null인 레코드를 찾았으므로 업데이트
+      await this.authRepository.update(existing.id, {
+        accessToken: recordLogin.accessToken,
+        refreshToken: recordLogin.refreshToken,
+        updatedAt: new Date(),
+      });
+      return;
     }
 
+    // 기존 활성 세션이 없으므로 새 레코드 생성
     const record = this.authRepository.create({
       ...recordLogin,
       logoutAt: null,
     });
-    const savedRecord = await this.authRepository.save(record);
+    await this.authRepository.save(record);
   }
 
   async logout(accessToken: string): Promise<void> {
@@ -91,7 +90,6 @@ export class AuthService {
       return null;
     }
   }
-
   async refreshAccessToken(
     refreshToken: string,
   ): Promise<RefreshTokenResponseDto> {
@@ -106,6 +104,12 @@ export class AuthService {
 
       if (!existingRecord) {
         throw new NotFoundException("유효하지 않은 refreshToken입니다.");
+      }
+
+      if (existingRecord.logoutAt) {
+        throw new NotFoundException(
+          "로그아웃된 토큰입니다. 다시 로그인해주세요.",
+        );
       }
 
       const newAccessToken = this.jwtService.sign(
@@ -126,6 +130,9 @@ export class AuthService {
       });
       return { accessToken: newAccessToken, refreshToken };
     } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
       throw new NotFoundException("refreshToken 검증에 실패했습니다.");
     }
   }

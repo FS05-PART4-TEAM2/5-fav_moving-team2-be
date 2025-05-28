@@ -1,3 +1,7 @@
+import { ServiceQuotaTemplateAssociationStatus } from "aws-sdk/clients/servicequotas";
+import { IsEnum } from "class-validator";
+import { QuotationState } from "src/common/constants/quotation-state.constant";
+import { ServiceTypeKey } from "src/common/constants/service-type.constant";
 import {
   Column,
   CreateDateColumn,
@@ -13,7 +17,7 @@ export class Quotation {
   id: string;
 
   @Column()
-  moveType: string;
+  moveType: ServiceTypeKey;
 
   @Column()
   moveDate: string;
@@ -28,7 +32,7 @@ export class Quotation {
   endAddress: string;
 
   @Column({ default: "pending" })
-  status: "pending" | "confirmed" | "completed" | "deleted";
+  status: QuotationState;
 
   @Column()
   customerId: string;

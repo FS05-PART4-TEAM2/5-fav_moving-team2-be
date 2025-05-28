@@ -88,7 +88,7 @@ export class MoverProfileController {
     @Body()
     request: {
       nickname: string;
-      career: string;
+      career: number;
       intro: string;
       detailDescription: string;
       serviceList: string;

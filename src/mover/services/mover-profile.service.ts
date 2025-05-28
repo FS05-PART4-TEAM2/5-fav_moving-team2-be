@@ -28,7 +28,7 @@ export class MoverProfileService {
     request: {
       file: Express.Multer.File | undefined;
       nickname: string;
-      career: string;
+      career: number;
       intro: string;
       detailDescription: string;
       serviceList: ServiceTypeKey[];
