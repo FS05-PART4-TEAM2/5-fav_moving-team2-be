@@ -2,17 +2,18 @@ import { RegionKey } from "src/common/constants/region.constant";
 
 export class ReceivedQuotationResponseDto {
   id: string;
+  isAssigned: boolean;
+  moveType: string;
   offerMover: {
     id: string;
     username: string;
     likeCount: number;
     totalRating: number;
     reviewCounts: number;
-    completedQuotationCount: number;
+    confirmedQuotationCount: number;
   };
   quotation: {
     id: string;
-    moveType: string;
     moveDate: string;
     startAddress: string;
     endAddress: string;
