@@ -24,7 +24,8 @@ export class MoverInfoService {
       orderBy,
       region,
       service,
-      cursor,
+      idNumCursor,
+      orderCursor,
       limit = 10,
     } = moverListRequestDto;
 
@@ -46,46 +47,37 @@ export class MoverInfoService {
     }
 
     // 정렬 기준에 따른 orderBy 속성 변경 로직
-    switch (orderBy) {
-      case "BESTRATING":
-        qb.orderBy("mover.totalRating", "DESC").addOrderBy(
-          "mover.idNum",
-          "DESC",
+    const field = getCursorField(orderBy);
+    if (field === "idNum") {
+      qb.orderBy("mover.idNum", "DESC");
+      if (idNumCursor != null) {
+        qb.andWhere("mover.idNum < :idNumCursor", { idNumCursor });
+      }
+    } else {
+      qb.orderBy(`mover.${field}`, "DESC").addOrderBy("mover.idNum", "DESC");
+      if (orderCursor != null && idNumCursor != null) {
+        qb.andWhere(
+          `(mover.${field} < :orderCursor OR (mover.${field} = :orderCursor AND mover.idNum < :idNumCursor))`,
+          {
+            orderCursor,
+            idNumCursor,
+          },
         );
-        if (cursor) {
-          qb.andWhere("mover.idNum < :cursor", { cursor });
-        }
-        break;
-      case "HIGHESTEXP":
-        qb.orderBy("mover.career", "DESC").addOrderBy("mover.idNum", "DESC");
-        if (cursor) {
-          qb.andWhere("mover.idNum < :cursor", { cursor });
-        }
-        break;
-      case "MOSTCONFIRM":
-        qb.orderBy("mover.confirmedCounts", "DESC").addOrderBy("mover.idNum", "DESC");
-        if (cursor) {
-          qb.andWhere("mover.idNum < :cursor", { cursor });
-        }
-        break;
-      case "MOSTREVIEW":
-        qb.orderBy("mover.reviewCounts", "DESC").addOrderBy("mover.idNum", "DESC");
-        if (cursor) {
-          qb.andWhere("mover.idNum < :cursor", { cursor });
-        }
-        break;
-      default:
-        qb.orderBy("mover.idNum", "DESC");
-        if (cursor) {
-          qb.andWhere("mover.idNum < :cursor", { cursor });
-        }
+      }
     }
 
     const movers = await qb.take(limit + 1).getMany();
 
     const hasNext = movers.length > limit;
     const result = hasNext ? movers.slice(0, limit) : movers;
-    const nextCursor = hasNext ? result[result.length - 1].idNum : null;
+    let orderNextCursor: number | undefined;
+    let idNumNextCursor: number | undefined;
+    if (hasNext) {
+      const lastMover = result[result.length - 1];
+      const cursorField = getCursorField(orderBy);
+      orderNextCursor = lastMover[cursorField];
+      idNumNextCursor = lastMover.idNum;
+    }
 
     const moverInfos: FindMoverData[] = result.map((mover) => {
       return {
@@ -106,7 +98,8 @@ export class MoverInfoService {
 
     return {
       data: moverInfos,
-      nextCursor,
+      orderNextCursor: orderNextCursor ?? null,
+      idNumNextCursor: idNumNextCursor ?? null,
       hasNext,
     };
   }

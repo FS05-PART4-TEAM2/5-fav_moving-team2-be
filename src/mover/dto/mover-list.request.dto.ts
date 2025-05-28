@@ -32,7 +32,12 @@ export class MoverListRequestDto {
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  cursor?: number;
+  idNumCursor?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  orderCursor?: number;
 
   @IsOptional()
   @IsNumber()
@@ -40,4 +45,8 @@ export class MoverListRequestDto {
   limit?: number;
 }
 
-export type MoverInfoOrder = "MOSTREVIEW" | "BESTRATING" | "HIGHESTEXP" | "MOSTCONFIRM"
+export type MoverInfoOrder =
+  | "MOSTREVIEW"
+  | "BESTRATING"
+  | "HIGHESTEXP"
+  | "MOSTCONFIRM";
