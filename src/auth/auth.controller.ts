@@ -425,13 +425,8 @@ export class AuthController {
   @ApiOperation({ summary: "로그아웃" })
   async logout(
     @AccessToken() accessToken: string,
-    @Res({ passthrough: true }) res: Response,
   ): Promise<CommonApiResponse<null>> {
     await this.authService.logout(accessToken);
-
-    // Clear cookies
-    res.clearCookie("accessToken");
-    res.clearCookie("refreshToken");
 
     return CommonApiResponse.success(null, "로그아웃되었습니다.");
   }

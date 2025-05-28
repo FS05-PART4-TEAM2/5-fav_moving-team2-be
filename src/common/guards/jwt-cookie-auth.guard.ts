@@ -21,7 +21,7 @@ export class JwtCookieAuthGuard implements CanActivate {
     }
 
     if (!accessToken) {
-      throw new UnauthorizedException("Access token is missing in headers.");
+      throw new UnauthorizedException("Access token is missing in cookies.");
     }
 
     try {
@@ -29,9 +29,17 @@ export class JwtCookieAuthGuard implements CanActivate {
       if (!user) {
         throw new UnauthorizedException("존재하지않는 AccessToken입니다.");
       }
+
+      if (user.logoutAt) {
+        throw new UnauthorizedException("로그아웃된 토큰입니다.");
+      }
+
       request.user = { userId: user.userId };
       return true;
     } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
       throw new UnauthorizedException("Invalid or expired access token.");
     }
   }
