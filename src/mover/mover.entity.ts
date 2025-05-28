@@ -12,6 +12,9 @@ export class Mover {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
+  @PrimaryGeneratedColumn('increment')
+  idNum: number;
+
   @Column()
   username: string;
 
@@ -45,8 +48,8 @@ export class Mover {
   @Column({ nullable: true, type: "text" })
   intro: string;
 
-  @Column({ nullable: true, type: "text" })
-  career: string;
+  @Column({ nullable: true })
+  career: number;
 
   @Column({ nullable: true, type: "text" })
   detailDescription: string;
@@ -59,6 +62,9 @@ export class Mover {
 
   @Column({ default: 0 })
   reviewCounts: number;
+
+  @Column({ default: 0})
+  confirmedCounts: number; // 확정 견적 개수
 
   @CreateDateColumn()
   createdAt: Date;
