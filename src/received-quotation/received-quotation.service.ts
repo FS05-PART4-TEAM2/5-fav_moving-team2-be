@@ -17,6 +17,8 @@ export class ReceivedQuotationService {
     @InjectRepository(Quotation)
     private readonly quotationRepository: Repository<Quotation>,
   ) {}
+
+  // 일반유저 모든 진행중인 요청 조회
   async getAllPendingReceivedQuotations(): Promise<
     ReceivedQuotationResponseDto[]
   > {
@@ -51,12 +53,14 @@ export class ReceivedQuotationService {
           id: mover?.id,
           username: mover?.username,
           likeCount: mover?.likeCount,
+          intro: mover?.intro,
           totalRating: mover?.totalRating,
           reviewCounts: mover?.reviewCounts,
           confirmedQuotationCount: mover?.confirmedCounts,
         },
         quotation: {
           id: quotation?.id,
+          createdAt: quotation?.createdAt.toISOString(),
           moveDate: quotation?.moveDate,
           startAddress: quotation?.startAddress,
           endAddress: quotation?.endAddress,
@@ -68,6 +72,60 @@ export class ReceivedQuotationService {
     }
 
     return response;
+  }
+
+  //진행중인 요청 상세보기
+  async getReceivedQuotationById(
+    receivedQuotationId: string,
+  ): Promise<ReceivedQuotationResponseDto> {
+    const receivedQuotation = await this.receivedQuotationRepository.findOne({
+      where: { id: receivedQuotationId },
+    });
+
+    if (!receivedQuotation) {
+      throw new NotFoundException("해당 견적 요청을 찾을 수 없음");
+    }
+
+    const mover = await this.receivedQuotationRepository.manager
+      .createQueryBuilder("mover", "mover")
+      .where("mover.id = :moverId", { moverId: receivedQuotation.moverId })
+      .getOne();
+
+    const quotation = await this.receivedQuotationRepository.manager
+      .createQueryBuilder("quotation", "quotation")
+      .where("quotation.id = :quotationId", {
+        quotationId: receivedQuotation.quotationId,
+      })
+      .getOne();
+
+    const isAssigned = quotation?.assignMover
+      ? quotation.assignMover.includes(receivedQuotation.moverId)
+      : false;
+
+    return {
+      id: receivedQuotation.id,
+      isAssigned,
+      moveType: quotation?.moveType,
+      offerMover: {
+        id: mover?.id,
+        username: mover?.username,
+        likeCount: mover?.likeCount,
+        intro: mover?.intro,
+        totalRating: mover?.totalRating,
+        reviewCounts: mover?.reviewCounts,
+        confirmedQuotationCount: mover?.confirmedCounts,
+      },
+      quotation: {
+        id: quotation?.id,
+        createdAt: quotation?.createdAt.toISOString(),
+        moveDate: quotation?.moveDate,
+        startAddress: quotation?.startAddress,
+        endAddress: quotation?.endAddress,
+      },
+      price: receivedQuotation.price,
+      isCompleted: receivedQuotation.isCompleted,
+      isConfirmedMover: receivedQuotation.isConfirmedMover,
+    };
   }
 
   //요청 확정하기
@@ -110,6 +168,7 @@ export class ReceivedQuotationService {
     );
   }
 
+  // 일반유저 모든 완료된 요청 조회
   async getAllCompletedReceivedQuotations(): Promise<
     ReceivedQuotationResponseDto[]
   > {
@@ -144,12 +203,14 @@ export class ReceivedQuotationService {
           id: mover?.id,
           username: mover?.username,
           likeCount: mover?.likeCount,
+          intro: mover?.intro,
           totalRating: mover?.totalRating,
           reviewCounts: mover?.reviewCounts,
           confirmedQuotationCount: mover?.confirmedCounts,
         },
         quotation: {
           id: quotation?.id,
+          createdAt: quotation?.createdAt.toISOString(),
           moveDate: quotation?.moveDate,
           startAddress: quotation?.startAddress,
           endAddress: quotation?.endAddress,
@@ -161,5 +222,59 @@ export class ReceivedQuotationService {
     }
 
     return response;
+  }
+
+  //받았던 견적 상세 보기
+  async getCompletedReceivedQuotationById(
+    receivedQuotationId: string,
+  ): Promise<ReceivedQuotationResponseDto> {
+    const receivedQuotation = await this.receivedQuotationRepository.findOne({
+      where: { id: receivedQuotationId },
+    });
+
+    if (!receivedQuotation) {
+      throw new NotFoundException("해당 견적 요청을 찾을 수 없음");
+    }
+
+    const mover = await this.receivedQuotationRepository.manager
+      .createQueryBuilder("mover", "mover")
+      .where("mover.id = :moverId", { moverId: receivedQuotation.moverId })
+      .getOne();
+
+    const quotation = await this.receivedQuotationRepository.manager
+      .createQueryBuilder("quotation", "quotation")
+      .where("quotation.id = :quotationId", {
+        quotationId: receivedQuotation.quotationId,
+      })
+      .getOne();
+
+    const isAssigned = quotation?.assignMover
+      ? quotation.assignMover.includes(receivedQuotation.moverId)
+      : false;
+
+    return {
+      id: receivedQuotation.id,
+      isAssigned,
+      moveType: quotation?.moveType,
+      offerMover: {
+        id: mover?.id,
+        username: mover?.username,
+        likeCount: mover?.likeCount,
+        intro: mover?.intro,
+        totalRating: mover?.totalRating,
+        reviewCounts: mover?.reviewCounts,
+        confirmedQuotationCount: mover?.confirmedCounts,
+      },
+      quotation: {
+        id: quotation?.id,
+        createdAt: quotation?.createdAt.toISOString(),
+        moveDate: quotation?.moveDate,
+        startAddress: quotation?.startAddress,
+        endAddress: quotation?.endAddress,
+      },
+      price: receivedQuotation.price,
+      isCompleted: receivedQuotation.isCompleted,
+      isConfirmedMover: receivedQuotation.isConfirmedMover,
+    };
   }
 }

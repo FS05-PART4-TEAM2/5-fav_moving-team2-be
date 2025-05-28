@@ -21,6 +21,22 @@ export class ReceivedQuotationController {
     return CommonApiResponse.success(receivedQuotations, "모든 견적 요청 조회");
   }
 
+  @Get("customer/pending/:receivedQuotationId")
+  @ApiOperation({ summary: "진행중인 견적 상세보기" })
+  @UseGuards(JwtCookieAuthGuard)
+  async getReceivedQuotationDetail(
+    @Param("receivedQuotationId") receivedQuotationId: string,
+  ): Promise<CommonApiResponse<ReceivedQuotationResponseDto>> {
+    const receivedQuotation =
+      await this.receivedQuotationService.getReceivedQuotationById(
+        receivedQuotationId,
+      );
+    return CommonApiResponse.success(
+      receivedQuotation,
+      "진행중인 견적 상세 조회",
+    );
+  }
+
   @Post("customer/pending/:receivedQuotationId")
   @ApiOperation({ summary: "견적 확정하기" })
   @UseGuards(JwtCookieAuthGuard)
@@ -44,6 +60,22 @@ export class ReceivedQuotationController {
     return CommonApiResponse.success(
       receivedQuotations,
       "모든 완료된 견적 요청 조회",
+    );
+  }
+
+  @Get("customer/completed/:receivedQuotationId")
+  @ApiOperation({ summary: "완료된 견적 상세보기" })
+  @UseGuards(JwtCookieAuthGuard)
+  async getCompletedReceivedQuotationDetail(
+    @Param("receivedQuotationId") receivedQuotationId: string,
+  ): Promise<CommonApiResponse<ReceivedQuotationResponseDto>> {
+    const receivedQuotation =
+      await this.receivedQuotationService.getCompletedReceivedQuotationById(
+        receivedQuotationId,
+      );
+    return CommonApiResponse.success(
+      receivedQuotation,
+      "완료된 견적 상세 조회",
     );
   }
 }
