@@ -10,4 +10,5 @@ export class FindMoverData {
   confirmedCounts: number; // 확정 견적 개수
   reviewCounts: number;
   likeCount: number;
+  totalRating: number;
 }

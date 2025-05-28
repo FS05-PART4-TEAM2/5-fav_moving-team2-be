@@ -23,7 +23,7 @@ export class MoverListRequestDto {
   @IsIn(["MOSTREVIEW", "BESTRATING", "HIGHESTEXP", "MOSTCONFIRM"], {
     message: "유효하지 않은 정렬 기준입니다.",
   })
-  orderBy?: "MOSTREVIEW" | "BESTRATING" | "HIGHESTEXP" | "MOSTCONFIRM"; // 정렬 순서
+  orderBy?: MoverInfoOrder; // 정렬 순서
 
   @IsOptional()
   @IsString()
@@ -39,3 +39,5 @@ export class MoverListRequestDto {
   @Type(() => Number)
   limit?: number;
 }
+
+export type MoverInfoOrder = "MOSTREVIEW" | "BESTRATING" | "HIGHESTEXP" | "MOSTCONFIRM"

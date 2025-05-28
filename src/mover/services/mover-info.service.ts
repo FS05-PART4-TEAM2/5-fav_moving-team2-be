@@ -5,6 +5,7 @@ import { LessThan, Like, MoreThan, Repository } from "typeorm";
 import { MoverListRequestDto } from "../dto/mover-list.request.dto";
 import { FindMoverData } from "../dto/mover-list.response.dto";
 import { InfiniteScrollResponseDto } from "src/common/dto/infinite-scroll.dto";
+import getCursorField from "src/common/utils/get-cursor-field.util";
 
 @Injectable()
 export class MoverInfoService {
@@ -27,18 +28,60 @@ export class MoverInfoService {
       limit = 10,
     } = moverListRequestDto;
 
-    const where: any = keyword ? { nickname: Like(`%${keyword}%`) } : {};
+    const qb = this.moverRepository.createQueryBuilder("mover");
 
-    if (cursor) {
-      where.idNum = LessThan(cursor);
+    // 키워드
+    if (keyword) {
+      qb.andWhere("mover.nickname LIKE :keyword", { keyword: `%${keyword}%` });
     }
-    const movers = await this.moverRepository.find({
-      where,
-      take: limit + 1,
-      order: {
-        idNum: "DESC",
-      },
-    });
+
+    // 서비스 가능 지역
+    if (region) {
+      qb.andWhere(":region = ANY(mover.serviceArea)", { region });
+    }
+
+    // 서비스 종류
+    if (service) {
+      qb.andWhere(":service = ANY(mover.serviceList)", { service });
+    }
+
+    // 정렬 기준에 따른 orderBy 속성 변경 로직
+    switch (orderBy) {
+      case "BESTRATING":
+        qb.orderBy("mover.totalRating", "DESC").addOrderBy(
+          "mover.idNum",
+          "DESC",
+        );
+        if (cursor) {
+          qb.andWhere("mover.idNum < :cursor", { cursor });
+        }
+        break;
+      case "HIGHESTEXP":
+        qb.orderBy("mover.career", "DESC").addOrderBy("mover.idNum", "DESC");
+        if (cursor) {
+          qb.andWhere("mover.idNum < :cursor", { cursor });
+        }
+        break;
+      case "MOSTCONFIRM":
+        qb.orderBy("mover.confirmedCounts", "DESC").addOrderBy("mover.idNum", "DESC");
+        if (cursor) {
+          qb.andWhere("mover.idNum < :cursor", { cursor });
+        }
+        break;
+      case "MOSTREVIEW":
+        qb.orderBy("mover.reviewCounts", "DESC").addOrderBy("mover.idNum", "DESC");
+        if (cursor) {
+          qb.andWhere("mover.idNum < :cursor", { cursor });
+        }
+        break;
+      default:
+        qb.orderBy("mover.idNum", "DESC");
+        if (cursor) {
+          qb.andWhere("mover.idNum < :cursor", { cursor });
+        }
+    }
+
+    const movers = await qb.take(limit + 1).getMany();
 
     const hasNext = movers.length > limit;
     const result = hasNext ? movers.slice(0, limit) : movers;
@@ -57,6 +100,7 @@ export class MoverInfoService {
         confirmedCounts: mover.confirmedCounts,
         reviewCounts: mover.reviewCounts,
         likeCount: mover.likeCount,
+        totalRating: mover.totalRating,
       };
     });
 
