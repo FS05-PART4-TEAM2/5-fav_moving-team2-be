@@ -7,6 +7,7 @@ import {
   ServiceTypeKey,
   SERVICE_TYPES,
 } from "src/common/constants/service-type.constant";
+import { ServiceType } from "aws-sdk/clients/ec2";
 
 @Injectable()
 export class QuotationService {

@@ -16,7 +16,7 @@ export class Quotation {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @IsEnum({ message: "Invalid move type" })
+  @Column()
   moveType: ServiceTypeKey;
 
   @Column()
