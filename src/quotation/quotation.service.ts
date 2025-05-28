@@ -1,8 +1,13 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, BadRequestException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Quotation } from "./quotation.entity";
 import { Repository } from "typeorm";
 import { CustomerCreateQuotationRequestDto } from "src/common/dto/quotation.request.dto";
+import {
+  ServiceTypeKey,
+  SERVICE_TYPES,
+} from "src/common/constants/service-type.constant";
+import { ServiceType } from "aws-sdk/clients/ec2";
 
 @Injectable()
 export class QuotationService {
@@ -17,9 +22,18 @@ export class QuotationService {
     const { moveType, moveDate, startAddress, endAddress, customerId } =
       quotationDto;
 
+    const validMoveTypes = SERVICE_TYPES.map((type) => type.key);
+    if (!validMoveTypes.includes(moveType as ServiceTypeKey)) {
+      throw new BadRequestException(
+        `올바르지않은 요청: ${moveType}. 요청 가능한 타입: ${validMoveTypes.join(
+          ", ",
+        )}`,
+      );
+    }
+
     const newQuotation = this.quotationRepository.create({
-      moveType,
-      moveDate: new Date(moveDate).toISOString(), // moveDate를 UTC로 변환
+      moveType: moveType as ServiceTypeKey,
+      moveDate: new Date(moveDate).toISOString(),
       startAddress,
       endAddress,
       customerId,
