@@ -30,7 +30,7 @@ export class OauthLoginRequestDto {
   role: string;
 }
 
-export class MoverGoogleOauthLoginResponseDto {
+export class MoverOauthLoginResponseDto {
   @IsString()
   @ApiProperty({ example: "REFRESH_TOKEN", description: "리프레시 토큰"})
   refreshToken: string;
@@ -43,7 +43,7 @@ export class MoverGoogleOauthLoginResponseDto {
   mover: SafeMover;
 }
 
-export class CustomerGoogleOauthLoginResponseDto {
+export class CustomerOauthLoginResponseDto {
   @IsString()
   @ApiProperty({ example: "REFRESH_TOKEN", description: "리프레시 토큰"})
   refreshToken: string;

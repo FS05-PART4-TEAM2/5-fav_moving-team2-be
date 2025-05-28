@@ -16,7 +16,7 @@ import { CustomerLoginResponseDto } from "src/common/dto/login.response.dto";
 import { AuthService as SharedAuthService } from "src/auth/auth.service";
 import { RefreshTokenResponseDto } from "src/common/dto/refreshToken.response.dto";
 import {
-  CustomerGoogleOauthLoginResponseDto,
+  CustomerOauthLoginResponseDto,
   OauthLoginRequestDto,
 } from "../../common/dto/oauthLogin.dto";
 import { OauthProviderConflictException } from "src/common/exceptions/oauth-provider-conflict.exception";
@@ -35,7 +35,7 @@ export class CustomerAuthService {
 
   async signUpOrSignInByOauthCustomer(
     oAuthLoginRequestDto: OauthLoginRequestDto,
-  ): Promise<CustomerGoogleOauthLoginResponseDto> {
+  ): Promise<CustomerOauthLoginResponseDto> {
     const existedCustomer = await this.customerRepository.findOne({
       where: {
         email: oAuthLoginRequestDto.email,

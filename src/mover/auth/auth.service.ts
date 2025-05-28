@@ -19,7 +19,7 @@ import { AuthService as SharedAuthService } from "src/auth/auth.service";
 import { InvalidCredentialsException } from "src/common/exceptions/invalid-credentials.exception";
 import { RefreshTokenResponseDto } from "src/common/dto/refreshToken.response.dto";
 import {
-  MoverGoogleOauthLoginResponseDto,
+  MoverOauthLoginResponseDto,
   OauthLoginRequestDto,
 } from "src/common/dto/oauthLogin.dto";
 import { OauthProviderConflictException } from "src/common/exceptions/oauth-provider-conflict.exception";
@@ -36,7 +36,7 @@ export class MoverAuthService {
 
   async signUpOrSignInByOauthMover(
     oAuthLoginRequestDto: OauthLoginRequestDto,
-  ): Promise<MoverGoogleOauthLoginResponseDto> {
+  ): Promise<MoverOauthLoginResponseDto> {
     const existedMover = await this.moverRepository.findOne({
       where: {
         email: oAuthLoginRequestDto.email,
