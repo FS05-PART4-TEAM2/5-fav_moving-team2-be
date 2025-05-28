@@ -412,7 +412,6 @@ export class AuthController {
     const { accessToken, refreshToken: newRefreshToken } =
       await service.refreshAccessToken(refreshToken);
 
-    // 응답 헤더에 토큰 설정
     res.setHeader("access-token", accessToken);
     res.setHeader("refresh-token", newRefreshToken);
 

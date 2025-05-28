@@ -27,7 +27,7 @@ export class JwtCookieAuthGuard implements CanActivate {
     try {
       const user = await this.authService.findByToken(accessToken);
       if (!user) {
-        throw new UnauthorizedException("존재하지 않는 AccessToken입니다.");
+        throw new UnauthorizedException("존재하지않는 AccessToken입니다.");
       }
       request.user = { userId: user.userId };
       return true;
