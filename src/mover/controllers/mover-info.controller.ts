@@ -13,11 +13,11 @@ export class MoverInfoController {
     @Req() req,
     @Query() moverListRequestDto: MoverListRequestDto,
   ) {
-    console.log(typeof req.user.userId);
+    const { userId, userType } = req.user ?? {};
     return this.moverInfoService.getMoverList(
       moverListRequestDto,
-      req.user.userId,
-      req.user.userType,
+      userId,
+      userType,
     );
   }
 }

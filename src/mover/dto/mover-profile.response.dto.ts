@@ -12,7 +12,7 @@ export class MoverProfileResponseDto {
   profileImage: string | null;
   intro: string;
   detailDescription: string;
-  career: string;
+  career: number;
   likeCount: number;
   totalRating: number;
   reviewCounts: number;

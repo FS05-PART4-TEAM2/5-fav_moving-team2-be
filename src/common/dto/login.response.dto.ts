@@ -29,7 +29,7 @@ export class MoverLoginResponseDto {
     serviceArea: string[] | null;
     serviceList: string[] | null;
     intro: string | null;
-    career: string | null;
+    career: number | null;
     detailDescription: string | null;
     likeCount: number;
     totalRating: number;

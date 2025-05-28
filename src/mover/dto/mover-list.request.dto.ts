@@ -1,4 +1,5 @@
-import { IsIn, IsOptional, IsString } from "class-validator";
+import { Type } from "class-transformer";
+import { IsIn, IsNumber, IsOptional, IsString } from "class-validator";
 import { REGION_KEYS, RegionKey } from "src/common/constants/region.constant";
 import {
   SERVICE_KEYS,
@@ -29,6 +30,12 @@ export class MoverListRequestDto {
   keyword?: string;
 
   @IsOptional()
-  @IsString()
-  cursor?: string;
+  @IsNumber()
+  @Type(() => Number)
+  cursor?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  limit?: number;
 }
