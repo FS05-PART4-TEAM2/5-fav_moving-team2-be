@@ -81,4 +81,15 @@ export class CustomerProfileService {
     const saved = await this.customerRepository.save(updated);
     return CustomerProfileResponseDto.of(saved);
   }
+
+  /** */
+  async getProfile(userId: string): Promise<CustomerProfileResponseDto> {
+    const customer = await this.customerRepository.findOneBy({
+      id: userId,
+    });
+
+    if (!customer) throw new ForbiddenException();
+
+    return CustomerProfileResponseDto.of(customer);
+  }
 }
