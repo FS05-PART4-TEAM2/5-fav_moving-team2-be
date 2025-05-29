@@ -1,5 +1,3 @@
-import { ServiceQuotaTemplateAssociationStatus } from "aws-sdk/clients/servicequotas";
-import { IsEnum } from "class-validator";
 import { QuotationState } from "src/common/constants/quotation-state.constant";
 import { ServiceTypeKey } from "src/common/constants/service-type.constant";
 import {
@@ -31,7 +29,7 @@ export class Quotation {
   @Column()
   endAddress: string;
 
-  @Column({ default: "pending" })
+  @Column({ default: "PENDING" })
   status: QuotationState;
 
   @Column()
