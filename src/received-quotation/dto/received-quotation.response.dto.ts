@@ -7,10 +7,13 @@ export class ReceivedQuotationResponseDto {
   moveType: string;
   offerMover: {
     id: string;
-    username: string;
+    profileImageUrl: string;
+    nickname: string;
     likeCount: number;
     totalRating: number;
     intro: string;
+    career: number;
+    isLiked: boolean;
     reviewCounts: number;
     confirmedQuotationCount: number;
   };
