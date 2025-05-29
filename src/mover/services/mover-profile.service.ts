@@ -66,6 +66,7 @@ export class MoverProfileService {
     return MoverProfileResponseDto.of(saved);
   }
 
+  /**  */
   async modifyInfo(
     userId: string,
     request: {
@@ -112,5 +113,16 @@ export class MoverProfileService {
     const saved = await this.moverRepository.save(updated);
 
     return MoverProfileResponseDto.of(saved);
+  }
+
+  /** */
+  async getProfile(userId: string): Promise<MoverProfileResponseDto> {
+    const mover = await this.moverRepository.findOneBy({
+      id: userId,
+    });
+
+    if (!mover) throw new ForbiddenException();
+
+    return MoverProfileResponseDto.of(mover);
   }
 }
