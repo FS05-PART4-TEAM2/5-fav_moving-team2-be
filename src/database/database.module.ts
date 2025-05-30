@@ -35,7 +35,7 @@ import * as path from "path";
                 }
               : useSSL,
           entities: [__dirname + "/../**/*.entity{.ts,.js}"],
-          synchronize: true,
+          synchronize: !isProduction,
         };
       },
     }),

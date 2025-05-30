@@ -1,3 +1,5 @@
+import { QuotationState } from "src/common/constants/quotation-state.constant";
+import { ServiceTypeKey } from "src/common/constants/service-type.constant";
 import {
   Column,
   CreateDateColumn,
@@ -13,7 +15,7 @@ export class Quotation {
   id: string;
 
   @Column()
-  moveType: string;
+  moveType: ServiceTypeKey;
 
   @Column()
   moveDate: string;
@@ -27,8 +29,8 @@ export class Quotation {
   @Column()
   endAddress: string;
 
-  @Column({ default: "pending" })
-  status: "pending" | "confirmed" | "completed" | "deleted";
+  @Column({ default: "PENDING" })
+  status: QuotationState;
 
   @Column()
   customerId: string;

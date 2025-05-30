@@ -12,7 +12,7 @@ export class Mover {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @PrimaryGeneratedColumn('increment')
+  @PrimaryGeneratedColumn("increment")
   idNum: number;
 
   @Column()
