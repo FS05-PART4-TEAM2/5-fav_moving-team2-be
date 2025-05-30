@@ -57,7 +57,7 @@ export class Mover {
   @Column({ default: 0 })
   likeCount: number;
 
-  @Column({ default: 0 })
+  @Column({ type: "float", default: 0 })
   totalRating: number; // 별점 총점
 
   @Column({ default: 0 })

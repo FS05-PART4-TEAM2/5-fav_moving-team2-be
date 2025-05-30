@@ -15,7 +15,7 @@ export class AssignMover {
   @Column()
   status: AssignStatusKey;
 
-  @Column({ nullable: true })
+  @Column({ type: "text", nullable: true })
   rejectedReason: string | null;
 
   // tb-Mover
