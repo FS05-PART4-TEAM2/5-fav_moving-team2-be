@@ -38,7 +38,7 @@ export class QuotationController {
   }
 
   @Get("customer")
-  @ApiOperation({ summary: "모든 일반유저 견적 요청 조회" })
+  @ApiOperation({ summary: "모든 일반유저 견적 조회" })
   async getAllQuotations(
     @Query("page") page: number = 1,
     @Query("limit") limit: number = 10,
@@ -49,7 +49,7 @@ export class QuotationController {
     );
     return CommonApiResponse.success(
       new PaginatedResponseDto(data, total),
-      "모든 견적 요청 조회",
+      "모든 견적 조회",
     );
   }
 }
