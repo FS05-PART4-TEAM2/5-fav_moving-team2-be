@@ -319,7 +319,7 @@ export class AuthController {
   ) {
     const userData = await this.handleOauthRedirect(req, res);
     res.redirect(
-      `${this.configService.get("FRONT_URL") ?? "http://localhost:3000"}/oauth/callback?accessToken=${userData.data?.accessToken}&refreshToken=${userData.data?.refreshToken}`,
+      `${this.configService.get("FRONT_URL") ?? "http://localhost:3000"}/oauth/callback?accessToken=${userData.data?.accessToken}&refreshToken=${userData.data?.refreshToken}&type=${userData.data?.type}`,
     );
   }
 
@@ -336,7 +336,7 @@ export class AuthController {
   ) {
     const userData = await this.handleOauthRedirect(req, res);
     res.redirect(
-      `${this.configService.get("FRONT_URL") ?? "http://localhost:3000"}/oauth/callback?accessToken=${userData.data?.accessToken}&refreshToken=${userData.data?.refreshToken}`,
+      `${this.configService.get("FRONT_URL") ?? "http://localhost:3000"}/oauth/callback?accessToken=${userData.data?.accessToken}&refreshToken=${userData.data?.refreshToken}&type=${userData.data?.type}`,
     );
   }
 
@@ -352,8 +352,9 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const userData = await this.handleOauthRedirect(req, res);
+
     res.redirect(
-      `${this.configService.get("FRONT_URL") ?? "http://localhost:3000"}/oauth/callback?accessToken=${userData.data?.accessToken}&refreshToken=${userData.data?.refreshToken}`,
+      `${this.configService.get("FRONT_URL") ?? "http://localhost:3000"}/oauth/callback?accessToken=${userData.data?.accessToken}&refreshToken=${userData.data?.refreshToken}&type=${userData.data?.type}`,
     );
   }
 
@@ -366,9 +367,7 @@ export class AuthController {
       CustomerOauthLoginResponseDto | MoverOauthLoginResponseDto
     >
   > {
-    let userInfo:
-      | CustomerOauthLoginResponseDto
-      | MoverOauthLoginResponseDto;
+    let userInfo: CustomerOauthLoginResponseDto | MoverOauthLoginResponseDto;
 
     console.log(req.user);
 

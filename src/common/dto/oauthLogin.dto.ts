@@ -32,26 +32,30 @@ export class OauthLoginRequestDto {
 
 export class MoverOauthLoginResponseDto {
   @IsString()
-  @ApiProperty({ example: "REFRESH_TOKEN", description: "리프레시 토큰"})
+  @ApiProperty({ example: "REFRESH_TOKEN", description: "리프레시 토큰" })
   refreshToken: string;
 
   @IsString()
-  @ApiProperty({ example: "ACCESS_TOKEN", description: "엑세스 토큰"})
+  @ApiProperty({ example: "ACCESS_TOKEN", description: "엑세스 토큰" })
   accessToken: string;
 
-  @ApiProperty({ description: "기사 객체 (비밀번호 제외)"})
+  @ApiProperty({ description: "기사 객체 (비밀번호 제외)" })
   mover: SafeMover;
+
+  type: "mover";
 }
 
 export class CustomerOauthLoginResponseDto {
   @IsString()
-  @ApiProperty({ example: "REFRESH_TOKEN", description: "리프레시 토큰"})
+  @ApiProperty({ example: "REFRESH_TOKEN", description: "리프레시 토큰" })
   refreshToken: string;
 
   @IsString()
-  @ApiProperty({ example: "ACCESS_TOKEN", description: "엑세스 토큰"})
+  @ApiProperty({ example: "ACCESS_TOKEN", description: "엑세스 토큰" })
   accessToken: string;
 
-  @ApiProperty({ description: "손님 객체 (비밀번호 제외)"})
+  @ApiProperty({ description: "손님 객체 (비밀번호 제외)" })
   customer: SafeCustomer;
+
+  type: "customer";
 }

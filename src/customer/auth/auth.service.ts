@@ -64,7 +64,7 @@ export class CustomerAuthService {
         refreshToken,
       });
 
-      return { refreshToken, accessToken, customer: existedCustomerWithoutPw };
+      return { refreshToken, accessToken, customer: existedCustomerWithoutPw, type: "customer" };
     }
 
     /** 아직 가입하지 않은 손님일 때 */
@@ -94,7 +94,7 @@ export class CustomerAuthService {
       provider: newCustomer.provider,
     });
 
-    return { refreshToken, accessToken, customer: newCustomerWithoutPw };
+    return { refreshToken, accessToken, customer: newCustomerWithoutPw, type: "customer" };
   }
 
   async signUp(SignUpRequestDto: SignUpRequestDto): Promise<Customer> {
