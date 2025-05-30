@@ -31,6 +31,8 @@ export class MoverInfoService {
 
     const qb = this.moverRepository.createQueryBuilder("mover");
 
+    qb.andWhere("mover.isProfile = true");
+
     // 키워드
     if (keyword) {
       qb.andWhere("mover.nickname LIKE :keyword", { keyword: `%${keyword}%` });
@@ -38,12 +40,14 @@ export class MoverInfoService {
 
     // 서비스 가능 지역
     if (region) {
-      qb.andWhere(":region = ANY(mover.serviceArea)", { region });
+      qb.andWhere("mover.serviceArea LIKE :region", { region: `%${region}%` });
     }
 
     // 서비스 종류
     if (service) {
-      qb.andWhere(":service = ANY(mover.serviceList)", { service });
+      qb.andWhere("mover.serviceList LIKE :service", {
+        service: `%${service}%`,
+      });
     }
 
     // 정렬 기준에 따른 orderBy 속성 변경 로직
@@ -97,7 +101,7 @@ export class MoverInfoService {
     });
 
     return {
-      data: moverInfos,
+      list: moverInfos,
       orderNextCursor: orderNextCursor ?? null,
       idNumNextCursor: idNumNextCursor ?? null,
       hasNext,
