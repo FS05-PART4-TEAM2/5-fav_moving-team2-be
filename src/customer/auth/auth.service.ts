@@ -16,7 +16,7 @@ import { CustomerLoginResponseDto } from "src/common/dto/login.response.dto";
 import { AuthService as SharedAuthService } from "src/auth/auth.service";
 import { RefreshTokenResponseDto } from "src/common/dto/refreshToken.response.dto";
 import {
-  CustomerGoogleOauthLoginResponseDto,
+  CustomerOauthLoginResponseDto,
   OauthLoginRequestDto,
 } from "../../common/dto/oauthLogin.dto";
 import { OauthProviderConflictException } from "src/common/exceptions/oauth-provider-conflict.exception";
@@ -35,7 +35,7 @@ export class CustomerAuthService {
 
   async signUpOrSignInByOauthCustomer(
     oAuthLoginRequestDto: OauthLoginRequestDto,
-  ): Promise<CustomerGoogleOauthLoginResponseDto> {
+  ): Promise<CustomerOauthLoginResponseDto> {
     const existedCustomer = await this.customerRepository.findOne({
       where: {
         email: oAuthLoginRequestDto.email,
@@ -64,7 +64,7 @@ export class CustomerAuthService {
         refreshToken,
       });
 
-      return { refreshToken, accessToken, customer: existedCustomerWithoutPw };
+      return { refreshToken, accessToken, customer: existedCustomerWithoutPw, type: "customer" };
     }
 
     /** 아직 가입하지 않은 손님일 때 */
@@ -94,7 +94,7 @@ export class CustomerAuthService {
       provider: newCustomer.provider,
     });
 
-    return { refreshToken, accessToken, customer: newCustomerWithoutPw };
+    return { refreshToken, accessToken, customer: newCustomerWithoutPw, type: "customer" };
   }
 
   async signUp(SignUpRequestDto: SignUpRequestDto): Promise<Customer> {
