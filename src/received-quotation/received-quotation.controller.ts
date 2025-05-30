@@ -33,7 +33,6 @@ export class ReceivedQuotationController {
       );
     return CommonApiResponse.success(response, "견적 확정 완료");
   }
-
   @Get("customer/completed")
   @ApiOperation({ summary: "일반유저 모든 완료된 견적 요청 조회" })
   @UseGuards(JwtCookieAuthGuard)
@@ -48,7 +47,7 @@ export class ReceivedQuotationController {
     );
   }
 
-  @Get("customer/:receivedQuotationId")
+  @Get("customer/detail/:receivedQuotationId")
   @ApiOperation({ summary: " 견적 상세보기" })
   @UseGuards(JwtCookieAuthGuard)
   async getCompletedReceivedQuotationDetail(
