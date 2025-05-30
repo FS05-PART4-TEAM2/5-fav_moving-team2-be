@@ -12,13 +12,12 @@ export class JwtCookieAuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    let accessToken = request.cookies["accessToken"] as string;
+    let accessToken = request.headers["access-token"];
 
-    if (!accessToken) {
-      const authHeader = request.headers["authorization"];
-      if (authHeader?.startsWith("Bearer ")) {
-        accessToken = authHeader.replace("Bearer ", "");
-      }
+    const authHeader = request.headers["authorization"];
+
+    if (authHeader?.startsWith("Bearer ")) {
+      accessToken = authHeader.replace("Bearer ", "");
     }
 
     if (!accessToken) {
@@ -30,9 +29,18 @@ export class JwtCookieAuthGuard implements CanActivate {
       if (!user) {
         throw new UnauthorizedException("존재하지않는 AccessToken입니다.");
       }
-      request.user = { userId: user.userId };
+
+      if (user.logoutAt) {
+        throw new UnauthorizedException("로그아웃된 토큰입니다.");
+      }
+
+      request.user = { userId: user.userId, userType: user.userType };
+
       return true;
     } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
       throw new UnauthorizedException("Invalid or expired access token.");
     }
   }

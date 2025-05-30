@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Put,
   Req,
   UploadedFile,
@@ -96,5 +97,19 @@ export class CustomerProfileController {
       ...rest,
     });
     return CommonApiResponse.success(profile, "프로필 등록이 완료되었습니다.");
+  }
+
+  @Get("")
+  @ApiBearerAuth("access-token")
+  @ApiOperation({ summary: "소비자 프로필 조회" })
+  @UseGuards(JwtCookieAuthGuard)
+  async getProfile(
+    @Req() req,
+  ): Promise<CommonApiResponse<CustomerProfileResponseDto>> {
+    const userId = req.user.userId as string;
+
+    const profile = await this.customerProfileService.getProfile(userId);
+
+    return CommonApiResponse.success(profile, "프로필 조회에 성공하였습니다.");
   }
 }

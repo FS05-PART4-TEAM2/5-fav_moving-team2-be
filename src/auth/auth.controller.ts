@@ -397,7 +397,11 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<CommonApiResponse<{ accessToken: string }>> {
-    const refreshToken = req.cookies["refreshToken"];
+    let refreshToken = req.headers["refresh-token"];
+
+    if (Array.isArray(refreshToken)) {
+      refreshToken = refreshToken[0];
+    }
 
     if (!refreshToken) {
       throw new BadRequestException("refreshToken이 누락되었습니다.");
@@ -412,7 +416,9 @@ export class AuthController {
     const { accessToken, refreshToken: newRefreshToken } =
       await service.refreshAccessToken(refreshToken);
 
-    SetAuthCookies.set(req, res, accessToken, newRefreshToken);
+    res.setHeader("access-token", accessToken);
+    res.setHeader("refresh-token", newRefreshToken);
+
     return CommonApiResponse.success(
       { accessToken },
       "AccessToken이 갱신되었습니다.",
@@ -423,13 +429,8 @@ export class AuthController {
   @ApiOperation({ summary: "로그아웃" })
   async logout(
     @AccessToken() accessToken: string,
-    @Res({ passthrough: true }) res: Response,
   ): Promise<CommonApiResponse<null>> {
     await this.authService.logout(accessToken);
-
-    // Clear cookies
-    res.clearCookie("accessToken");
-    res.clearCookie("refreshToken");
 
     return CommonApiResponse.success(null, "로그아웃되었습니다.");
   }
