@@ -15,12 +15,16 @@ export class AssignMover {
   @Column()
   status: AssignStatusKey;
 
-  @Column({ nullable: true })
+  @Column({ type: "text", nullable: true })
   rejectedReason: string | null;
 
   // tb-Mover
   @Column()
   moverId: string;
+
+  // tb-Customer
+  @Column()
+  customerId: string;
 
   // tb-Quotation
   @Column()

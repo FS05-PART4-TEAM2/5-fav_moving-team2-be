@@ -1,0 +1,179 @@
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Mover } from "../mover.entity";
+import { In, LessThan, Like, MoreThan, Repository } from "typeorm";
+import { MoverListRequestDto } from "../dto/mover-list.request.dto";
+import { FindMoverData } from "../dto/mover-list.response.dto";
+import { InfiniteScrollResponseDto } from "src/common/dto/infinite-scroll.dto";
+import getCursorField from "src/common/utils/get-cursor-field.util";
+import { MoverDetailResponseDto } from "../dto/mover-detail.response.dto";
+import { AssignMover } from "src/quotation/entities/assign-mover.entity";
+
+@Injectable()
+export class MoverInfoService {
+  constructor(
+    @InjectRepository(Mover)
+    private moverRepository: Repository<Mover>,
+    @InjectRepository(AssignMover)
+    private assignMoverRepository: Repository<AssignMover>,
+  ) {}
+
+  async getMoverDetail(
+    userId: string,
+    userType: string,
+    moverId: string,
+  ): Promise<MoverDetailResponseDto> {
+    const mover = await this.moverRepository.findOne({
+      where: {
+        id: moverId,
+      },
+    });
+
+    if (!mover) {
+      throw new NotFoundException(`${moverId}는 유효하지 않은 기사입니다.`);
+    }
+
+    if (!mover.isProfile) {
+      throw new BadRequestException("프로필을 등록하지 않은 기사입니다.");
+    }
+
+    let isAssigned = false;
+    if (userType === "customer") {
+      isAssigned = await this.assignMoverRepository.exists({
+        where: {
+          customerId: userId,
+          moverId: mover.id,
+        },
+      });
+    }
+
+    const moverDetail: MoverDetailResponseDto = {
+      id: mover.id,
+      idNum: mover.idNum,
+      detailDescription: mover.detailDescription,
+      nickname: mover.nickname,
+      isProfile: mover.isProfile,
+      isLiked: false, // 추후 로직으로 추가 처리 예정
+      isAssigned, // 추후 로직으로 추가 처리 예정
+      career: mover.career,
+      intro: mover.intro,
+      confirmedCounts: mover.confirmedCounts,
+      reviewCounts: mover.reviewCounts,
+      totalRating: mover.totalRating,
+      serviceArea: mover.serviceArea,
+      serviceList: mover.serviceList,
+      likeCount: mover.likeCount,
+    };
+
+    return moverDetail;
+  }
+
+  async getMoverList(
+    moverListRequestDto: MoverListRequestDto,
+    userId: string,
+    userType: string,
+  ): Promise<InfiniteScrollResponseDto<FindMoverData>> {
+    const {
+      keyword,
+      orderBy,
+      region,
+      service,
+      idNumCursor,
+      orderCursor,
+      limit = 10,
+    } = moverListRequestDto;
+
+    const qb = this.moverRepository.createQueryBuilder("mover");
+
+    qb.andWhere("mover.isProfile = true");
+
+    // 키워드
+    if (keyword) {
+      qb.andWhere("mover.nickname LIKE :keyword", { keyword: `%${keyword}%` });
+    }
+
+    // 서비스 가능 지역
+    if (region) {
+      qb.andWhere("mover.serviceArea LIKE :region", { region: `%${region}%` });
+    }
+
+    // 서비스 종류
+    if (service) {
+      qb.andWhere("mover.serviceList LIKE :service", {
+        service: `%${service}%`,
+      });
+    }
+
+    // 정렬 기준에 따른 orderBy 속성 변경 로직
+    const field = getCursorField(orderBy);
+    if (field === "idNum") {
+      qb.orderBy("mover.idNum", "DESC");
+      if (idNumCursor != null) {
+        qb.andWhere("mover.idNum < :idNumCursor", { idNumCursor });
+      }
+    } else {
+      qb.orderBy(`mover.${field}`, "DESC").addOrderBy("mover.idNum", "DESC");
+      if (orderCursor != null && idNumCursor != null) {
+        qb.andWhere(
+          `(mover.${field} < :orderCursor OR (mover.${field} = :orderCursor AND mover.idNum < :idNumCursor))`,
+          {
+            orderCursor,
+            idNumCursor,
+          },
+        );
+      }
+    }
+
+    const movers = await qb.take(limit + 1).getMany();
+
+    const hasNext = movers.length > limit;
+    const result = hasNext ? movers.slice(0, limit) : movers;
+    let orderNextCursor: number | undefined;
+    let idNumNextCursor: number | undefined;
+    if (hasNext) {
+      const lastMover = result[result.length - 1];
+      const cursorField = getCursorField(orderBy);
+      orderNextCursor = lastMover[cursorField];
+      idNumNextCursor = lastMover.idNum;
+    }
+
+    const assignedMovers = await this.assignMoverRepository.find({
+      where: {
+        customerId: userId,
+        moverId: In(result.map((mover) => mover.id)),
+      },
+      select: ["moverId"],
+    });
+
+    const assignedMoverIdSet = new Set(assignedMovers.map((am) => am.moverId));
+
+    const moverInfos: FindMoverData[] = result.map((mover) => {
+      let isAssigned = assignedMoverIdSet.has(mover.id);
+      return {
+        id: mover.id,
+        idNum: mover.idNum,
+        nickname: mover.nickname,
+        isProfile: mover.isProfile,
+        isLiked: false, // 찜한 기사인지 여부 - 추후 로직 추가 예정
+        isAssigned, // 지정 기사인지 여부 - 추후 로직 추가 예정
+        career: mover.career,
+        intro: mover.intro,
+        confirmedCounts: mover.confirmedCounts,
+        reviewCounts: mover.reviewCounts,
+        likeCount: mover.likeCount,
+        totalRating: mover.totalRating,
+      };
+    });
+
+    return {
+      list: moverInfos,
+      orderNextCursor: orderNextCursor ?? null,
+      idNumNextCursor: idNumNextCursor ?? null,
+      hasNext,
+    };
+  }
+}
