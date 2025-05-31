@@ -24,7 +24,7 @@ export class AssignQuotationService {
   ): Promise<AssignMover> {
     // userType이 mover라면 에러
     if (userType === "mover") {
-      throw new BadRequestException(
+      throw new UnauthorizedException(
         "기사 계정으로는 지정 기사 요청을 할 수 없습니다.",
       );
     }
@@ -38,6 +38,17 @@ export class AssignQuotationService {
 
     if (!quotation) {
       throw new NotFoundException("견적 요청을 먼저 진행해주세요.");
+    }
+
+    const isExistsAssign = await this.assignMoverRepository.exists({
+      where: {
+        moverId,
+        customerId: userId,
+      }
+    })
+
+    if(isExistsAssign){
+      throw new BadRequestException("이미 지정한 기사입니다.")
     }
 
     // 찾은 quotationId, moverId 바탕으로 assignMover 생성
