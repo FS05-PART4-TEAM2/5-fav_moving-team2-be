@@ -22,6 +22,10 @@ export class AssignMover {
   @Column()
   moverId: string;
 
+  // tb-Customer
+  @Column()
+  customerId: string;
+
   // tb-Quotation
   @Column()
   quotationId: string;

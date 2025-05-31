@@ -17,7 +17,11 @@ export class AssignQuotationService {
     @InjectRepository(Quotation)
     private quotationRepository: Repository<Quotation>,
   ) {}
-  async postAssignMover(userId: string, userType: string, moverId: string): Promise<AssignMover> {
+  async postAssignMover(
+    userId: string,
+    userType: string,
+    moverId: string,
+  ): Promise<AssignMover> {
     // userType이 mover라면 에러
     if (userType === "mover") {
       throw new BadRequestException(
@@ -40,9 +44,12 @@ export class AssignQuotationService {
     const newAssignMover = this.assignMoverRepository.create({
       moverId,
       quotationId: quotation?.id,
+      customerId: userId,
       status: "PENDING",
       rejectedReason: null,
     });
+
+    await this.assignMoverRepository.save(newAssignMover);
 
     return newAssignMover;
   }

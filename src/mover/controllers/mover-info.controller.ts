@@ -12,6 +12,7 @@ import { MoverListRequestDto } from "../dto/mover-list.request.dto";
 import { JustLookUserGuard } from "src/common/guards/just-look-user.guard";
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiNotFoundResponse,
   ApiOperation,
   ApiParam,
@@ -24,6 +25,7 @@ import { FindMoverData } from "../dto/mover-list.response.dto";
 import { MoverDetailResponseDto } from "../dto/mover-detail.response.dto";
 
 @ApiTags("Mover")
+@ApiBearerAuth("access-token")
 @Controller("api/mover")
 export class MoverInfoController {
   constructor(private readonly moverInfoService: MoverInfoService) {}
