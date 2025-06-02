@@ -6,6 +6,7 @@ import { CustomerModule } from "./customer/customer.module";
 import { StorageModule } from "./common/storage/storage.module";
 import { QuotationModule } from "./quotation/quotation.module";
 import { LikeModule } from "./likeMover/likeMover.module";
+import { ReceivedQuotationModule } from "./received-quotation/received-quotation.module";
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { LikeModule } from "./likeMover/likeMover.module";
     CustomerModule,
     StorageModule,
     QuotationModule,
+    ReceivedQuotationModule,
     LikeModule,
   ],
 })
