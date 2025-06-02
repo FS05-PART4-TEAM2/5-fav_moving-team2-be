@@ -8,7 +8,7 @@ import {
   Query,
 } from "@nestjs/common";
 import { QuotationService } from "./quotation.service";
-import { ApiOperation } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
 import { JwtCookieAuthGuard } from "../common/guards/jwt-cookie-auth.guard";
 import { CustomerCreateQuotationRequestDto } from "src/common/dto/quotation.request.dto";
 import { CommonApiResponse } from "src/common/dto/api-response.dto";
@@ -22,6 +22,7 @@ export class QuotationController {
   // 일반유저 견적 요청
   @Post("customer")
   @ApiOperation({ summary: "일반유저 견적 요청" })
+  @ApiBearerAuth("access-token")
   @UseGuards(JwtCookieAuthGuard)
   async createCustomerQuotation(
     @Body() createQuotationDto: CustomerCreateQuotationRequestDto,
@@ -38,6 +39,7 @@ export class QuotationController {
   }
 
   @Get("customer")
+  @ApiBearerAuth("access-token")
   @ApiOperation({ summary: "모든 일반유저 견적 요청 조회" })
   async getAllQuotations(
     @Query("page") page: number = 1,

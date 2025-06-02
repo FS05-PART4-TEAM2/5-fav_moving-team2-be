@@ -34,7 +34,10 @@ export class JwtCookieAuthGuard implements CanActivate {
         throw new UnauthorizedException("로그아웃된 토큰입니다.");
       }
 
-      request.user = { userId: user.userId, userType: user.userType };
+      request.user = {
+        userId: user.userId,
+        userType: user.userType,
+      };
 
       return true;
     } catch (error) {
