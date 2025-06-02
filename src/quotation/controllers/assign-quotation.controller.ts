@@ -39,7 +39,7 @@ export class AssignQuotationController {
     description: "지정할 기사 ID",
   })
   @ApiResponse({
-    status: 200,
+    status: 201,
     description: "지정 기사 요청 성공",
     schema: {
       type: "object",
