@@ -25,3 +25,5 @@ export type RegionLabel = (typeof REGIONS)[number]["label"];
 export function getRegionLabelByKey(key: RegionKey): RegionLabel | undefined {
   return REGIONS.find((region) => region.key === key)?.label;
 }
+// REGION_KEYS: class-validator의 IsIn에 사용할 검증용 배열
+export const REGION_KEYS = REGIONS.map((r) => r.key);

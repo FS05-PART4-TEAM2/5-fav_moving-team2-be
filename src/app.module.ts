@@ -4,7 +4,9 @@ import { DatabaseModule } from "./database/database.module";
 import { MoverModule } from "./mover/mover.module";
 import { CustomerModule } from "./customer/customer.module";
 import { StorageModule } from "./common/storage/storage.module";
-import { QuotationModule } from './quotation/quotation.module';
+import { QuotationModule } from "./quotation/quotation.module";
+import { ReceivedQuotationModule } from "./receivedQuotation/receivedQuotation.module";
+import { MockApiModule } from "./mock-api/mock-api.module";
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { QuotationModule } from './quotation/quotation.module';
     CustomerModule,
     StorageModule,
     QuotationModule,
+    ReceivedQuotationModule,
+    MockApiModule, // mock api 모듈 추가
   ],
 })
 export class AppModule {}

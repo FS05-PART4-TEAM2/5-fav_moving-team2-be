@@ -6,6 +6,8 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { Mover } from "./mover.entity";
 import { StorageModule } from "src/common/storage/storage.module";
 import { AuthModule } from "src/auth/auth.module";
+import { MoverInfoController } from "./controllers/mover-info.controller";
+import { MoverInfoService } from "./services/mover-info.service";
 
 @Module({
   imports: [
@@ -14,7 +16,7 @@ import { AuthModule } from "src/auth/auth.module";
     MoverAuthModule,
     AuthModule,
   ],
-  controllers: [MoverProfileController],
-  providers: [MoverProfileService],
+  controllers: [MoverProfileController, MoverInfoController],
+  providers: [MoverProfileService, MoverInfoService],
 })
 export class MoverModule {}

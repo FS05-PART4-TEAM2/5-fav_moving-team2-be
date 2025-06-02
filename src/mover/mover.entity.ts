@@ -57,13 +57,13 @@ export class Mover {
   @Column({ default: 0 })
   likeCount: number;
 
-  @Column({ default: 0 })
+  @Column({ type: "float", default: 0 })
   totalRating: number; // 별점 총점
 
   @Column({ default: 0 })
   reviewCounts: number;
 
-  @Column({ default: 0 })
+  @Column({ default: 0})
   confirmedCounts: number; // 확정 견적 개수
 
   @CreateDateColumn()

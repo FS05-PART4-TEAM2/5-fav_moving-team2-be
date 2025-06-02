@@ -17,8 +17,8 @@ import { CustomerAuthService } from "../customer/auth/auth.service";
 import { AccessToken } from "../common/decorators/access-token.decorator";
 import { CommonApiResponse } from "src/common/dto/api-response.dto";
 import {
-  CustomerGoogleOauthLoginResponseDto,
-  MoverGoogleOauthLoginResponseDto,
+  CustomerOauthLoginResponseDto,
+  MoverOauthLoginResponseDto,
 } from "src/common/dto/oauthLogin.dto";
 import { SafeCustomer } from "src/customer/types/customerWithoutPw";
 import { SafeMover } from "src/customer/types/moverWithoutPw";
@@ -317,9 +317,9 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    await this.handleOauthRedirect(req, res);
+    const userData = await this.handleOauthRedirect(req, res);
     res.redirect(
-      `${this.configService.get("FRONT_URL") ?? "http://localhost:3000"}/oauth/callback`,
+      `${this.configService.get("FRONT_URL") ?? "http://localhost:3000"}/oauth/callback?accessToken=${userData.data?.accessToken}&refreshToken=${userData.data?.refreshToken}&type=${userData.data?.type}`,
     );
   }
 
@@ -334,9 +334,9 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    await this.handleOauthRedirect(req, res);
+    const userData = await this.handleOauthRedirect(req, res);
     res.redirect(
-      `${this.configService.get("FRONT_URL") ?? "http://localhost:3000"}/oauth/callback`,
+      `${this.configService.get("FRONT_URL") ?? "http://localhost:3000"}/oauth/callback?accessToken=${userData.data?.accessToken}&refreshToken=${userData.data?.refreshToken}&type=${userData.data?.type}`,
     );
   }
 
@@ -351,9 +351,10 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    await this.handleOauthRedirect(req, res);
+    const userData = await this.handleOauthRedirect(req, res);
+
     res.redirect(
-      `${this.configService.get("FRONT_URL") ?? "http://localhost:3000"}/oauth/callback`,
+      `${this.configService.get("FRONT_URL") ?? "http://localhost:3000"}/oauth/callback?accessToken=${userData.data?.accessToken}&refreshToken=${userData.data?.refreshToken}&type=${userData.data?.type}`,
     );
   }
 
@@ -361,10 +362,12 @@ export class AuthController {
   private async handleOauthRedirect(
     req: Request,
     res: Response,
-  ): Promise<CommonApiResponse<SafeCustomer | SafeMover>> {
-    let userInfo:
-      | CustomerGoogleOauthLoginResponseDto
-      | MoverGoogleOauthLoginResponseDto;
+  ): Promise<
+    CommonApiResponse<
+      CustomerOauthLoginResponseDto | MoverOauthLoginResponseDto
+    >
+  > {
+    let userInfo: CustomerOauthLoginResponseDto | MoverOauthLoginResponseDto;
 
     console.log(req.user);
 
@@ -373,7 +376,7 @@ export class AuthController {
         req.user,
       );
       SetAuthCookies.set(req, res, userInfo.accessToken, userInfo.refreshToken);
-      return CommonApiResponse.success(userInfo.customer, "손님 로그인 완료");
+      return CommonApiResponse.success(userInfo, "손님 로그인 완료");
     }
 
     if (req.user?.role === "mover") {
@@ -381,7 +384,7 @@ export class AuthController {
         req.user,
       );
       SetAuthCookies.set(req, res, userInfo.accessToken, userInfo.refreshToken);
-      return CommonApiResponse.success(userInfo.mover, "기사 로그인 완료");
+      return CommonApiResponse.success(userInfo, "기사 로그인 완료");
     }
 
     throw new BadRequestException();
