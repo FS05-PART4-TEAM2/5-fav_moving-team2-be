@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { ReceivedQuotationController } from "./received-quotation.controller";
+import { ReceivedQuotationController } from "./receivedQuotation.controller";
 import { ReceivedQuotationService } from "./receivedQuotation.service";
 import { ReceivedQuotation } from "./receivedQuotation.entity";
 import { AuthModule } from "src/auth/auth.module";
