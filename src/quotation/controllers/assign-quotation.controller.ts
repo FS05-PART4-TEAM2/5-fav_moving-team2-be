@@ -7,6 +7,7 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
   ApiOperation,
   ApiParam,
@@ -55,6 +56,42 @@ export class AssignQuotationController {
           updatedAt: "2025-05-31T15:34:04.404Z",
         },
         message: "지정 기사를 추가했습니다.",
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: "이미 지정한 기사일 때",
+    schema: {
+      example: {
+        success: false,
+        message: "이미 지정한 기사입니다.",
+        errorCode: "BadRequestException",
+        data: null,
+      },
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description: "기사 계정으로 로그인 했을 때",
+    schema: {
+      example: {
+        success: false,
+        data: null,
+        message: "기사 계정으로는 지정 기사 요청을 할 수 없습니다.",
+        errorCode: "UnauthorizedException",
+      },
+    },
+  })
+  @ApiResponse({
+    status: 404,
+    description: "아직 견적 요청을 하지 않았을 때",
+    schema: {
+      example: {
+        success: false,
+        data: null,
+        message: "견적 요청을 먼저 진행해주세요.",
+        errorCode: "NotFoundException",
       },
     },
   })
