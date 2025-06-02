@@ -7,6 +7,7 @@ import { StorageModule } from "./common/storage/storage.module";
 import { QuotationModule } from "./quotation/quotation.module";
 import { LikeModule } from "./likeMover/likeMover.module";
 import { ReceivedQuotationModule } from "./received-quotation/received-quotation.module";
+import { MoverReviewModule } from "./moverReview/moverReview.module";
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { ReceivedQuotationModule } from "./received-quotation/received-quotation
     QuotationModule,
     ReceivedQuotationModule,
     LikeModule,
+    MoverReviewModule
   ],
 })
 export class AppModule {}
