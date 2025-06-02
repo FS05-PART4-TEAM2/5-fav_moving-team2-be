@@ -16,7 +16,7 @@ export class AssignMover {
   status: AssignStatusKey;
 
   @Column({ nullable: true })
-  rejectedReason: string | null;
+  rejectedReason: string;
 
   // tb-Mover
   @Column()
@@ -30,5 +30,5 @@ export class AssignMover {
   createdAt: Date;
 
   @UpdateDateColumn({ nullable: true })
-  updatedAt: Date | null;
+  updatedAt: Date;
 }

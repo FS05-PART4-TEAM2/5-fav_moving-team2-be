@@ -36,5 +36,5 @@ export class ReceivedQuote {
   createdAt: Date;
 
   @UpdateDateColumn({ nullable: true })
-  updatedAt: Date | null;
+  updatedAt: Date;
 }
