@@ -12,6 +12,7 @@ import { InfiniteScrollResponseDto } from "src/common/dto/infinite-scroll.dto";
 import getCursorField from "src/common/utils/get-cursor-field.util";
 import { MoverDetailResponseDto } from "../dto/mover-detail.response.dto";
 import { AssignMover } from "src/quotation/entities/assign-mover.entity";
+import { LikeMover } from "src/likeMover/likeMover.entity";
 
 @Injectable()
 export class MoverInfoService {
@@ -20,6 +21,8 @@ export class MoverInfoService {
     private moverRepository: Repository<Mover>,
     @InjectRepository(AssignMover)
     private assignMoverRepository: Repository<AssignMover>,
+    @InjectRepository(LikeMover)
+    private likeMoverRepository: Repository<LikeMover>,
   ) {}
 
   async getMoverDetail(
@@ -51,14 +54,24 @@ export class MoverInfoService {
       });
     }
 
+    let isLiked = false;
+    if (userType === "customer") {
+      isLiked = await this.likeMoverRepository.exists({
+        where: {
+          customerId: userId,
+          moverId: mover.id,
+        },
+      });
+    }
+
     const moverDetail: MoverDetailResponseDto = {
       id: mover.id,
       idNum: mover.idNum,
       detailDescription: mover.detailDescription,
       nickname: mover.nickname,
       isProfile: mover.isProfile,
-      isLiked: false, // 추후 로직으로 추가 처리 예정
-      isAssigned, // 추후 로직으로 추가 처리 예정
+      isLiked, // 찜하기 여부
+      isAssigned, // 지정 기사 여부
       career: mover.career,
       intro: mover.intro,
       confirmedCounts: mover.confirmedCounts,

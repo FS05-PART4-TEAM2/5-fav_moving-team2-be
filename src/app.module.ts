@@ -5,7 +5,7 @@ import { MoverModule } from "./mover/mover.module";
 import { CustomerModule } from "./customer/customer.module";
 import { StorageModule } from "./common/storage/storage.module";
 import { QuotationModule } from "./quotation/quotation.module";
-import { LikeModule } from "./like/like.module";
+import { LikeModule } from "./likeMover/likeMover.module";
 
 @Module({
   imports: [

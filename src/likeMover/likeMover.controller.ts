@@ -8,8 +8,8 @@ import {
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { JwtCookieAuthGuard } from "src/common/guards/jwt-cookie-auth.guard";
-import { likeMoverService } from "./like.service";
-import { Like } from "./like.entity";
+import { likeMoverService } from "./likeMover.service";
+import { LikeMover } from "./likeMover.entity";
 import { CommonApiResponse } from "src/common/dto/api-response.dto";
 
 @ApiTags("Like")
@@ -27,7 +27,7 @@ export class LikeMoverController {
   async postLikeMoverByCustomer(
     @Req() req,
     @Param("id", ParseUUIDPipe) moverId: string,
-  ): Promise<CommonApiResponse<Like>> {
+  ): Promise<CommonApiResponse<LikeMover>> {
     const { userId, userType } = req.user ?? {};
     const result = await this.likeMoverService.postLikeMoverByCustomer(
       userId,

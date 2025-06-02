@@ -6,14 +6,14 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, Repository } from "typeorm";
-import { Like } from "./like.entity";
+import { LikeMover } from "./likeMover.entity";
 import { Mover } from "src/mover/mover.entity";
 
 @Injectable()
 export class likeMoverService {
   constructor(
-    @InjectRepository(Like)
-    private likeRepository: Repository<Like>,
+    @InjectRepository(LikeMover)
+    private likeRepository: Repository<LikeMover>,
     @InjectRepository(Mover)
     private moverRepository: Repository<Mover>,
     private readonly dataSource: DataSource,
@@ -22,7 +22,7 @@ export class likeMoverService {
     userId: string,
     userType: string,
     moverId: string,
-  ): Promise<Like> {
+  ): Promise<LikeMover> {
     // 유저 타입이 mover 일 때 예외처리
     if (userType === "mover") {
       throw new UnauthorizedException("기사 계정으로 할 수 없는 기능입니다.");
@@ -42,8 +42,7 @@ export class likeMoverService {
     return this.increaseLikeAndSave(userId, moverId);
   }
 
-  async increaseLikeAndSave(userId: string, moverId: string): Promise<Like> {
-
+  async increaseLikeAndSave(userId: string, moverId: string): Promise<LikeMover> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -57,7 +56,7 @@ export class likeMoverService {
       );
 
       // Like 생성 및 저장
-      const liked = queryRunner.manager.create(Like, {
+      const liked = queryRunner.manager.create(LikeMover, {
         customerId: userId,
         moverId,
       });

@@ -9,6 +9,7 @@ import { AuthModule } from "src/auth/auth.module";
 import { MoverInfoController } from "./controllers/mover-info.controller";
 import { MoverInfoService } from "./services/mover-info.service";
 import { AssignMover } from "src/quotation/entities/assign-mover.entity";
+import { LikeModule } from "src/likeMover/likeMover.module";
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { AssignMover } from "src/quotation/entities/assign-mover.entity";
     StorageModule,
     MoverAuthModule,
     AuthModule,
+    LikeModule,
   ],
   controllers: [MoverProfileController, MoverInfoController],
   providers: [MoverProfileService, MoverInfoService],
