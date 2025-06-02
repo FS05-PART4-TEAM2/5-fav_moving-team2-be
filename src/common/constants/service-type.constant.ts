@@ -7,3 +7,6 @@ export const SERVICE_TYPES = [
 
 export type ServiceTypeKey = (typeof SERVICE_TYPES)[number]["key"];
 export type ServiceTypeLabel = (typeof SERVICE_TYPES)[number]["label"];
+
+// SERVICE_KEYS: class-validator의 IsIn에 사용할 검증용 배열
+export const SERVICE_KEYS = SERVICE_TYPES.map((s) => s.key);
