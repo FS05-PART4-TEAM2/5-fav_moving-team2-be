@@ -1,8 +1,8 @@
 import { Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
-import { ReceivedQuotationService } from "./received-quotation.service";
+import { ReceivedQuotationService } from "./receivedQuotation.service";
 import { ApiOperation } from "@nestjs/swagger";
 import { CommonApiResponse } from "src/common/dto/api-response.dto";
-import { ReceivedQuotationResponseDto } from "./dto/received-quotation.response.dto";
+import { ReceivedQuotationResponseDto } from "./dto/receivedQuotation.response.dto";
 import { JwtCookieAuthGuard } from "src/common/guards/jwt-cookie-auth.guard";
 
 @Controller("api/receivedQuo")

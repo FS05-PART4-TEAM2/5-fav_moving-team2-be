@@ -5,7 +5,7 @@ import { MoverModule } from "./mover/mover.module";
 import { CustomerModule } from "./customer/customer.module";
 import { StorageModule } from "./common/storage/storage.module";
 import { QuotationModule } from "./quotation/quotation.module";
-import { ReceivedQuotationModule } from "./received-quotation/received-quotation.module";
+import { ReceivedQuotationModule } from "./receivedQuotation/receivedQuotation.module";
 import { MockApiModule } from "./mock-api/mock-api.module";
 
 @Module({
