@@ -50,7 +50,7 @@ export interface OfferDto {
 export class ReceivedQuotationResponseDto {
   quotationId: string;
   requestedAt: string;
-  moveType: string;
+  moveType: ServiceTypeKey;
   moveDate: string;
   startAddress: string;
   endAddress: string;
