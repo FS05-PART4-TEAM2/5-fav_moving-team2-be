@@ -1,4 +1,8 @@
-import { Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Mover } from "../mover.entity";
 import { LessThan, Like, MoreThan, Repository } from "typeorm";
@@ -6,6 +10,7 @@ import { MoverListRequestDto } from "../dto/mover-list.request.dto";
 import { FindMoverData } from "../dto/mover-list.response.dto";
 import { InfiniteScrollResponseDto } from "src/common/dto/infinite-scroll.dto";
 import getCursorField from "src/common/utils/get-cursor-field.util";
+import { MoverDetailResponseDto } from "../dto/mover-detail.response.dto";
 
 @Injectable()
 export class MoverInfoService {
@@ -13,6 +18,46 @@ export class MoverInfoService {
     @InjectRepository(Mover)
     private moverRepository: Repository<Mover>,
   ) {}
+
+  async getMoverDetail(
+    userId: string,
+    userType: string,
+    moverId: string,
+  ): Promise<MoverDetailResponseDto> {
+    const mover = await this.moverRepository.findOne({
+      where: {
+        id: moverId,
+      },
+    });
+    
+    if (!mover) {
+      throw new NotFoundException(`${moverId}는 유효하지 않은 기사입니다.`);
+    }
+
+    if (!mover.isProfile) {
+      throw new BadRequestException("프로필을 등록하지 않은 기사입니다.");
+    }
+
+    const moverDetail: MoverDetailResponseDto = {
+      id: mover.id,
+      idNum: mover.idNum,
+      detailDescription: mover.detailDescription,
+      nickname: mover.nickname,
+      isProfile: mover.isProfile,
+      isLiked: false, // 추후 로직으로 추가 처리 예정
+      isAssigned: false, // 추후 로직으로 추가 처리 예정
+      career: mover.career,
+      intro: mover.intro,
+      confirmedCounts: mover.confirmedCounts,
+      reviewCounts: mover.reviewCounts,
+      totalRating: mover.totalRating,
+      serviceArea: mover.serviceArea,
+      serviceList: mover.serviceList,
+      likeCount: mover.likeCount,
+    };
+
+    return moverDetail;
+  }
 
   async getMoverList(
     moverListRequestDto: MoverListRequestDto,
