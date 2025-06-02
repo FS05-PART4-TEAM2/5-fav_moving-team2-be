@@ -21,3 +21,7 @@ export const REGIONS = [
 
 export type RegionKey = (typeof REGIONS)[number]["key"];
 export type RegionLabel = (typeof REGIONS)[number]["label"];
+
+export function getRegionLabelByKey(key: RegionKey): RegionLabel | undefined {
+  return REGIONS.find((region) => region.key === key)?.label;
+}

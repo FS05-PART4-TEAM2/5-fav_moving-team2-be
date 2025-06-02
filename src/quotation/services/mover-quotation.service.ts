@@ -9,6 +9,11 @@ import { ReceivedQuotationRequestDto } from "../dtos/reveived-quotation.request.
 import { QUOTATION_STATE_KEY } from "src/common/constants/quotation-state.constant";
 import { Customer } from "src/customer/customer.entity";
 import { ASSIGN_STATUS_KEY } from "src/common/constants/assign-status.constant";
+import {
+  getRegionLabelByKey,
+  RegionKey,
+  RegionLabel,
+} from "src/common/constants/region.constant";
 
 @Injectable()
 export class MoverQuotationService {
@@ -42,8 +47,13 @@ export class MoverQuotationService {
     }
 
     // 2. 견적 조회: QueryBuilder 사용
-    const regionList = region?.split(",") ?? [];
+    const regionKeys = region?.split(",") ?? [];
     const today = new Date();
+
+    // 키 → 라벨 변환
+    const regionLabels = regionKeys
+      .map((key) => getRegionLabelByKey(key as RegionKey))
+      .filter((label): label is RegionLabel => !!label); // undefined 제거
 
     const qb = this.quotationRepository.createQueryBuilder("quotation");
 
@@ -60,15 +70,15 @@ export class MoverQuotationService {
       qb.andWhere("quotation.moveType IN (:...typeList)", { typeList });
     }
 
-    if (regionList.length > 0) {
+    if (regionLabels.length > 0) {
       qb.andWhere(
         new Brackets((qb) => {
-          regionList.forEach((region, i) => {
+          regionLabels.forEach((label, i) => {
             qb.orWhere("quotation.startAddress LIKE :region" + i, {
-              ["region" + i]: `%${region}%`,
+              ["region" + i]: `%${label}%`,
             });
             qb.orWhere("quotation.endAddress LIKE :region" + i, {
-              ["region" + i]: `%${region}%`,
+              ["region" + i]: `%${label}%`,
             });
           });
         }),
