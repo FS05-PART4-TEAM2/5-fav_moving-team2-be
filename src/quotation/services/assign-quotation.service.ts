@@ -57,7 +57,7 @@ export class AssignQuotationService {
       quotationId: quotation?.id,
       customerId: userId,
       status: "PENDING",
-      rejectedReason: null,
+      rejectedReason: "",
     });
 
     await this.assignMoverRepository.save(newAssignMover);
