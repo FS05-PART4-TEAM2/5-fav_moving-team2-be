@@ -164,14 +164,25 @@ export class MoverInfoService {
 
     const assignedMoverIdSet = new Set(assignedMovers.map((am) => am.moverId));
 
+    const likedMovers = await this.likeMoverRepository.find({
+      where: {
+        customerId: userId,
+        moverId: In(result.map((mover) => mover.id)),
+      },
+      select: ["moverId"],
+    });
+
+    const likedMoverIdSet = new Set(likedMovers.map((lm) => lm.moverId));
+
     const moverInfos: FindMoverData[] = result.map((mover) => {
       let isAssigned = assignedMoverIdSet.has(mover.id);
+      let isLiked = likedMoverIdSet.has(mover.id);
       return {
         id: mover.id,
         idNum: mover.idNum,
         nickname: mover.nickname,
         isProfile: mover.isProfile,
-        isLiked: false, // 찜한 기사인지 여부 - 추후 로직 추가 예정
+        isLiked, // 찜한 기사인지 여부 - 추후 로직 추가 예정
         isAssigned, // 지정 기사인지 여부 - 추후 로직 추가 예정
         career: mover.career,
         intro: mover.intro,
