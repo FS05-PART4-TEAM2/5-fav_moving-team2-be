@@ -1,5 +1,6 @@
 import {
   Controller,
+  Delete,
   Param,
   ParseUUIDPipe,
   Post,
@@ -88,5 +89,67 @@ export class LikeMoverController {
     );
 
     return CommonApiResponse.success(result, "기사 찜하기 성공");
+  }
+
+  @Delete(":id/customer")
+  @ApiOperation({
+    summary: "기사 찜해제",
+    description: "손님이 찜했던 기사에 대해 찜하기를 취소합니다.",
+  })
+  @ApiParam({
+    name: "id",
+    type: String,
+    required: true,
+    description: "찜해제할 기사 ID",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "기사 찜해제 성공",
+    schema: {
+      type: "object",
+      example: {
+        success: true,
+        data: null,
+        message: "기사 찜해제 성공",
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: "찜하지 않은 기사일 때",
+    schema: {
+      example: {
+        success: false,
+        data: null,
+        message: "찜하지 않은 기사입니다.",
+        errorCode: "BadRequestException",
+      },
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description: "기사 계정으로 로그인 했을 때",
+    schema: {
+      example: {
+        success: false,
+        data: null,
+        message: "기사 계정으로 할 수 없는 기능입니다.",
+        errorCode: "UnauthorizedException",
+      },
+    },
+  })
+  @UseGuards(JwtCookieAuthGuard)
+  async deleteLikeMoverByCustomer(
+    @Req() req,
+    @Param("id", ParseUUIDPipe) moverId: string,
+  ): Promise<CommonApiResponse<null>> {
+    const { userId, userType } = req.user ?? {};
+    const result = await this.likeMoverService.deleteLikeMoverByCustomer(
+      userId,
+      userType,
+      moverId,
+    );
+
+    return CommonApiResponse.success(result, "기사 찜하기 해제");
   }
 }
