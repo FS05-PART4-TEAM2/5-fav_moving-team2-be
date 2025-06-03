@@ -69,9 +69,9 @@ export class MoverInfoService {
       idNum: mover.idNum,
       detailDescription: mover.detailDescription,
       nickname: mover.nickname,
-      isProfile: mover.isProfile,
       isLiked, // 찜하기 여부
       isAssigned, // 지정 기사 여부
+      profileImage: mover.profileImage,
       career: mover.career,
       intro: mover.intro,
       confirmedCounts: mover.confirmedCounts,
@@ -181,21 +181,22 @@ export class MoverInfoService {
         id: mover.id,
         idNum: mover.idNum,
         nickname: mover.nickname,
-        isProfile: mover.isProfile,
-        isLiked, // 찜한 기사인지 여부 - 추후 로직 추가 예정
-        isAssigned, // 지정 기사인지 여부 - 추후 로직 추가 예정
+        isLiked, // 찜한 기사인지 여부
+        isAssigned, // 지정 기사인지 여부
+        profileImage: mover.profileImage,
         career: mover.career,
         intro: mover.intro,
         confirmedCounts: mover.confirmedCounts,
         reviewCounts: mover.reviewCounts,
         likeCount: mover.likeCount,
         totalRating: mover.totalRating,
+        serviceList: mover.serviceList,
       };
     });
 
     return {
       list: moverInfos,
-      orderNextCursor: orderNextCursor ?? null,
+      orderNextCursor: orderNextCursor ?? null, // 기본 값: idNumNextCursor와 일치 - 정렬 없을 때
       idNumNextCursor: idNumNextCursor ?? null,
       hasNext,
     };
