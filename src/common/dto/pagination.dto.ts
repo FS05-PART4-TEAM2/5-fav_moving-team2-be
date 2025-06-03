@@ -49,5 +49,13 @@ export class ReviewPaginationResponseDto {
     3: number;
     4: number;
     5: number;
-  }
+  };
+  ratingPercentages: {
+    1: number;
+    2: number;
+    3: number;
+    4: number;
+    5: number;
+  };
+  totalRating: number; // 기사의 별점 평균 점수 - 추후 리뷰 작성 API에서 계산 로직 구현해야해서 현재는 계산 X
 }

@@ -20,6 +20,9 @@ export class MoverReview {
   @Column()
   customerId: string;
 
+  @Column({default: "익명"})
+  customerNick: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

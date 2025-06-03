@@ -4,12 +4,15 @@ import { MoverReview } from "./moverReview.entity";
 import { Repository } from "typeorm";
 import { ReviewPaginationResponseDto } from "src/common/dto/pagination.dto";
 import { faker } from "@faker-js/faker";
+import { Mover } from "src/mover/mover.entity";
 
 @Injectable()
 export class MoverReviewService {
   constructor(
     @InjectRepository(MoverReview)
     private moverReviewRepository: Repository<MoverReview>,
+    @InjectRepository(Mover)
+    private moverRepository: Repository<Mover>,
   ) {}
 
   async getMoverReviewList(
@@ -26,11 +29,13 @@ export class MoverReviewService {
       take: limit,
       order: { createdAt: "DESC" },
     });
-    console.log({
-      page: page,
-      limit: limit,
-      skip: (page - 1) * limit,
-    });
+
+    const totalRating = await this.moverRepository
+      .createQueryBuilder("mover")
+      .select("mover.totalRating", "totalRating")
+      .where("mover.id = :moverId", { moverId })
+      .getRawOne()
+      .then((res) => res?.totalRating ?? 0);
 
     // 별점 분포 조회
     const ratingCountsRaw = await this.moverReviewRepository
@@ -60,11 +65,45 @@ export class MoverReviewService {
       ratingCounts[row.rating] = Number(row.count);
     }
 
+    const ratingPercentages: {
+      1: number;
+      2: number;
+      3: number;
+      4: number;
+      5: number;
+    } = {
+      1: 0,
+      2: 0,
+      3: 0,
+      4: 0,
+      5: 0,
+    };
+
+    const totalCount = Object.values(ratingCounts).reduce(
+      (sum, val) => sum + val,
+      0,
+    );
+    let accumulated = 0;
+    for (let i = 0; i < 5; i++) {
+      const rating = i + 1;
+      if (i < 4) {
+        const percent = totalCount
+          ? parseFloat(((ratingCounts[rating] / totalCount) * 100).toFixed(1))
+          : 0;
+        ratingPercentages[rating] = percent;
+        accumulated += percent;
+      } else {
+        ratingPercentages[rating] = parseFloat((100 - accumulated).toFixed(1));
+      }
+    }
+
     return {
       totalPages: Math.ceil(total / limit),
       list: reviews,
       currentPage: page,
       ratingCounts,
+      ratingPercentages,
+      totalRating,
     };
   }
 
@@ -76,6 +115,7 @@ export class MoverReviewService {
     const review = this.moverReviewRepository.create({
       content: faker.lorem.sentences(2),
       rating: faker.number.int({ min: 1, max: 5 }),
+      customerNick: "테스트***",
       moverId: dummyMoverId,
       quotationId: dummyQuotationId,
       customerId: dummyCustomerId,
