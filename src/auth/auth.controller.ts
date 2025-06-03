@@ -20,8 +20,6 @@ import {
   CustomerOauthLoginResponseDto,
   MoverOauthLoginResponseDto,
 } from "src/common/dto/oauthLogin.dto";
-import { SafeCustomer } from "src/customer/types/customerWithoutPw";
-import { SafeMover } from "src/customer/types/moverWithoutPw";
 import { MoverAuthService } from "src/mover/auth/auth.service";
 import { SetAuthCookies } from "src/common/utils/set-auth-cookies.util";
 import {
@@ -110,13 +108,10 @@ export class AuthController {
       errorCode: "UnauthorizedException",
     },
   })
-  async setRoleAndRedirectGoogle(
-    @Param("role") role: string,
-    @Res() res: Response,
-  ) {
+  setRoleAndRedirectGoogle(@Param("role") role: string, @Res() res: Response) {
     const state = encodeURIComponent(JSON.stringify({ role }));
-    const clientId = this.configService.get("GOOGLE_CLIENT_ID");
-    const redirectUri = this.configService.get("GOOGLE_REDIRECT_URI");
+    const clientId = this.configService.get("GOOGLE_CLIENT_ID") as string;
+    const redirectUri = this.configService.get("GOOGLE_REDIRECT_URI") as string;
     const redirectUrl =
       "https://accounts.google.com/o/oauth2/v2/auth" +
       `?client_id=${clientId}` +
@@ -198,15 +193,12 @@ export class AuthController {
       errorCode: "UnauthorizedException",
     },
   })
-  async setRoleAndRedirectNaver(
-    @Param("role") role: string,
-    @Res() res: Response,
-  ) {
+  setRoleAndRedirectNaver(@Param("role") role: string, @Res() res: Response) {
     const rawState = JSON.stringify({ role });
     const base64State = Buffer.from(rawState).toString("base64"); // ✅ base64 인코딩
 
-    const clientId = this.configService.get("NAVER_CLIENT_ID");
-    const redirectUri = this.configService.get("NAVER_REDIRECT_URI");
+    const clientId = this.configService.get("NAVER_CLIENT_ID") as string;
+    const redirectUri = this.configService.get("NAVER_REDIRECT_URI") as string;
 
     const redirectUrl =
       `https://nid.naver.com/oauth2.0/authorize` +
@@ -288,10 +280,7 @@ export class AuthController {
       errorCode: "UnauthorizedException",
     },
   })
-  async setRoleAndRedirectKakao(
-    @Param("role") role: string,
-    @Res() res: Response,
-  ) {
+  setRoleAndRedirectKakao(@Param("role") role: string, @Res() res: Response) {
     const state = encodeURIComponent(JSON.stringify({ role }));
     const clientId = this.configService.get<string>("KAKAO_CLIENT_ID");
     const redirectUri = this.configService.get<string>("KAKAO_REDIRECT_URI");
@@ -406,7 +395,10 @@ export class AuthController {
       throw new BadRequestException("refreshToken이 누락되었습니다.");
     }
 
-    const payload = this.authService.decodeToken(refreshToken);
+    const payload = this.authService.decodeToken(refreshToken) as {
+      userId: string;
+      userType: string;
+    };
     const service =
       payload.userType === "customer"
         ? this.customerAuthService

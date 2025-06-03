@@ -43,7 +43,10 @@ export class likeMoverService {
     return this.increaseLikeAndSave(userId, moverId);
   }
 
-  async increaseLikeAndSave(userId: string, moverId: string): Promise<LikeMover> {
+  async increaseLikeAndSave(
+    userId: string,
+    moverId: string,
+  ): Promise<LikeMover> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -99,7 +102,7 @@ export class likeMoverService {
     return this.decreaseLikeAndSave(userId, moverId);
   }
 
-    async decreaseLikeAndSave(userId: string, moverId: string): Promise<null> {
+  async decreaseLikeAndSave(userId: string, moverId: string): Promise<null> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();

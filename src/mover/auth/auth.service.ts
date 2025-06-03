@@ -65,7 +65,12 @@ export class MoverAuthService {
         refreshToken,
       });
 
-      return { refreshToken, accessToken, mover: existedMoverWithoutPw, type: "mover" };
+      return {
+        refreshToken,
+        accessToken,
+        mover: existedMoverWithoutPw,
+        type: "mover",
+      };
     }
 
     /** 아직 가입하지 않은 기사일 때 */
@@ -94,7 +99,12 @@ export class MoverAuthService {
       refreshToken,
     });
 
-    return { refreshToken, accessToken, mover: newMoverWithoutPw, type: "mover" };
+    return {
+      refreshToken,
+      accessToken,
+      mover: newMoverWithoutPw,
+      type: "mover",
+    };
   }
 
   async signUp(SignUpRequestDto: SignUpRequestDto): Promise<Mover> {

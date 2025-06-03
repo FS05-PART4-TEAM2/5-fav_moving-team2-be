@@ -22,7 +22,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, "google") {
     super(options);
   }
 
-  async validate(
+  validate(
     req: Request,
     accessToken: string,
     refreshToken: string,
@@ -36,8 +36,8 @@ export class GoogleStrategy extends PassportStrategy(Strategy, "google") {
     }
 
     const decoded = decodeURIComponent(state);
-    const parsed = JSON.parse(decoded);
-    const role = parsed.role;
+    const parsed = JSON.parse(decoded) as unknown;
+    const role = parsed.role as string;
 
     if (role !== "customer" && role !== "mover") {
       throw new UnauthorizedException("존재하지 않는 역할 정보입니다.");

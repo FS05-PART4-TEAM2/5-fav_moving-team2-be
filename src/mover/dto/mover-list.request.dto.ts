@@ -20,7 +20,6 @@ const MOVER_ORDER_KEYS: MoverInfoOrder[] = [
   "MOSTCONFIRM",
 ];
 
-
 export class MoverListRequestDto {
   @ApiPropertyOptional({
     description: "지역 코드를 입력하면 됩니다.",

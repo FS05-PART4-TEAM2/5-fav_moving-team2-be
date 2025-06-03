@@ -175,8 +175,8 @@ export class MoverInfoService {
     const likedMoverIdSet = new Set(likedMovers.map((lm) => lm.moverId));
 
     const moverInfos: FindMoverData[] = result.map((mover) => {
-      let isAssigned = assignedMoverIdSet.has(mover.id);
-      let isLiked = likedMoverIdSet.has(mover.id);
+      const isAssigned = assignedMoverIdSet.has(mover.id);
+      const isLiked = likedMoverIdSet.has(mover.id);
       return {
         id: mover.id,
         idNum: mover.idNum,

@@ -19,7 +19,7 @@ export class AuthService {
     private readonly authRepository: Repository<Auth>,
   ) {}
 
-  generateTokens(payload: any) {
+  generateTokens(payload: { userId: string; userType: string }) {
     const accessToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_SECRET,
       expiresIn: process.env.JWT_EXPIRES_IN,
@@ -81,13 +81,15 @@ export class AuthService {
 
   async validateRefreshToken(refreshToken: string): Promise<Auth | null> {
     try {
-      const payload = this.jwtService.verify(refreshToken, {
-        secret: process.env.JWT_REFRESH_SECRET,
-      });
+      const payload: { userId: string; userType: string } =
+        this.jwtService.verify(refreshToken, {
+          secret: process.env.JWT_REFRESH_SECRET,
+        });
       return this.authRepository.findOne({
         where: { userId: payload.userId, refreshToken },
       });
     } catch (error) {
+      console.log(error);
       return null;
     }
   }
@@ -95,9 +97,10 @@ export class AuthService {
     refreshToken: string,
   ): Promise<RefreshTokenResponseDto> {
     try {
-      const payload = this.jwtService.verify(refreshToken, {
-        secret: process.env.JWT_REFRESH_SECRET,
-      });
+      const payload: { userId: string; userType: string } =
+        this.jwtService.verify(refreshToken, {
+          secret: process.env.JWT_REFRESH_SECRET,
+        });
 
       const existingRecord = await this.authRepository.findOne({
         where: { refreshToken },
@@ -142,6 +145,7 @@ export class AuthService {
     try {
       return this.jwtService.decode(token);
     } catch (error) {
+      console.log(error);
       throw new UnauthorizedException("유효하지 않은 토큰입니다.");
     }
   }

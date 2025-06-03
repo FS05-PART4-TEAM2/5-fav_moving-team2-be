@@ -1,4 +1,10 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from "typeorm";
 
 @Entity()
 export class MoverReview {
@@ -20,7 +26,7 @@ export class MoverReview {
   @Column()
   customerId: string;
 
-  @Column({default: "익명"})
+  @Column()
   customerNick: string;
 
   @CreateDateColumn()

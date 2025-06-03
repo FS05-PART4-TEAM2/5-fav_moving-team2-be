@@ -25,7 +25,7 @@ import { MoverReviewModule } from "./moverReview/moverReview.module";
     ReceivedQuotationModule,
     MockApiModule, // mock api 모듈 추가
     LikeModule,
-    MoverReviewModule
+    MoverReviewModule,
   ],
 })
 export class AppModule {}
