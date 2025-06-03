@@ -12,7 +12,12 @@ export class JustLookUserGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const accessToken = request.cookies["accessToken"];
+    let accessToken = request.headers["access-token"];
+
+    const authHeader = request.headers["authorization"];
+    if (authHeader?.startsWith("Bearer ")) {
+      accessToken = authHeader.replace("Bearer ", "");
+    }
 
     const user = await this.authService.findByToken(accessToken);
     if (user) {

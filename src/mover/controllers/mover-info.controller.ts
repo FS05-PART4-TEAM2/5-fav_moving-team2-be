@@ -12,6 +12,7 @@ import { MoverListRequestDto } from "../dto/mover-list.request.dto";
 import { JustLookUserGuard } from "src/common/guards/just-look-user.guard";
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiNotFoundResponse,
   ApiOperation,
   ApiParam,
@@ -24,6 +25,7 @@ import { FindMoverData } from "../dto/mover-list.response.dto";
 import { MoverDetailResponseDto } from "../dto/mover-detail.response.dto";
 
 @ApiTags("Mover")
+@ApiBearerAuth("access-token")
 @Controller("api/mover")
 export class MoverInfoController {
   constructor(private readonly moverInfoService: MoverInfoService) {}
@@ -107,33 +109,26 @@ export class MoverInfoController {
     description: "기사 상세 정보 조회 성공",
     schema: {
       type: "object",
-      properties: {
-        success: { type: "boolean", example: true },
+      example: {
+        success: true,
         data: {
-          type: "object",
-          example: {
-            success: true,
-            data: {
-              id: "693e520a-95ef-410f-add7-f7734ace85fa",
-              idNum: 3,
-              detailDescription: null,
-              nickname: null,
-              isProfile: true,
-              isLiked: false,
-              isAssigned: false,
-              career: 9,
-              intro: null,
-              confirmedCounts: 0,
-              reviewCounts: 0,
-              totalRating: 0,
-              serviceArea: null,
-              serviceList: null,
-              likeCount: 5,
-            },
-            message: "기사 상세 조회 성공",
-          },
+          id: "693e520a-95ef-410f-add7-f7734ace85fa",
+          idNum: 3,
+          detailDescription: null,
+          nickname: null,
+          isProfile: true,
+          isLiked: false,
+          isAssigned: false,
+          career: 9,
+          intro: null,
+          confirmedCounts: 0,
+          reviewCounts: 0,
+          totalRating: 0,
+          serviceArea: null,
+          serviceList: null,
+          likeCount: 5,
         },
-        message: { type: "string", example: "기사 상세 정보 조회 성공" },
+        message: "기사 상세 조회 성공",
       },
     },
   })
