@@ -19,7 +19,7 @@ export class AuthService {
     private readonly authRepository: Repository<Auth>,
   ) {}
 
-  generateTokens(payload: { userId: string; userType: string }) {
+  generateTokens(payload) {
     const accessToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_SECRET,
       expiresIn: process.env.JWT_EXPIRES_IN,

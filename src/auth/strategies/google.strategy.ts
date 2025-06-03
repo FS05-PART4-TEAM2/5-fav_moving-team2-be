@@ -28,7 +28,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, "google") {
     refreshToken: string,
     profile: any,
     done: VerifyCallback,
-  ): Promise<any> {
+  ): any {
     const state = req.query.state;
 
     if (typeof state !== "string") {
@@ -36,8 +36,8 @@ export class GoogleStrategy extends PassportStrategy(Strategy, "google") {
     }
 
     const decoded = decodeURIComponent(state);
-    const parsed = JSON.parse(decoded) as unknown;
-    const role = parsed.role as string;
+    const parsed = JSON.parse(decoded);
+    const role = parsed.role;
 
     if (role !== "customer" && role !== "mover") {
       throw new UnauthorizedException("존재하지 않는 역할 정보입니다.");
