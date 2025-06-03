@@ -19,7 +19,21 @@ import * as path from "path";
           username: config.get<string>("DB_USERNAME"),
           password: config.get<string>("DB_PASSWORD"),
           database: config.get<string>("DB_DATABASE"),
-          ssl: true,
+          ssl:
+            isProduction && useSSL
+              ? {
+                  ca: fs
+                    .readFileSync(
+                      path.join(
+                        __dirname,
+                        "..",
+                        "..",
+                        "rds-combined-ca-bundle.pem",
+                      ),
+                    )
+                    .toString(),
+                }
+              : useSSL,
           entities: [__dirname + "/../**/*.entity{.ts,.js}"],
           synchronize: !isProduction,
         };
