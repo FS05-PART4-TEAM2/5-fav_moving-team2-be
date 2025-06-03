@@ -1,7 +1,7 @@
 // src/common/exceptions/user-exists.exception.ts
 import { HttpException, HttpStatus } from "@nestjs/common";
 
-export class ForbiddenUserException extends HttpException {
+export class InvalidUserException extends HttpException {
   constructor() {
     super(
       {

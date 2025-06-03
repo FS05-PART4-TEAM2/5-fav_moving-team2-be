@@ -4,8 +4,8 @@ import { Brackets, ILike, In, MoreThanOrEqual, Repository } from "typeorm";
 import { Quotation } from "../quotation.entity";
 import { AssignMover } from "../entities/assign-mover.entity";
 import { ReceivedQuote } from "../entities/received-quote.entity";
-import { ReceivedQuotationResponseDto } from "../dtos/received-quotation.response.dto";
-import { ReceivedQuotationRequestDto } from "../dtos/reveived-quotation.request.dto";
+import { QuotationResponseDto } from "../dtos/quotation.response.dto";
+import { GetQuotationListRequestDto } from "../dtos/get-quotation-list.request.dto";
 import { QUOTATION_STATE_KEY } from "src/common/constants/quotation-state.constant";
 import { Customer } from "src/customer/customer.entity";
 import { ASSIGN_STATUS_KEY } from "src/common/constants/assign-status.constant";
@@ -14,6 +14,10 @@ import {
   RegionKey,
   RegionLabel,
 } from "src/common/constants/region.constant";
+import { CreateReceivedQuotationDto } from "../dtos/create-received-quotation.request.dto";
+import { InvalidQuotationException } from "src/common/exceptions/invalid-quotation.exception";
+import { InvalidUserException } from "src/common/exceptions/invalid-user.exception";
+import { ReceivedQuoteResponseDto } from "../dtos/received-quotation.response.dto";
 
 @Injectable()
 export class MoverQuotationService {
@@ -28,10 +32,16 @@ export class MoverQuotationService {
     private readonly customerRepository: Repository<Customer>,
   ) {}
 
+  /**
+   *
+   * @param user
+   * @param queries
+   * @returns
+   */
   async getReceivedQuotationList(
     user: { userId: string; userType: string },
-    queries: ReceivedQuotationRequestDto,
-  ): Promise<ReceivedQuotationResponseDto[]> {
+    queries: GetQuotationListRequestDto,
+  ): Promise<QuotationResponseDto[]> {
     const { userId } = user;
     const { type, region, isAssigned, username, sorted } = queries;
 
@@ -127,12 +137,73 @@ export class MoverQuotationService {
 
     // 6. 응답 생성
     const result = filteredQuotations.map((q) =>
-      ReceivedQuotationResponseDto.of(
+      QuotationResponseDto.of(
         q,
         assignedQuotationIdSet.has(q.id),
         customerMap.get(q.customerId),
       ),
     );
+
+    return result;
+  }
+
+  /**
+   * @TODO quotationId - quotation 유효성 검사
+   * @TODO customerId - customer 유효성 검사
+   * @TODO isAssignQuo - 지정 여부 확인
+   * @TODO 견적 보내기 - ReceivedQuote 저장
+   */
+  async createReceivedQuotation(
+    user: { userId: string; userType: string },
+    request: CreateReceivedQuotationDto,
+  ): Promise<ReceivedQuoteResponseDto> {
+    console.log(user);
+    console.log(request);
+
+    const { userId, userType } = user;
+    const { price, comment, isAssignQuo, customerId, quotationId } = request;
+
+    // 1. 견적 유효성 확인
+    const quotation = await this.quotationRepository.findOne({
+      where: {
+        id: quotationId,
+      },
+    });
+    if (!quotation)
+      throw new InvalidQuotationException("유효하지 않은 견적입니다.");
+
+    // 2. 고객 유효성 확인
+    const customer = await this.customerRepository.findOne({
+      where: {
+        id: customerId,
+      },
+    });
+    if (!customer) throw new InvalidUserException();
+
+    // 3. 지정 여부 확인
+    const assignMover = await this.assignMoverRepository.findOne({
+      where: {
+        moverId: userId,
+        customerId: customerId,
+        quotationId: quotationId,
+      },
+    });
+    if (isAssignQuo && !assignMover)
+      throw new InvalidQuotationException("지정 견적 요청건이 아닙니다.");
+
+    // 4. 견적 보내기
+    const receivedQuote = this.receivedQuoteRepository.create({
+      price,
+      comment,
+      isAssignQuo,
+      moverId: userId,
+      customerId,
+      quotationId,
+    });
+    const newReceivedQuote =
+      await this.receivedQuoteRepository.save(receivedQuote);
+
+    const result = ReceivedQuoteResponseDto.of(newReceivedQuote);
 
     return result;
   }
