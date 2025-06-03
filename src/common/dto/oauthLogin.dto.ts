@@ -1,8 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Type } from "class-transformer";
-import { IsOptional, IsString, ValidateNested } from "class-validator";
-import { SafeCustomer } from "src/customer/types/customerWithoutPw";
-import { SafeMover } from "src/customer/types/moverWithoutPw";
+import { IsOptional, IsString } from "class-validator";
 
 export class OauthLoginRequestDto {
   @IsString()
@@ -39,9 +36,6 @@ export class MoverOauthLoginResponseDto {
   @ApiProperty({ example: "ACCESS_TOKEN", description: "엑세스 토큰" })
   accessToken: string;
 
-  @ApiProperty({ description: "기사 객체 (비밀번호 제외)" })
-  mover: SafeMover;
-
   type: "mover";
 }
 
@@ -53,9 +47,6 @@ export class CustomerOauthLoginResponseDto {
   @IsString()
   @ApiProperty({ example: "ACCESS_TOKEN", description: "엑세스 토큰" })
   accessToken: string;
-
-  @ApiProperty({ description: "손님 객체 (비밀번호 제외)" })
-  customer: SafeCustomer;
 
   type: "customer";
 }
