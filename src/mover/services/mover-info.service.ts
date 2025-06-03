@@ -5,18 +5,21 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Mover } from "../mover.entity";
-import { LessThan, Like, MoreThan, Repository } from "typeorm";
+import { In, LessThan, Like, MoreThan, Repository } from "typeorm";
 import { MoverListRequestDto } from "../dto/mover-list.request.dto";
 import { FindMoverData } from "../dto/mover-list.response.dto";
 import { InfiniteScrollResponseDto } from "src/common/dto/infinite-scroll.dto";
 import getCursorField from "src/common/utils/get-cursor-field.util";
 import { MoverDetailResponseDto } from "../dto/mover-detail.response.dto";
+import { AssignMover } from "src/quotation/entities/assign-mover.entity";
 
 @Injectable()
 export class MoverInfoService {
   constructor(
     @InjectRepository(Mover)
     private moverRepository: Repository<Mover>,
+    @InjectRepository(AssignMover)
+    private assignMoverRepository: Repository<AssignMover>,
   ) {}
 
   async getMoverDetail(
@@ -29,13 +32,23 @@ export class MoverInfoService {
         id: moverId,
       },
     });
-    
+
     if (!mover) {
       throw new NotFoundException(`${moverId}는 유효하지 않은 기사입니다.`);
     }
 
     if (!mover.isProfile) {
       throw new BadRequestException("프로필을 등록하지 않은 기사입니다.");
+    }
+
+    let isAssigned = false;
+    if (userType === "customer") {
+      isAssigned = await this.assignMoverRepository.exists({
+        where: {
+          customerId: userId,
+          moverId: mover.id,
+        },
+      });
     }
 
     const moverDetail: MoverDetailResponseDto = {
@@ -45,7 +58,7 @@ export class MoverInfoService {
       nickname: mover.nickname,
       isProfile: mover.isProfile,
       isLiked: false, // 추후 로직으로 추가 처리 예정
-      isAssigned: false, // 추후 로직으로 추가 처리 예정
+      isAssigned, // 추후 로직으로 추가 처리 예정
       career: mover.career,
       intro: mover.intro,
       confirmedCounts: mover.confirmedCounts,
@@ -128,14 +141,25 @@ export class MoverInfoService {
       idNumNextCursor = lastMover.idNum;
     }
 
+    const assignedMovers = await this.assignMoverRepository.find({
+      where: {
+        customerId: userId,
+        moverId: In(result.map((mover) => mover.id)),
+      },
+      select: ["moverId"],
+    });
+
+    const assignedMoverIdSet = new Set(assignedMovers.map((am) => am.moverId));
+
     const moverInfos: FindMoverData[] = result.map((mover) => {
+      let isAssigned = assignedMoverIdSet.has(mover.id);
       return {
         id: mover.id,
         idNum: mover.idNum,
         nickname: mover.nickname,
         isProfile: mover.isProfile,
         isLiked: false, // 찜한 기사인지 여부 - 추후 로직 추가 예정
-        isAssigned: false, // 지정 기사인지 여부 - 추후 로직 추가 예정
+        isAssigned, // 지정 기사인지 여부 - 추후 로직 추가 예정
         career: mover.career,
         intro: mover.intro,
         confirmedCounts: mover.confirmedCounts,

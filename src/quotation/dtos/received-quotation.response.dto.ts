@@ -1,5 +1,4 @@
 import { QuotationState } from "src/common/constants/quotation-state.constant";
-import { RegionKey } from "src/common/constants/region.constant";
 import { ServiceTypeKey } from "src/common/constants/service-type.constant";
 import { Quotation } from "../quotation.entity";
 import { Customer } from "src/customer/customer.entity";

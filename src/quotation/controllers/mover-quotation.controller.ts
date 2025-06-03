@@ -1,12 +1,10 @@
-import { Body, Controller, Get, Query, Req, UseGuards } from "@nestjs/common";
+import { Controller, Get, Query, Req, UseGuards } from "@nestjs/common";
 import { MoverQuotationService } from "../services/mover-quotation.service";
 import { ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
 import { JwtCookieAuthGuard } from "src/common/guards/jwt-cookie-auth.guard";
-import { Request } from "express";
 import { CommonApiResponse } from "src/common/dto/api-response.dto";
 import { ReceivedQuotationResponseDto } from "../dtos/received-quotation.response.dto";
 import { ReceivedQuotationRequestDto } from "../dtos/reveived-quotation.request.dto";
-import { Auth } from "src/auth/auth.entity";
 
 @Controller("api/quotation/mover")
 export class MoverQuotationController {

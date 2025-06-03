@@ -39,12 +39,8 @@ export class QuotationController {
   }
 
   @Get("customer")
-<<<<<<< HEAD
   @ApiBearerAuth("access-token")
   @ApiOperation({ summary: "모든 일반유저 견적 요청 조회" })
-=======
-  @ApiOperation({ summary: "모든 일반유저 견적 조회" })
->>>>>>> 56a5ad0fbfe54fd291e9a5a38c95ca6cc4457d50
   async getAllQuotations(
     @Query("page") page: number = 1,
     @Query("limit") limit: number = 10,
