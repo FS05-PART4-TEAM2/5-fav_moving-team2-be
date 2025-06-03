@@ -21,18 +21,22 @@ import * as path from "path";
           database: config.get<string>("DB_DATABASE"),
           ssl:
             isProduction && useSSL
-              ? {
-                  ca: fs
-                    .readFileSync(
-                      path.join(
-                        __dirname,
-                        "..",
-                        "..",
-                        "rds-combined-ca-bundle.pem",
-                      ),
-                    )
-                    .toString(),
-                }
+              ? (() => {
+                  try {
+                    const certPath = path.join(
+                      __dirname,
+                      "..",
+                      "..",
+                      "rds-combined-ca-bundle.pem",
+                    );
+                    return { ca: fs.readFileSync(certPath).toString() };
+                  } catch (err) {
+                    console.warn(
+                      "SSL 인증서 파일이 없습니다. ssl: false 로 fallback합니다.",
+                    );
+                    return false;
+                  }
+                })()
               : useSSL,
           entities: [__dirname + "/../**/*.entity{.ts,.js}"],
           synchronize: !isProduction,

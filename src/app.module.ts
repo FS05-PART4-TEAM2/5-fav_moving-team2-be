@@ -18,14 +18,14 @@ import { MoverReviewModule } from "./moverReview/moverReview.module";
       envFilePath: [".env", `.env.${process.env.NODE_ENV}`],
     }),
     DatabaseModule,
-    // MoverModule,
-    // CustomerModule,
-    // StorageModule,
-    // QuotationModule,
-    // ReceivedQuotationModule,
-    // MockApiModule, // mock api 모듈 추가
-    // LikeModule,
-    // MoverReviewModule,
+    MoverModule,
+    CustomerModule,
+    StorageModule,
+    QuotationModule,
+    ReceivedQuotationModule,
+    MockApiModule, // mock api 모듈 추가
+    LikeModule,
+    MoverReviewModule,
   ],
 })
 export class AppModule {}
