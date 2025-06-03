@@ -49,5 +49,13 @@ export class ReviewPaginationResponseDto {
     3: number;
     4: number;
     5: number;
-  }
+  };
+  ratingPercentages: {
+    1: number;
+    2: number;
+    3: number;
+    4: number;
+    5: number;
+  };
+  totalRating: number;
 }
