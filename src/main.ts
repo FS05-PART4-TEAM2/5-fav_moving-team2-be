@@ -13,7 +13,9 @@ import { AllExceptionsFilter } from "./common/filters/http-exception.filter";
 import * as cookieParser from "cookie-parser";
 
 async function bootstrap() {
+  
   const app = await NestFactory.create(AppModule);
+  
 
   /** class-validator가 정상 동작하도록 전역 파이프 적용  */
   app.useGlobalPipes(
