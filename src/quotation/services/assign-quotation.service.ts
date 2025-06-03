@@ -17,6 +17,7 @@ export class AssignQuotationService {
     @InjectRepository(Quotation)
     private quotationRepository: Repository<Quotation>,
   ) {}
+
   async postAssignMover(
     userId: string,
     userType: string,
@@ -44,11 +45,11 @@ export class AssignQuotationService {
       where: {
         moverId,
         customerId: userId,
-      }
-    })
+      },
+    });
 
-    if(isExistsAssign){
-      throw new BadRequestException("이미 지정한 기사입니다.")
+    if (isExistsAssign) {
+      throw new BadRequestException("이미 지정한 기사입니다.");
     }
 
     // 찾은 quotationId, moverId 바탕으로 assignMover 생성
@@ -57,7 +58,6 @@ export class AssignQuotationService {
       quotationId: quotation?.id,
       customerId: userId,
       status: "PENDING",
-      rejectedReason: null,
     });
 
     await this.assignMoverRepository.save(newAssignMover);

@@ -1,5 +1,5 @@
 // src/types/express.d.ts
-import { Request } from 'express';
+import { Request } from "express";
 
 declare global {
   namespace Express {
@@ -10,6 +10,11 @@ declare global {
       provider: string;
       providerId: string;
       role: string; // 여기에 role 추가
+    }
+
+    interface LoginAuth {
+      userId: string;
+      userType: "customer" | "mover";
     }
   }
 }
