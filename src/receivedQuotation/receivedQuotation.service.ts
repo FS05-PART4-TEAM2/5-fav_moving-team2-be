@@ -4,9 +4,9 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { ReceivedQuotation } from "./received-quotation.entity";
+import { ReceivedQuotation } from "./receivedQuotation.entity";
 import { Repository } from "typeorm";
-import { ReceivedQuotationResponseDto } from "./dto/received-quotation.response.dto";
+import { ReceivedQuotationResponseDto } from "./dto/receivedQuotation.response.dto";
 import { Quotation } from "src/quotation/quotation.entity";
 
 @Injectable()

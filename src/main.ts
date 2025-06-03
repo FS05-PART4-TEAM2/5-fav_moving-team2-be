@@ -19,7 +19,7 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true, // DTO에 없는 프로퍼티는 무조건 제거
-      forbidNonWhitelisted: true, // DTO에 정의되지 않은 값이 오면 에러 처리
+      forbidNonWhitelisted: false, // DTO에 정의되지 않은 값이 오면 에러 처리
       transform: true, // 컨트롤러에서 DTO 클래스로 변환
     }),
   );
