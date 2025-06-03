@@ -7,6 +7,7 @@ import {
   ServiceTypeKey,
   SERVICE_TYPES,
 } from "src/common/constants/service-type.constant";
+import { RegionKey } from "src/common/constants/region.constant";
 
 @Injectable()
 export class QuotationService {
@@ -33,8 +34,8 @@ export class QuotationService {
     const newQuotation = this.quotationRepository.create({
       moveType: moveType as ServiceTypeKey,
       moveDate: new Date(moveDate).toISOString(),
-      startAddress,
-      endAddress,
+      startAddress: startAddress as RegionKey,
+      endAddress: endAddress as RegionKey,
       customerId,
     });
 
