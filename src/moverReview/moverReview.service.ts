@@ -3,6 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { MoverReview } from "./moverReview.entity";
 import { Repository } from "typeorm";
 import { ReviewPaginationResponseDto } from "src/common/dto/pagination.dto";
+import { faker } from "@faker-js/faker";
 
 @Injectable()
 export class MoverReviewService {
@@ -15,14 +16,20 @@ export class MoverReviewService {
     userId: string,
     userType: string,
     moverId: string,
-    page: number = 0,
+    page: number = 1,
     limit: number = 5,
   ): Promise<ReviewPaginationResponseDto> {
+    const safePage = Math.max(1, page);
     const [reviews, total] = await this.moverReviewRepository.findAndCount({
       where: { moverId },
-      order: { createdAt: "DESC" },
-      skip: page * limit,
+      skip: (safePage - 1) * limit,
       take: limit,
+      order: { createdAt: "DESC" },
+    });
+    console.log({
+      page: page,
+      limit: limit,
+      skip: (page - 1) * limit,
     });
 
     // 별점 분포 조회
@@ -59,5 +66,23 @@ export class MoverReviewService {
       currentPage: page,
       ratingCounts,
     };
+  }
+
+  async createSingleDummyReview() {
+    const dummyMoverId = "1503b09e-41a3-48f7-af15-7643e8c1a38d";
+    const dummyQuotationId = "08a625e2-29a9-42e7-8b28-7f6174386915";
+    const dummyCustomerId = "39d35584-a217-4f35-9575-f6ee81a9180b";
+
+    const review = this.moverReviewRepository.create({
+      content: faker.lorem.sentences(2),
+      rating: faker.number.int({ min: 1, max: 5 }),
+      moverId: dummyMoverId,
+      quotationId: dummyQuotationId,
+      customerId: dummyCustomerId,
+      createdAt: faker.date.recent({ days: 10 }),
+      updatedAt: new Date(),
+    });
+
+    return await this.moverReviewRepository.save(review);
   }
 }

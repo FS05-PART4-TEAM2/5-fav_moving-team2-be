@@ -24,19 +24,19 @@ export class PaginatedResponseDto<T> {
 }
 
 export class ReviewPaginationRequestDto {
-  @ApiPropertyOptional({ default: 0 })
+  @ApiPropertyOptional({ default: 1 })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
-  @Min(0)
-  page: number;
+  @Min(1)
+  page: number = 1;
 
   @ApiPropertyOptional({ default: 5 })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  limit: number;
+  limit: number = 5;
 }
 
 export class ReviewPaginationResponseDto {

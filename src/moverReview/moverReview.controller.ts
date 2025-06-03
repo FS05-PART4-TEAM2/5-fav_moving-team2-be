@@ -1,8 +1,10 @@
 import {
   Controller,
+  ForbiddenException,
   Get,
   Param,
   ParseUUIDPipe,
+  Post,
   Query,
   Req,
   UseGuards,
@@ -12,6 +14,7 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiTags,
 } from "@nestjs/swagger";
 import { JustLookUserGuard } from "src/common/guards/just-look-user.guard";
@@ -21,6 +24,7 @@ import {
   ReviewPaginationResponseDto,
 } from "src/common/dto/pagination.dto";
 import { CommonApiResponse } from "src/common/dto/api-response.dto";
+import { JwtCookieAuthGuard } from "src/common/guards/jwt-cookie-auth.guard";
 
 @ApiTags("MoverReview")
 @ApiBearerAuth("access-token")
@@ -72,6 +76,18 @@ export class MoverReviewController {
     required: true,
     description: "리뷰를 조회할 기사의 ID",
   })
+  @ApiQuery({
+    name: "limit",
+    required: false,
+    type: Number,
+    description: "페이지 당 리뷰 개수 (기본 5)",
+  })
+  @ApiQuery({
+    name: "page",
+    required: false,
+    type: Number,
+    description: "페이지 번호 (1부터 시작)",
+  })
   @UseGuards(JustLookUserGuard)
   async getMoverReviewList(
     @Req() req,
@@ -83,13 +99,30 @@ export class MoverReviewController {
       userId,
       userType,
       moverId,
-      getMoverReviewListDto.limit,
       getMoverReviewListDto.page,
+      getMoverReviewListDto.limit,
     );
 
     return CommonApiResponse.success(
       result,
       "리뷰 리스트 조회에 성공하였습니다.",
     );
+  }
+
+  /* 테스트 전용 리뷰 생성 API */
+  @Post("test")
+  @UseGuards(JwtCookieAuthGuard)
+  async createTestReviews() {
+    if (process.env.NODE_ENV === "production") {
+      throw new ForbiddenException("운영 환경에서는 사용할 수 없는 API입니다.");
+    }
+
+    const result = await this.moverReviewService.createSingleDummyReview();
+
+    return {
+      success: true,
+      message: `테스트 리뷰가 생성 되었습니다.`,
+      data: result,
+    };
   }
 }
