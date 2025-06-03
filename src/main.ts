@@ -6,7 +6,7 @@ if (typeof globalThis.crypto === "undefined") {
 }
 
 import { NestFactory } from "@nestjs/core";
-// import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
+import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import { ValidationPipe } from "@nestjs/common";
 import { AppModule } from "./app.module";
 import { AllExceptionsFilter } from "./common/filters/http-exception.filter";
@@ -37,23 +37,23 @@ async function bootstrap() {
   });
 
   /** swagger 설정 */
-  // const config = new DocumentBuilder()
-  //   .setTitle("NestJS Tutorial - Panda Market Migration")
-  //   .setDescription("The Panda Markets API description")
-  //   .setVersion("1.0")
-  //   .addBearerAuth(
-  //     {
-  //       type: "http",
-  //       scheme: "bearer",
-  //       bearerFormat: "JWT",
-  //       name: "Authorization",
-  //       in: "header",
-  //     },
-  //     "access-token", // 이 이름은 아래 @ApiBearerAuth()에 사용됨
-  //   )
-  //   .build();
-  // const document = SwaggerModule.createDocument(app, config);
-  // SwaggerModule.setup("api-docs", app, document);
+  const config = new DocumentBuilder()
+    .setTitle("NestJS Tutorial - Panda Market Migration")
+    .setDescription("The Panda Markets API description")
+    .setVersion("1.0")
+    .addBearerAuth(
+      {
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "JWT",
+        name: "Authorization",
+        in: "header",
+      },
+      "access-token", // 이 이름은 아래 @ApiBearerAuth()에 사용됨
+    )
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup("api-docs", app, document);
 
   app.use(cookieParser());
 
