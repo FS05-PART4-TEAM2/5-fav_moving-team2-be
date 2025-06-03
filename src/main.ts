@@ -55,6 +55,6 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
-  await app.listen(process.env.PORT ?? 8080);
+  await app.listen(parseInt(process.env.PORT || "8080", 10)); // 반드시 숫자로 파싱!
 }
 void bootstrap();
