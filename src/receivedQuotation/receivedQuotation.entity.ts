@@ -27,6 +27,9 @@ export class ReceivedQuotation {
   @Column({ default: false })
   isConfirmedMover: boolean; //본인이 확정된 mover인지
 
+  @Column({ default: false })
+  isReviewed: boolean; // 리뷰가 작성 된 요청인지
+
   @CreateDateColumn()
   createdAt: Date;
 }
