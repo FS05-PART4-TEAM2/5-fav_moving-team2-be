@@ -1,10 +1,17 @@
-import { Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { MoverReview } from "./moverReview.entity";
 import { Repository } from "typeorm";
 import { ReviewPaginationResponseDto } from "src/common/dto/pagination.dto";
 import { faker } from "@faker-js/faker";
 import { Mover } from "src/mover/mover.entity";
+import { CreateMoverReviewDto } from "./dto/createReview.request.dto";
+import { Customer } from "src/customer/customer.entity";
+import { ReceivedQuote } from "src/quotation/entities/received-quote.entity";
 
 @Injectable()
 export class MoverReviewService {
@@ -13,6 +20,10 @@ export class MoverReviewService {
     private moverReviewRepository: Repository<MoverReview>,
     @InjectRepository(Mover)
     private moverRepository: Repository<Mover>,
+    @InjectRepository(ReceivedQuote)
+    private receivedQuotationRepository: Repository<ReceivedQuote>,
+    @InjectRepository(Customer)
+    private customerRepository: Repository<Customer>,
   ) {}
 
   async getMoverReviewList(
@@ -124,5 +135,58 @@ export class MoverReviewService {
     });
 
     return await this.moverReviewRepository.save(review);
+  }
+
+  // 일반유저 리뷰 작성
+  async createMoverReview(
+    createReviewDto: CreateMoverReviewDto,
+  ): Promise<MoverReview> {
+    const receivedQuotation = await this.receivedQuotationRepository.findOne({
+      where: { id: createReviewDto.offerId },
+    });
+
+    if (!receivedQuotation) {
+      throw new BadRequestException("존재하지 않는 요청입니다.");
+    }
+
+    if (createReviewDto.userId !== receivedQuotation.customerId) {
+      throw new BadRequestException("리뷰 작성 권한이 없습니다.");
+    }
+
+    const existingReview = await this.receivedQuotationRepository.findOne({
+      where: {
+        id: createReviewDto.offerId,
+        customerId: createReviewDto.userId,
+        isReviewed: true,
+      },
+    });
+
+    if (existingReview) {
+      throw new BadRequestException("이미 해당 요청에 리뷰를 작성하였습니다.");
+    }
+
+    const customer = await this.customerRepository.findOne({
+      where: { id: createReviewDto.userId },
+    });
+
+    const customerNick = customer?.username;
+
+    const review = this.moverReviewRepository.create({
+      content: createReviewDto.content,
+      rating: createReviewDto.rating,
+      moverId: receivedQuotation.moverId,
+      quotationId: receivedQuotation.quotationId,
+      customerId: createReviewDto.userId,
+      customerNick: customerNick,
+    });
+
+    const savedReview = await this.moverReviewRepository.save(review);
+
+    await this.receivedQuotationRepository.update(
+      { id: createReviewDto.offerId },
+      { isReviewed: true },
+    );
+
+    return savedReview;
   }
 }

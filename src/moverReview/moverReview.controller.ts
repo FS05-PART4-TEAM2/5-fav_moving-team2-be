@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   ForbiddenException,
   Get,
@@ -25,6 +26,9 @@ import {
 } from "src/common/dto/pagination.dto";
 import { CommonApiResponse } from "src/common/dto/api-response.dto";
 import { JwtCookieAuthGuard } from "src/common/guards/jwt-cookie-auth.guard";
+import { C } from "@faker-js/faker/dist/airline-BUL6NtOJ";
+import { CreateMoverReviewDto } from "./dto/createReview.request.dto";
+import { create } from "domain";
 
 @ApiTags("MoverReview")
 @ApiBearerAuth("access-token")
@@ -176,5 +180,32 @@ export class MoverReviewController {
       message: `테스트 리뷰가 생성 되었습니다.`,
       data: result,
     };
+  }
+
+  @Post(":offerId")
+  @ApiOperation({ summary: "일반유저 : 기사 리뷰 작성 " })
+  @UseGuards(JwtCookieAuthGuard)
+  async createMoverReview(
+    @Body() body: CreateMoverReviewDto,
+    @Req() req,
+    @Param("offerId") offerId: string,
+  ): Promise<CommonApiResponse<any>> {
+    const { userId, userType } = req.user;
+
+    if (userType !== "customer") {
+      throw new ForbiddenException("일반유저만 접근할 수 있는 API입니다.");
+    }
+
+    const createMoverReviewDto: CreateMoverReviewDto = {
+      offerId: offerId,
+      userId: userId,
+      content: body.content,
+      rating: body.rating,
+    };
+
+    const result =
+      await this.moverReviewService.createMoverReview(createMoverReviewDto);
+
+    return CommonApiResponse.success(result, "리뷰 작성에 성공하였습니다.");
   }
 }
