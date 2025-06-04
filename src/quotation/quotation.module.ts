@@ -11,16 +11,24 @@ import { MoverQuotationController } from "./controllers/mover-quotation.controll
 import { AssignQuotationController } from "./controllers/assign-quotation.controller";
 import { AssignQuotationService } from "./services/assign-quotation.service";
 import { AssignMover } from "./entities/assign-mover.entity";
+import { ReceivedQuotationService } from "./services/customer-quotation.service";
+import { ReceivedQuotationController } from "./controllers/customer-quotation.controller";
 @Module({
   imports: [
     TypeOrmModule.forFeature([Quotation, AssignMover, ReceivedQuote, Customer]),
     forwardRef(() => AuthModule),
   ],
-  providers: [QuotationService, MoverQuotationService, AssignQuotationService],
+  providers: [
+    QuotationService,
+    MoverQuotationService,
+    AssignQuotationService,
+    ReceivedQuotationService,
+  ],
   controllers: [
     QuotationController,
     MoverQuotationController,
     AssignQuotationController,
+    ReceivedQuotationController,
   ],
   exports: [TypeOrmModule],
 })
