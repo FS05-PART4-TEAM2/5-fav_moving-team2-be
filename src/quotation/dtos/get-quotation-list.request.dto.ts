@@ -1,6 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsOptional, IsString } from "class-validator";
-import { SortOptionKey } from "src/common/constants/sort-option.constant";
 
 /**
  *   - type: ServiceTypeKey, 이사 유형
@@ -9,7 +8,7 @@ import { SortOptionKey } from "src/common/constants/sort-option.constant";
  *   - username: string, 사용자 이름 검색
  *   - sorted: SortOption, 정렬 옵션
  */
-export class ReceivedQuotationRequestDto {
+export class GetQuotationListRequestDto {
   @ApiProperty({
     description: "이사 유형",
     example: "SMALL_MOVE,FAMILY_MOVE,OFFICE_MOVE",
