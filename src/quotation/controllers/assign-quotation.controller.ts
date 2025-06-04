@@ -1,13 +1,14 @@
 import {
+  Body,
   Controller,
   Param,
   ParseUUIDPipe,
   Post,
+  Put,
   Req,
   UseGuards,
 } from "@nestjs/common";
 import {
-  ApiBadRequestResponse,
   ApiBearerAuth,
   ApiOperation,
   ApiParam,
@@ -109,5 +110,35 @@ export class AssignQuotationController {
     );
 
     return CommonApiResponse.success(result, "지정 기사를 추가했습니다.");
+  }
+
+  /**
+   * @TODO POST 받은 요청 반려하기 API
+   * 1. 인증 확인
+   * 2. body
+   *   - quotationId: string, 견적 정보 id
+   *   - comment: string, 반려 사유
+   */
+  @Put("")
+  @ApiOperation({ summary: "받은 요청(기사님) 반려하기" })
+  @ApiBearerAuth("access-token")
+  @UseGuards(JwtCookieAuthGuard)
+  async rejectAssignQuotation(
+    @Req() req,
+    @Body()
+    request: {
+      quotationId: string;
+      customerId: string;
+      comment: string;
+    },
+  ): Promise<null> {
+    const { userId, userType } = req.user;
+
+    await this.assignQuotationService.rejectAssignQuotation(
+      { userId, userType },
+      request,
+    );
+
+    return CommonApiResponse.success(null, "지정 견적 요청을 반려하였습니다.");
   }
 }
