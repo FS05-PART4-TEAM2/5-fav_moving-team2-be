@@ -32,6 +32,6 @@ export class MoverReview {
   @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ nullable: true })
   updatedAt: Date;
 }
