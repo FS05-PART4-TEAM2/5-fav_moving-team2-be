@@ -182,6 +182,7 @@ export class MoverReviewController {
     };
   }
 
+  // 일반유저가 기사 리뷰 작성
   @Post(":offerId")
   @ApiOperation({ summary: "일반유저 : 기사 리뷰 작성 " })
   @UseGuards(JwtCookieAuthGuard)

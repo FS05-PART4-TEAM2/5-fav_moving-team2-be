@@ -82,6 +82,7 @@ export class ReceivedQuotationService {
         confirmedQuotationCount: mover?.confirmedCounts,
         isCompleted: receivedQuotation.isCompleted,
         isConfirmedMover: receivedQuotation.isConfirmedMover,
+        isReviewed: receivedQuotation.isReviewed,
       };
 
       if (groupedMap.has(quotationId)) {
@@ -218,6 +219,7 @@ export class ReceivedQuotationService {
         confirmedQuotationCount: mover?.confirmedCounts,
         isCompleted: receivedQuotation.isCompleted,
         isConfirmedMover: receivedQuotation.isConfirmedMover,
+        isReviewed: receivedQuotation.isReviewed,
       };
 
       if (groupedMap.has(quotationId)) {
@@ -288,6 +290,7 @@ export class ReceivedQuotationService {
       confirmedQuotationCount: mover?.confirmedCounts,
       isCompleted: receivedQuotation.isCompleted,
       isConfirmedMover: receivedQuotation.isConfirmedMover,
+      isReviewed: receivedQuotation.isReviewed,
     };
 
     return {
