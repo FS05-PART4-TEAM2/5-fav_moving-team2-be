@@ -68,7 +68,6 @@ export class MoverAuthService {
       return {
         refreshToken,
         accessToken,
-        mover: existedMoverWithoutPw,
         type: "mover",
       };
     }
@@ -102,7 +101,6 @@ export class MoverAuthService {
     return {
       refreshToken,
       accessToken,
-      mover: newMoverWithoutPw,
       type: "mover",
     };
   }

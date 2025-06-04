@@ -67,7 +67,6 @@ export class CustomerAuthService {
       return {
         refreshToken,
         accessToken,
-        customer: existedCustomerWithoutPw,
         type: "customer",
       };
     }
@@ -102,7 +101,6 @@ export class CustomerAuthService {
     return {
       refreshToken,
       accessToken,
-      customer: newCustomerWithoutPw,
       type: "customer",
     };
   }
