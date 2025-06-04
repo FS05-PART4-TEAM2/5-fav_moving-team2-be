@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Query,
   Req,
   UseGuards,
@@ -91,8 +92,4 @@ export class MoverQuotationController {
 
     return CommonApiResponse.success(data, "성공적으로 견적을 보냈습니다.");
   }
-
-  /**
-   * @TODO POST 받은 요청에 견적 보내기 API
-   */
 }
