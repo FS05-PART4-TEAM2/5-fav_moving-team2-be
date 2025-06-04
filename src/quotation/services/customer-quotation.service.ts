@@ -4,16 +4,16 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { ReceivedQuotation } from "./receivedQuotation.entity";
 import { Repository } from "typeorm";
-import { ReceivedQuotationResponseDto } from "./dto/receivedQuotation.response.dto";
 import { Quotation } from "src/quotation/quotation.entity";
+import { ReceivedQuote } from "../entities/received-quote.entity";
+import { ReceivedQuotationResponseDto } from "../dtos/customer-receivedQuotation.response.dto";
 
 @Injectable()
 export class ReceivedQuotationService {
   constructor(
-    @InjectRepository(ReceivedQuotation)
-    private readonly receivedQuotationRepository: Repository<ReceivedQuotation>,
+    @InjectRepository(ReceivedQuote)
+    private readonly receivedQuotationRepository: Repository<ReceivedQuote>,
     @InjectRepository(Quotation)
     private readonly quotationRepository: Repository<Quotation>,
   ) {}
@@ -72,7 +72,7 @@ export class ReceivedQuotationService {
         moverNickname: mover?.nickname,
         moverProfileImageUrl: mover?.profileImage,
         isAssigned,
-        price: receivedQuotation.price,
+        price: receivedQuotation.price.toString(),
         likeCount: mover?.likeCount,
         totalRating: mover?.totalRating,
         reviewCounts: mover?.reviewCounts,
@@ -129,13 +129,13 @@ export class ReceivedQuotationService {
     await this.receivedQuotationRepository.manager.transaction(
       async (manager) => {
         await manager.update(
-          ReceivedQuotation,
+          ReceivedQuote,
           { quotationId: targetRequest.quotationId },
           { isCompleted: true },
         );
 
         await manager.update(
-          ReceivedQuotation,
+          ReceivedQuote,
           { id: receivedQuotationId },
           { isConfirmedMover: true },
         );
@@ -208,7 +208,7 @@ export class ReceivedQuotationService {
         moverNickname: mover?.nickname,
         moverProfileImageUrl: mover?.profileImage,
         isAssigned,
-        price: receivedQuotation.price,
+        price: receivedQuotation.price.toString(),
         likeCount: mover?.likeCount,
         totalRating: mover?.totalRating,
         reviewCounts: mover?.reviewCounts,
@@ -278,7 +278,7 @@ export class ReceivedQuotationService {
       moverNickname: mover?.nickname,
       moverProfileImageUrl: mover?.profileImage,
       isAssigned,
-      price: receivedQuotation.price,
+      price: receivedQuotation.price.toString(),
       likeCount: mover?.likeCount,
       totalRating: mover?.totalRating,
       reviewCounts: mover?.reviewCounts,

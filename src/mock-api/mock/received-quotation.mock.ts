@@ -1,7 +1,4 @@
-import {
-  ReceivedQuotationResponseDto,
-  OfferDto,
-} from "../../receivedQuotation/dto/receivedQuotation.response.dto";
+import { ReceivedQuotationResponseDto } from "../../quotation/dtos/customer-receivedQuotation.response.dto";
 
 // Quotation mock 데이터
 export const quotationMock = {
