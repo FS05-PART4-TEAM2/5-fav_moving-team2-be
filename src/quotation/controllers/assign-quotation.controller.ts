@@ -19,6 +19,7 @@ import { AssignQuotationService } from "../services/assign-quotation.service";
 import { JwtCookieAuthGuard } from "src/common/guards/jwt-cookie-auth.guard";
 import { CommonApiResponse } from "src/common/dto/api-response.dto";
 import { AssignMover } from "../entities/assign-mover.entity";
+import { RejectAssignQuotationRequestDto } from "../dtos/reject-assign-quote.request.dto";
 
 @ApiTags("AssignMover")
 @ApiBearerAuth("access-token")
@@ -126,12 +127,8 @@ export class AssignQuotationController {
   async rejectAssignQuotation(
     @Req() req,
     @Body()
-    request: {
-      quotationId: string;
-      customerId: string;
-      comment: string;
-    },
-  ): Promise<null> {
+    request: RejectAssignQuotationRequestDto,
+  ): Promise<CommonApiResponse<null>> {
     const { userId, userType } = req.user;
 
     await this.assignQuotationService.rejectAssignQuotation(
