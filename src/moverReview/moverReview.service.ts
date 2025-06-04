@@ -83,17 +83,25 @@ export class MoverReviewService {
       (sum, val) => sum + val,
       0,
     );
-    let accumulated = 0;
-    for (let i = 0; i < 5; i++) {
-      const rating = i + 1;
-      if (i < 4) {
-        const percent = totalCount
-          ? parseFloat(((ratingCounts[rating] / totalCount) * 100).toFixed(1))
-          : 0;
-        ratingPercentages[rating] = percent;
-        accumulated += percent;
-      } else {
-        ratingPercentages[rating] = parseFloat((100 - accumulated).toFixed(1));
+    if (totalCount === 0) {
+      for (let i = 1; i <= 5; i++) {
+        ratingPercentages[i] = 0;
+      }
+    } else {
+      let accumulated = 0;
+      for (let i = 0; i < 5; i++) {
+        const rating = i + 1;
+        if (i < 4) {
+          const percent = parseFloat(
+            (((ratingCounts[rating] || 0) / totalCount) * 100).toFixed(1),
+          );
+          ratingPercentages[rating] = percent;
+          accumulated += percent;
+        } else {
+          ratingPercentages[rating] = parseFloat(
+            (100 - accumulated).toFixed(1),
+          );
+        }
       }
     }
 
