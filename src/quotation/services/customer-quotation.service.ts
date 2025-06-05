@@ -140,11 +140,14 @@ export class ReceivedQuotationService {
           { id: receivedQuotationId },
           { isConfirmedMover: true },
         );
-
         await manager
           .createQueryBuilder()
           .update(Quotation)
-          .set({ status: "confirmed", confirmedMoverId: targetRequest.moverId })
+          .set({
+            status: "confirmed",
+            confirmedMoverId: targetRequest.moverId,
+            price: targetRequest.price.toString(),
+          })
           .where("id = :quotationId", {
             quotationId: targetRequest.quotationId,
           })

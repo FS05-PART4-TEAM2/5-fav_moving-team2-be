@@ -181,7 +181,6 @@ export class MoverReviewController {
       data: result,
     };
   }
-
   // 일반유저가 기사 리뷰 작성
   @Post(":offerId")
   @ApiOperation({ summary: "일반유저 : 기사 리뷰 작성 " })
@@ -208,5 +207,48 @@ export class MoverReviewController {
       await this.moverReviewService.createMoverReview(createMoverReviewDto);
 
     return CommonApiResponse.success(result, "리뷰 작성에 성공하였습니다.");
+  }
+  // 일반유저가 작성한 리뷰 조회
+  @Get("customer/:customerId")
+  @ApiOperation({
+    summary: "일반유저 : 작성한 리뷰 조회",
+  })
+  @ApiQuery({
+    name: "page",
+    required: false,
+    type: Number,
+    description: "페이지 번호 (기본값: 1)",
+  })
+  @ApiQuery({
+    name: "limit",
+    required: false,
+    type: Number,
+    description: "페이지 당 리뷰 개수 (기본값: 5)",
+  })
+  @UseGuards(JwtCookieAuthGuard)
+  async getCustomerReview(
+    @Req() req,
+    @Param("customerId", ParseUUIDPipe) customerId: string,
+    @Query() paginationDto: ReviewPaginationRequestDto,
+  ): Promise<CommonApiResponse<any>> {
+    const { userId, userType } = req.user;
+
+    if (userType !== "customer") {
+      throw new ForbiddenException("일반유저만 접근할 수 있는 API입니다.");
+    }
+
+    if (userId !== customerId) {
+      throw new ForbiddenException("자신의 리뷰만 조회할 수 있습니다.");
+    }
+
+    const result = await this.moverReviewService.getCustomerReview(
+      customerId,
+      paginationDto,
+    );
+
+    return CommonApiResponse.success(
+      result,
+      "작성한 리뷰 조회에 성공하였습니다.",
+    );
   }
 }

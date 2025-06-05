@@ -6,12 +6,17 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { MoverReview } from "./moverReview.entity";
 import { Repository } from "typeorm";
-import { ReviewPaginationResponseDto } from "src/common/dto/pagination.dto";
+import {
+  ReviewPaginationResponseDto,
+  CustomerReviewPaginationResponseDto,
+  PaginationDto,
+} from "src/common/dto/pagination.dto";
 import { faker } from "@faker-js/faker";
 import { Mover } from "src/mover/mover.entity";
 import { CreateMoverReviewDto } from "./dto/createReview.request.dto";
 import { Customer } from "src/customer/customer.entity";
 import { ReceivedQuote } from "src/quotation/entities/received-quote.entity";
+import { Quotation } from "src/quotation/quotation.entity";
 
 @Injectable()
 export class MoverReviewService {
@@ -24,6 +29,8 @@ export class MoverReviewService {
     private receivedQuotationRepository: Repository<ReceivedQuote>,
     @InjectRepository(Customer)
     private customerRepository: Repository<Customer>,
+    @InjectRepository(Quotation)
+    private quotationRepository: Repository<Quotation>,
   ) {}
 
   async getMoverReviewList(
@@ -186,7 +193,68 @@ export class MoverReviewService {
       { id: createReviewDto.offerId },
       { isReviewed: true },
     );
-
     return savedReview;
+  }
+
+  // 일반유저 : 작성한 리뷰 조회
+  async getCustomerReview(
+    customerId: string,
+    paginationDto: PaginationDto,
+  ): Promise<CustomerReviewPaginationResponseDto> {
+    const { page, limit } = paginationDto;
+    const offset = (page - 1) * limit;
+
+    const [reviews, total] = await this.moverReviewRepository.findAndCount({
+      where: { customerId },
+      skip: offset,
+      take: limit,
+      order: { createdAt: "DESC" },
+    });
+
+    const reviewsWithDetails = await Promise.all(
+      reviews.map(async (review) => {
+        const mover = await this.moverRepository.findOne({
+          where: { id: review.moverId },
+          select: ["username", "serviceList", "profileImage"],
+        });
+
+        const quotation = await this.quotationRepository.findOne({
+          where: { id: review.quotationId },
+          select: [
+            "moveDate",
+            "startAddress",
+            "endAddress",
+            "moveDate",
+            "moveType",
+            "price",
+            "assignMover",
+            "createdAt",
+          ],
+        });
+        return {
+          content: review.content,
+          rating: review.rating,
+          reviewDate: review.createdAt,
+          moverName: mover?.username || "알 수 없음",
+          moverProfileImage: mover?.profileImage || null,
+          moveDate: quotation?.moveDate || "",
+          startAddress: quotation?.startAddress || "",
+          endAddress: quotation?.endAddress || "",
+          moveType: quotation?.moveType || "UNKNOWN",
+          price: quotation?.price || "0",
+          isAssignedMover:
+            quotation?.assignMover?.includes(review.moverId) || false,
+        };
+      }),
+    );
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      totalPages,
+      currentPage: page,
+      totalCount: total,
+      list: reviewsWithDetails,
+    };
   }
 }
