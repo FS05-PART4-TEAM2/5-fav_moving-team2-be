@@ -23,6 +23,36 @@ export class PaginatedResponseDto<T> {
   }
 }
 
+export class PaginatedScrollDto {
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page: number = 1;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  limit: number = 8;
+}
+
+export class PaginatedScrollResponseDto<T> {
+  list: T[];
+  total: number;
+  page: number;
+  limit: number;
+  hasNextPage: boolean;
+
+  constructor(data: T[], total: number, page: number, limit: number) {
+    this.list = data;
+    this.total = total;
+    this.page = page;
+    this.limit = limit;
+    this.hasNextPage = page * limit < total;
+  }
+}
+
 export class ReviewPaginationRequestDto {
   @ApiPropertyOptional({ default: 1 })
   @IsOptional()

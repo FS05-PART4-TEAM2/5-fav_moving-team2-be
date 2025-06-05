@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Brackets, ILike, In, MoreThanOrEqual, Repository } from "typeorm";
 import { Quotation } from "../quotation.entity";
@@ -18,6 +18,11 @@ import { CreateReceivedQuotationDto } from "../dtos/create-received-quotation.re
 import { InvalidQuotationException } from "src/common/exceptions/invalid-quotation.exception";
 import { InvalidUserException } from "src/common/exceptions/invalid-user.exception";
 import { ReceivedQuoteResponseDto } from "../dtos/received-quotation.response.dto";
+import {
+  PaginatedScrollResponseDto,
+  PaginationDto,
+} from "src/common/dto/pagination.dto";
+import { SentQuotationResponseData } from "../dtos/get-sent-quotation.response";
 
 @Injectable()
 export class MoverQuotationService {
@@ -206,5 +211,54 @@ export class MoverQuotationService {
     const result = ReceivedQuoteResponseDto.of(newReceivedQuote);
 
     return result;
+  }
+
+  async getSentQuotationList(
+    userId: string,
+    userType: string,
+    paginationDto: PaginationDto,
+  ): Promise<PaginatedScrollResponseDto<SentQuotationResponseData>> {
+    // mover가 아닐 때
+    if (userType !== "mover") {
+      throw new UnauthorizedException("기사 전용 API입니다.");
+    }
+
+    const { page, limit } = paginationDto;
+    const safePage = Math.max(page, 1);
+    const skip = (safePage - 1) * limit;
+
+    const [sentQuotations, total] = await Promise.all([
+      this.receivedQuoteRepository
+        .createQueryBuilder("r")
+        .innerJoin("customer", "c", "r.customerId = c.id::text")
+        .innerJoin("quotation", "q", "r.quotationId = q.id::text")
+        .where(`r.moverId = :moverId::text`, { moverId: userId })
+        .select([
+          `r.id AS "id"`,
+          `r.price AS "price"`,
+          `r.createdAt AS "createdAt"`,
+          `c.username AS "customerNick"`,
+          `r.isAssignQuo AS "isAssignQuo"`,
+          `q.moveType AS "moveType"`,
+          `q.moveDate AS "moveDate"`,
+          `q.status AS "status"`,
+          `q.startAddress AS "startAddress"`,
+          `q.endAddress AS "endAddress"`,
+        ])
+        .orderBy("r.createdAt", "DESC")
+        .take(limit)
+        .skip(skip)
+        .getRawMany(),
+
+      this.receivedQuoteRepository
+        .createQueryBuilder("r")
+        .where("r.moverId = :moverId", { moverId: userId })
+        .getCount(),
+    ]);
+
+    const data = sentQuotations.map(
+      (row) => new SentQuotationResponseData(row),
+    );
+    return new PaginatedScrollResponseDto(data, total, safePage, limit);
   }
 }
