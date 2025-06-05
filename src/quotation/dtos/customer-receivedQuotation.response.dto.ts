@@ -44,6 +44,7 @@ export interface OfferDto {
   confirmedQuotationCount: number;
   isCompleted: boolean;
   isConfirmedMover: boolean;
+  isReviewed: boolean;
 }
 
 export class ReceivedQuotationResponseDto {

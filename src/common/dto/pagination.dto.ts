@@ -59,3 +59,21 @@ export class ReviewPaginationResponseDto {
   };
   totalRating: number; // 기사의 별점 평균 점수 - 추후 리뷰 작성 API에서 계산 로직 구현해야해서 현재는 계산 X
 }
+
+export class CustomerReviewPaginationResponseDto {
+  list: {
+    content: string;
+    rating: number;
+    reviewDate: Date;
+    moverName: string;
+    moveDate: string;
+    startAddress: string;
+    endAddress: string;
+    moveType: string;
+    price: string;
+    isAssignedMover: boolean;
+  }[];
+  totalPages: number;
+  totalCount: number;
+  currentPage: number;
+}

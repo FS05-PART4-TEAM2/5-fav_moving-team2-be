@@ -82,6 +82,7 @@ export class ReceivedQuotationService {
         confirmedQuotationCount: mover?.confirmedCounts,
         isCompleted: receivedQuotation.isCompleted,
         isConfirmedMover: receivedQuotation.isConfirmedMover,
+        isReviewed: receivedQuotation.isReviewed,
       };
 
       if (groupedMap.has(quotationId)) {
@@ -139,11 +140,14 @@ export class ReceivedQuotationService {
           { id: receivedQuotationId },
           { isConfirmedMover: true },
         );
-
         await manager
           .createQueryBuilder()
           .update(Quotation)
-          .set({ status: "confirmed", confirmedMoverId: targetRequest.moverId })
+          .set({
+            status: "confirmed",
+            confirmedMoverId: targetRequest.moverId,
+            price: targetRequest.price.toString(),
+          })
           .where("id = :quotationId", {
             quotationId: targetRequest.quotationId,
           })
@@ -218,6 +222,7 @@ export class ReceivedQuotationService {
         confirmedQuotationCount: mover?.confirmedCounts,
         isCompleted: receivedQuotation.isCompleted,
         isConfirmedMover: receivedQuotation.isConfirmedMover,
+        isReviewed: receivedQuotation.isReviewed,
       };
 
       if (groupedMap.has(quotationId)) {
@@ -288,6 +293,7 @@ export class ReceivedQuotationService {
       confirmedQuotationCount: mover?.confirmedCounts,
       isCompleted: receivedQuotation.isCompleted,
       isConfirmedMover: receivedQuotation.isConfirmedMover,
+      isReviewed: receivedQuotation.isReviewed,
     };
 
     return {
