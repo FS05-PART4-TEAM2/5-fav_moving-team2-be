@@ -11,6 +11,7 @@ export class SentQuotationResponseData {
   startAddress: string; // 출발 주소
   endAddress: string; // 도착 주소
   moveDate: string;
+  isConfirmedToMe: boolean; // 확정된 기사가 로그인한 기사님인지
 
   constructor(partial: Partial<SentQuotationResponseData>) {
     Object.assign(this, partial);
@@ -28,4 +29,5 @@ export class SentQuotationDetailResponse {
   endAddress: string; // 도착 주소
   moveDate: string; // 이사 날짜
   startQuoDate: string; // 견적 요청일
+  isConfirmedToMe: boolean; // 확정된 기사가 로그인한 기사님인지
 }
