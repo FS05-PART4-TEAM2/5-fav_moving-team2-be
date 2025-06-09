@@ -186,14 +186,43 @@ export class MoverReviewService {
       customerId: createReviewDto.userId,
       customerNick: customerNick,
     });
-
     const savedReview = await this.moverReviewRepository.save(review);
+
+    await this.updateMoverReviewStats(
+      receivedQuotation.moverId,
+      createReviewDto.rating,
+    );
 
     await this.receivedQuotationRepository.update(
       { id: createReviewDto.offerId },
       { isReviewed: true },
     );
     return savedReview;
+  }
+
+  private async updateMoverReviewStats(
+    moverId: string,
+    newRating: number,
+  ): Promise<void> {
+    const mover = await this.moverRepository.findOne({
+      where: { id: moverId },
+      select: ["reviewCounts", "totalRating"],
+    });
+
+    if (!mover) {
+      throw new BadRequestException("기사를 찾을 수 없습니다.");
+    }
+
+    const newReviewCount = mover.reviewCounts + 1;
+    const newTotalRating = mover.totalRating + newRating;
+
+    await this.moverRepository.update(
+      { id: moverId },
+      {
+        reviewCounts: newReviewCount,
+        totalRating: newTotalRating,
+      },
+    );
   }
 
   // 일반유저 : 작성한 리뷰 조회
