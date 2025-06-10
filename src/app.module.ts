@@ -8,6 +8,8 @@ import { QuotationModule } from "./quotation/quotation.module";
 import { MockApiModule } from "./mock-api/mock-api.module";
 import { LikeModule } from "./likeMover/likeMover.module";
 import { MoverReviewModule } from "./moverReview/moverReview.module";
+import { ScheduleModule } from "@nestjs/schedule";
+import { TaskModule } from "./task/task.module";
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { MoverReviewModule } from "./moverReview/moverReview.module";
     MockApiModule, // mock api 모듈 추가
     LikeModule,
     MoverReviewModule,
+    ScheduleModule.forRoot(),
+    TaskModule,
   ],
 })
 export class AppModule {}
