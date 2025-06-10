@@ -1,10 +1,12 @@
 import {
   Body,
   Controller,
+  Get,
   Param,
   ParseUUIDPipe,
   Post,
   Put,
+  Query,
   Req,
   UseGuards,
 } from "@nestjs/common";
@@ -23,6 +25,11 @@ import { JwtCookieAuthGuard } from "src/common/guards/jwt-cookie-auth.guard";
 import { CommonApiResponse } from "src/common/dto/api-response.dto";
 import { AssignMover } from "../entities/assign-mover.entity";
 import { RejectAssignQuotationRequestDto } from "../dtos/reject-assign-quote.request.dto";
+import {
+  PaginatedScrollDto,
+  PaginatedScrollResponseDto,
+} from "src/common/dto/pagination.dto";
+import { GetRejectedData } from "../dtos/get-rejected-Data.response.dto";
 
 @ApiTags("AssignMover")
 @ApiBearerAuth("access-token")
@@ -158,5 +165,54 @@ export class AssignQuotationController {
     );
 
     return CommonApiResponse.success(null, "지정 견적 요청을 반려하였습니다.");
+  }
+
+  @Get("reject")
+  @ApiOperation({
+    summary: "기사 - 반려 요청 리스트 보기",
+    description: "기사가 거절했던 요청들의 리스트를 볼 수 있습니다.",
+  })
+  @ApiBearerAuth("access-token")
+  @UseGuards(JwtCookieAuthGuard)
+  @ApiOkResponse({
+    description: "반려 요청 리스트 조회 성공",
+    schema: {
+      example: {
+        success: true,
+        data: {
+          list: [
+            {
+              id: "90ee430e-9d82-4b45-b3c7-bb49c254c2bf",
+              customerNick: "동혁",
+              moveType: "SMALL_MOVE",
+              startAddress: "경기 양주",
+              endAddress: "경기 수원",
+              moveDate: "2025-05-26T00:00:00.000Z",
+            },
+          ],
+          total: 1,
+          page: 1,
+          limit: 8,
+          hasNextPage: false,
+        },
+        message: "반려 요청 리스트 조회에 성공했습니다.",
+      },
+    },
+  })
+  async getRejectRequestList(
+    @Req() req,
+    @Query() paginationDto: PaginatedScrollDto,
+  ): Promise<CommonApiResponse<PaginatedScrollResponseDto<GetRejectedData>>> {
+    const { userId, userType } = req.user!;
+    const result = await this.assignQuotationService.getRejectRequestList(
+      userId,
+      userType,
+      paginationDto,
+    );
+
+    return CommonApiResponse.success(
+      result,
+      "반려 요청 리스트 조회에 성공했습니다.",
+    );
   }
 }
