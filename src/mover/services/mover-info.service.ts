@@ -76,7 +76,8 @@ export class MoverInfoService {
       intro: mover.intro,
       confirmedCounts: mover.confirmedCounts,
       reviewCounts: mover.reviewCounts,
-      totalRating: mover.totalRating,
+      totalRating:
+        mover.reviewCounts > 0 ? mover.totalRating / mover.reviewCounts : 0,
       serviceArea: mover.serviceArea,
       serviceList: mover.serviceList,
       likeCount: mover.likeCount,
@@ -192,7 +193,8 @@ export class MoverInfoService {
         confirmedCounts: mover.confirmedCounts,
         reviewCounts: mover.reviewCounts,
         likeCount: mover.likeCount,
-        totalRating: mover.totalRating,
+        totalRating:
+          mover.reviewCounts > 0 ? mover.totalRating / mover.reviewCounts : 0,
         serviceList: mover.serviceList,
       };
     });

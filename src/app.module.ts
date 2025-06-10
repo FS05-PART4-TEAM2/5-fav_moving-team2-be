@@ -9,6 +9,8 @@ import { MockApiModule } from "./mock-api/mock-api.module";
 import { LikeModule } from "./likeMover/likeMover.module";
 import { MoverReviewModule } from "./moverReview/moverReview.module";
 import { NotificationsModule } from "./notifications/notification.module";
+import { ScheduleModule } from "@nestjs/schedule";
+import { TaskModule } from "./task/task.module";
 
 @Module({
   imports: [
@@ -26,6 +28,8 @@ import { NotificationsModule } from "./notifications/notification.module";
     LikeModule,
     MoverReviewModule,
     NotificationsModule,
+    ScheduleModule.forRoot(),
+    TaskModule,
   ],
 })
 export class AppModule {}
