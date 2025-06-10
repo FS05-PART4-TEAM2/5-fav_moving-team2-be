@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  Param,
+  ParseUUIDPipe,
   Post,
   Put,
   Query,
@@ -9,7 +11,13 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { MoverQuotationService } from "../services/mover-quotation.service";
-import { ApiBearerAuth, ApiOkResponse, ApiOperation } from "@nestjs/swagger";
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+} from "@nestjs/swagger";
 import { JwtCookieAuthGuard } from "src/common/guards/jwt-cookie-auth.guard";
 import { CommonApiResponse } from "src/common/dto/api-response.dto";
 import { QuotationResponseDto } from "../dtos/quotation.response.dto";
@@ -20,7 +28,10 @@ import {
   PaginatedScrollDto,
   PaginatedScrollResponseDto,
 } from "src/common/dto/pagination.dto";
-import { SentQuotationResponseData } from "../dtos/get-sent-quotation.response";
+import {
+  SentQuotationDetailResponse,
+  SentQuotationResponseData,
+} from "../dtos/get-sent-quotation.response";
 
 @Controller("api/quotation/mover")
 export class MoverQuotationController {
@@ -164,5 +175,49 @@ export class MoverQuotationController {
     );
 
     return CommonApiResponse.success(result, "보낸 견적 리스트 조회 성공");
+  }
+
+  @Get("sent/:id")
+  @ApiOperation({ summary: "보낸 견적(기사님) 상세 조회" })
+  @ApiParam({
+    name: "id",
+    description: "기사님이 보낸 견적 ID (receivedQuoId) uuid 형식으로",
+    required: true,
+  })
+  @ApiBearerAuth("access-token")
+  @ApiResponse({
+    status: 200,
+    description: "보낸 견적 상세 조회 성공",
+    schema: {
+      example: {
+        success: true,
+        data: {
+          id: "bd4383a9-f7b2-4de0-a967-94c2a6652da4",
+          price: 100000,
+          customerNick: "동혁",
+          isAssignQuo: true,
+          moveType: "SMALL_MOVE",
+          status: "PENDING",
+          startAddress: "경기 양주",
+          endAddress: "경기 수원",
+          moveDate: "25.05.26",
+          startQuoDate: "25.06.04",
+        },
+        message: "보낸 견적 상세 조회 성공",
+      },
+    },
+  })
+  @UseGuards(JwtCookieAuthGuard)
+  async getSentQuotation(
+    @Req() req,
+    @Param("id", ParseUUIDPipe) receivedQuoId: string,
+  ): Promise<CommonApiResponse<SentQuotationDetailResponse>> {
+    const { userId, userType } = req.user!;
+    const result = await this.moverQuotationService.getSentQuotation(
+      receivedQuoId,
+      { userId, userType },
+    );
+
+    return CommonApiResponse.success(result, "보낸 견적 상세 조회 성공");
   }
 }
