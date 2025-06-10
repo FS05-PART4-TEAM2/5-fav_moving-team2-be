@@ -8,6 +8,10 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { AssignMover } from "../entities/assign-mover.entity";
 import { Repository } from "typeorm";
 import { Quotation } from "../quotation.entity";
+import { InvalidQuotationException } from "src/common/exceptions/invalid-quotation.exception";
+import { QUOTATION_STATE_KEY } from "src/common/constants/quotation-state.constant";
+import { ASSIGN_STATUS_KEY } from "src/common/constants/assign-status.constant";
+import { RejectAssignQuotationRequestDto } from "../dtos/reject-assign-quote.request.dto";
 import {
   PaginatedScrollResponseDto,
   PaginationDto,
@@ -72,6 +76,47 @@ export class AssignQuotationService {
     await this.assignMoverRepository.save(newAssignMover);
 
     return newAssignMover;
+  }
+
+  /**
+   * @TODO quotationId - quotation 유효성 검사
+   * @TODO 견적 확정건인지 확인
+   * @TODO 이사 완료건인지 확인
+   * @TODO assignMover - 지정 견적 요청 유효성 검사
+   */
+  async rejectAssignQuotation(
+    user: { userId: string; userType: string },
+    request: RejectAssignQuotationRequestDto,
+  ): Promise<void> {
+    const { userId, userType } = user;
+    const { quotationId, comment } = request;
+
+    // 1. 견적 유효성 검사
+    // 2. 견적 확정건인지 확인
+    // 3. 이사 완료건인지 확인
+    const quotation = await this.quotationRepository.findOne({
+      where: {
+        id: quotationId,
+      },
+    });
+    if (!quotation || quotation.status !== QUOTATION_STATE_KEY.PENDING)
+      throw new InvalidQuotationException("유효하지 않은 견적입니다.");
+
+    // 4. 지정 견적 요청 유효성 검사
+    const assignMover = await this.assignMoverRepository.findOne({
+      where: {
+        moverId: userId,
+        quotationId: quotationId,
+      },
+    });
+    if (!assignMover)
+      throw new InvalidQuotationException("지정 견적 요청건이 아닙니다.");
+
+    // 5. 반려하기
+    await this.assignMoverRepository.update(assignMover, {
+      rejectedReason: comment,
+      status: ASSIGN_STATUS_KEY.REJECTED,
+    });
   }
 
   async getRejectRequestList(
