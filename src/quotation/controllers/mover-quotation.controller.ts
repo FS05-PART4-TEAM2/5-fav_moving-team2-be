@@ -3,23 +3,19 @@ import {
   Controller,
   Get,
   Post,
-  Put,
   Query,
   Req,
   UseGuards,
 } from "@nestjs/common";
 import { MoverQuotationService } from "../services/mover-quotation.service";
-<<<<<<< HEAD
-import { ApiBearerAuth, ApiOkResponse, ApiOperation } from "@nestjs/swagger";
-=======
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiExtraModels,
+  ApiOkResponse,
   ApiOperation,
   getSchemaPath,
 } from "@nestjs/swagger";
->>>>>>> feat/init-notification
 import { JwtCookieAuthGuard } from "src/common/guards/jwt-cookie-auth.guard";
 import { CommonApiResponse } from "src/common/dto/api-response.dto";
 import { QuotationResponseDto } from "../dtos/quotation.response.dto";
