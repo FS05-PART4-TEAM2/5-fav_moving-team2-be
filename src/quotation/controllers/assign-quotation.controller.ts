@@ -10,10 +10,13 @@ import {
 } from "@nestjs/common";
 import {
   ApiBearerAuth,
+  ApiExtraModels,
+  ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiResponse,
   ApiTags,
+  getSchemaPath,
 } from "@nestjs/swagger";
 import { AssignQuotationService } from "../services/assign-quotation.service";
 import { JwtCookieAuthGuard } from "src/common/guards/jwt-cookie-auth.guard";
@@ -22,6 +25,7 @@ import { AssignMover } from "../entities/assign-mover.entity";
 
 @ApiTags("AssignMover")
 @ApiBearerAuth("access-token")
+@ApiExtraModels(CommonApiResponse)
 @Controller("api/assignMover")
 export class AssignQuotationController {
   constructor(
@@ -123,6 +127,23 @@ export class AssignQuotationController {
   @ApiOperation({ summary: "받은 요청(기사님) 반려하기" })
   @ApiBearerAuth("access-token")
   @UseGuards(JwtCookieAuthGuard)
+  @ApiOkResponse({
+    description: "지정 견적 요청을 반려하였습니다.",
+    schema: {
+      allOf: [
+        { $ref: getSchemaPath(CommonApiResponse) },
+        {
+          properties: {
+            data: {
+              type: "object",
+              nullable: true,
+              example: null,
+            },
+          },
+        },
+      ],
+    },
+  })
   async rejectAssignQuotation(
     @Req() req,
     @Body()
@@ -131,7 +152,7 @@ export class AssignQuotationController {
       customerId: string;
       comment: string;
     },
-  ): Promise<null> {
+  ): Promise<CommonApiResponse<null>> {
     const { userId, userType } = req.user;
 
     await this.assignQuotationService.rejectAssignQuotation(

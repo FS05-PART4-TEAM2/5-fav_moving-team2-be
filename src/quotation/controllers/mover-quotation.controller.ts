@@ -9,7 +9,13 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { MoverQuotationService } from "../services/mover-quotation.service";
-import { ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiExtraModels,
+  ApiOperation,
+  getSchemaPath,
+} from "@nestjs/swagger";
 import { JwtCookieAuthGuard } from "src/common/guards/jwt-cookie-auth.guard";
 import { CommonApiResponse } from "src/common/dto/api-response.dto";
 import { QuotationResponseDto } from "../dtos/quotation.response.dto";
@@ -17,6 +23,7 @@ import { GetQuotationListRequestDto } from "../dtos/get-quotation-list.request.d
 import { CreateReceivedQuotationDto } from "../dtos/create-received-quotation.request.dto";
 import { ReceivedQuoteResponseDto } from "../dtos/received-quotation.response.dto";
 
+@ApiExtraModels(CommonApiResponse, ReceivedQuoteResponseDto)
 @Controller("api/quotation/mover")
 export class MoverQuotationController {
   constructor(private readonly moverQuotationService: MoverQuotationService) {}
@@ -78,10 +85,22 @@ export class MoverQuotationController {
   @ApiOperation({ summary: "받은 요청(기사님)에 견적 보내기" })
   @ApiBearerAuth("access-token")
   @UseGuards(JwtCookieAuthGuard)
+  @ApiCreatedResponse({
+    description: "성공적으로 견적을 보냈습니다.",
+    schema: {
+      allOf: [
+        { $ref: getSchemaPath(CommonApiResponse) },
+        {
+          properties: {
+            data: { $ref: getSchemaPath(ReceivedQuoteResponseDto) },
+          },
+        },
+      ],
+    },
+  })
   async createReceivedQuotation(
     @Req() req,
-    @Body()
-    request: CreateReceivedQuotationDto,
+    @Body() request: CreateReceivedQuotationDto,
   ): Promise<CommonApiResponse<ReceivedQuoteResponseDto>> {
     const { userId, userType } = req.user!;
 

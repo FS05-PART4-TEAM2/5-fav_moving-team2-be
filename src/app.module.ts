@@ -8,6 +8,7 @@ import { QuotationModule } from "./quotation/quotation.module";
 import { MockApiModule } from "./mock-api/mock-api.module";
 import { LikeModule } from "./likeMover/likeMover.module";
 import { MoverReviewModule } from "./moverReview/moverReview.module";
+import { NotificationsModule } from "./notifications/notification.module";
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { MoverReviewModule } from "./moverReview/moverReview.module";
     MockApiModule, // mock api 모듈 추가
     LikeModule,
     MoverReviewModule,
+    NotificationsModule,
   ],
 })
 export class AppModule {}
