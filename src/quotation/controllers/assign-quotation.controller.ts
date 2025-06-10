@@ -1,15 +1,16 @@
 import {
+  Body,
   Controller,
   Get,
   Param,
   ParseUUIDPipe,
   Post,
+  Put,
   Query,
   Req,
   UseGuards,
 } from "@nestjs/common";
 import {
-  ApiBadRequestResponse,
   ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
@@ -21,6 +22,7 @@ import { AssignQuotationService } from "../services/assign-quotation.service";
 import { JwtCookieAuthGuard } from "src/common/guards/jwt-cookie-auth.guard";
 import { CommonApiResponse } from "src/common/dto/api-response.dto";
 import { AssignMover } from "../entities/assign-mover.entity";
+import { RejectAssignQuotationRequestDto } from "../dtos/reject-assign-quote.request.dto";
 import {
   PaginatedScrollDto,
   PaginatedScrollResponseDto,
@@ -117,6 +119,32 @@ export class AssignQuotationController {
     );
 
     return CommonApiResponse.success(result, "지정 기사를 추가했습니다.");
+  }
+
+  /**
+   * @TODO POST 받은 요청 반려하기 API
+   * 1. 인증 확인
+   * 2. body
+   *   - quotationId: string, 견적 정보 id
+   *   - comment: string, 반려 사유
+   */
+  @Put("")
+  @ApiOperation({ summary: "받은 요청(기사님) 반려하기" })
+  @ApiBearerAuth("access-token")
+  @UseGuards(JwtCookieAuthGuard)
+  async rejectAssignQuotation(
+    @Req() req,
+    @Body()
+    request: RejectAssignQuotationRequestDto,
+  ): Promise<CommonApiResponse<null>> {
+    const { userId, userType } = req.user;
+
+    await this.assignQuotationService.rejectAssignQuotation(
+      { userId, userType },
+      request,
+    );
+
+    return CommonApiResponse.success(null, "지정 견적 요청을 반려하였습니다.");
   }
 
   @Get("reject")
