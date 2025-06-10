@@ -8,6 +8,13 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { AssignMover } from "../entities/assign-mover.entity";
 import { Repository } from "typeorm";
 import { Quotation } from "../quotation.entity";
+import {
+  PaginatedScrollResponseDto,
+  PaginationDto,
+} from "src/common/dto/pagination.dto";
+import { ReceivedQuote } from "../entities/received-quote.entity";
+import { Customer } from "src/customer/customer.entity";
+import { GetRejectedData } from "../dtos/get-rejected-Data.response.dto";
 
 @Injectable()
 export class AssignQuotationService {
@@ -16,6 +23,8 @@ export class AssignQuotationService {
     private assignMoverRepository: Repository<AssignMover>,
     @InjectRepository(Quotation)
     private quotationRepository: Repository<Quotation>,
+    @InjectRepository(Customer)
+    private readonly customerRepository: Repository<Customer>,
   ) {}
 
   async postAssignMover(
@@ -63,5 +72,50 @@ export class AssignQuotationService {
     await this.assignMoverRepository.save(newAssignMover);
 
     return newAssignMover;
+  }
+
+  async getRejectRequestList(
+    userId: string,
+    userType: string,
+    paginationDto: PaginationDto,
+  ): Promise<PaginatedScrollResponseDto<GetRejectedData>> {
+    // mover가 아닐 때
+    if (userType !== "mover") {
+      throw new UnauthorizedException("기사 전용 API입니다.");
+    }
+
+    const { page, limit } = paginationDto;
+    const safePage = Math.max(page, 1);
+    const skip = (safePage - 1) * limit;
+
+    const [rejectedRequests, total] = await Promise.all([
+      this.assignMoverRepository
+        .createQueryBuilder("a")
+        .innerJoin("customer", "c", "a.customerId = c.id::text")
+        .innerJoin("quotation", "q", "a.quotationId = q.id::text")
+        .where(`a.moverId = :moverId::text`, { moverId: userId })
+        .andWhere("a.status = :status", { status: "REJECTED" })
+        .select([
+          `a.id AS "id"`,
+          `c.username AS "customerNick"`,
+          `q.moveType AS "moveType"`,
+          `q.startAddress AS "startAddress"`,
+          `q.endAddress AS "endAddress"`,
+          `q.moveDate AS "moveDate"`,
+        ])
+        .orderBy("a.createdAt", "DESC")
+        .take(limit)
+        .skip(skip)
+        .getRawMany(),
+
+      this.assignMoverRepository
+        .createQueryBuilder("a")
+        .where("a.moverId = :moverId", { moverId: userId })
+        .andWhere("a.status = :status", { status: "REJECTED" })
+        .getCount(),
+    ]);
+
+    const data = rejectedRequests.map((row) => new GetRejectedData(row));
+    return new PaginatedScrollResponseDto(data, total, safePage, limit);
   }
 }

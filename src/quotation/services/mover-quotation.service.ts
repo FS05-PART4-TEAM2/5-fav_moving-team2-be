@@ -1,6 +1,10 @@
-import { Injectable } from "@nestjs/common";
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Brackets, ILike, In, MoreThanOrEqual, Repository } from "typeorm";
+import { Brackets, ILike, In, MoreThanOrEqual, Not, Repository } from "typeorm";
 import { Quotation } from "../quotation.entity";
 import { AssignMover } from "../entities/assign-mover.entity";
 import { ReceivedQuote } from "../entities/received-quote.entity";
@@ -18,6 +22,11 @@ import { CreateReceivedQuotationDto } from "../dtos/create-received-quotation.re
 import { InvalidQuotationException } from "src/common/exceptions/invalid-quotation.exception";
 import { InvalidUserException } from "src/common/exceptions/invalid-user.exception";
 import { ReceivedQuoteResponseDto } from "../dtos/received-quotation.response.dto";
+import {
+  PaginatedScrollResponseDto,
+  PaginationDto,
+} from "src/common/dto/pagination.dto";
+import { SentQuotationDetailResponse, SentQuotationResponseData } from "../dtos/get-sent-quotation.response";
 
 @Injectable()
 export class MoverQuotationService {
@@ -206,5 +215,120 @@ export class MoverQuotationService {
     const result = ReceivedQuoteResponseDto.of(newReceivedQuote);
 
     return result;
+  }
+
+  async getSentQuotationList(
+    userId: string,
+    userType: string,
+    paginationDto: PaginationDto,
+  ): Promise<PaginatedScrollResponseDto<SentQuotationResponseData>> {
+    // mover가 아닐 때
+    if (userType !== "mover") {
+      throw new UnauthorizedException("기사 전용 API입니다.");
+    }
+
+    const { page, limit } = paginationDto;
+    const safePage = Math.max(page, 1);
+    const skip = (safePage - 1) * limit;
+
+    const [sentQuotations, total] = await Promise.all([
+      this.receivedQuoteRepository
+        .createQueryBuilder("r")
+        .innerJoin("customer", "c", "r.customerId = c.id::text")
+        .innerJoin("quotation", "q", "r.quotationId = q.id::text")
+        .where(`r.moverId = :moverId::text`, { moverId: userId })
+        .select([
+          `r.id AS "id"`,
+          `r.price AS "price"`,
+          `r.createdAt AS "createdAt"`,
+          `c.username AS "customerNick"`,
+          `r.isAssignQuo AS "isAssignQuo"`,
+          `q.moveType AS "moveType"`,
+          `q.moveDate AS "moveDate"`,
+          `q.status AS "status"`,
+          `q.startAddress AS "startAddress"`,
+          `q.endAddress AS "endAddress"`,
+          `CASE WHEN q.confirmedMoverId = :moverId THEN true ELSE false END AS "isConfirmedToMe"`,
+        ])
+        .setParameter("moverId", userId)
+        .orderBy("r.createdAt", "DESC")
+        .take(limit)
+        .skip(skip)
+        .getRawMany(),
+
+      this.receivedQuoteRepository
+        .createQueryBuilder("r")
+        .where("r.moverId = :moverId", { moverId: userId })
+        .getCount(),
+    ]);
+
+    const data = sentQuotations.map(
+      (row) => new SentQuotationResponseData(row),
+    );
+    return new PaginatedScrollResponseDto(data, total, safePage, limit);
+  }
+
+  async getSentQuotation(
+    receivedQuoId: string,
+    user: { userId: string; userType: string },
+  ): Promise<SentQuotationDetailResponse> {
+    const { userId, userType } = user;
+    // mover가 아닐 때
+    if (userType !== "mover") {
+      throw new UnauthorizedException("기사 전용 API입니다.");
+    }
+
+    const receivedQuo = await this.receivedQuoteRepository.findOne({
+      where: {
+        id:receivedQuoId,
+      },
+    });
+
+    if (receivedQuo?.moverId !== userId) {
+      console.log(receivedQuo?.moverId, userId)
+      throw new UnauthorizedException("본인이 보낸 견적요청이 아닙니다.");
+    }
+
+    if (!receivedQuo) {
+      throw new NotFoundException("보낸 견적 내용이 존재하지 않습니다.");
+    }
+
+    const customer = await this.customerRepository.findOne({
+      where: {
+        id: receivedQuo?.customerId,
+      },
+    });
+
+    if (!customer) {
+      throw new NotFoundException(
+        "탈퇴했거나 없는 손님에 대한 견적 내용입니다.",
+      );
+    }
+
+    const quotation = await this.quotationRepository.findOne({
+      where: {
+        id: receivedQuo.quotationId,
+      },
+    });
+
+    if (!quotation) {
+      throw new NotFoundException(
+        "보낸 견적에 대한 quotation이 존재하지 않습니다.",
+      );
+    }
+
+    return {
+      id: receivedQuo.id,
+      price: receivedQuo.price,
+      customerNick: customer.username,
+      isAssignQuo: receivedQuo.isAssignQuo,
+      moveType: quotation.moveType,
+      status: quotation.status,
+      startAddress: quotation.startAddress,
+      endAddress: quotation.endAddress,
+      moveDate: new Date(quotation.moveDate).toISOString().slice(2, 10).replace(/-/g, "."),
+      startQuoDate: receivedQuo.createdAt.toISOString().slice(2, 10).replace(/-/g, "."),
+      isConfirmedToMe: quotation.confirmedMoverId === userId
+    };
   }
 }
