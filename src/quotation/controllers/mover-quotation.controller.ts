@@ -138,6 +138,7 @@ export class MoverQuotationController {
               endAddress: "경기 수원",
               moveDate: "2025-05-26T00:00:00.000Z",
               createdAt: "2025-06-04T07:50:06.212Z",
+              isConfirmedToMe: true,
             },
             {
               id: "89b054ef-eb00-43b5-8c18-1dbf41a7e75f",
@@ -150,6 +151,7 @@ export class MoverQuotationController {
               endAddress: "경기 수원",
               moveDate: "2025-05-26T00:00:00.000Z",
               createdAt: "2025-06-04T07:46:41.245Z",
+              isConfirmedToMe: true,
             },
           ],
           total: 2,
@@ -202,6 +204,7 @@ export class MoverQuotationController {
           endAddress: "경기 수원",
           moveDate: "25.05.26",
           startQuoDate: "25.06.04",
+          isConfirmedToMe: true,
         },
         message: "보낸 견적 상세 조회 성공",
       },
