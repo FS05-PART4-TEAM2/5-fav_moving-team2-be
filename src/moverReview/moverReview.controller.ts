@@ -146,7 +146,7 @@ export class MoverReviewController {
     @Param("id", ParseUUIDPipe) moverId: string,
     @Query() getMoverReviewListDto: ReviewPaginationRequestDto,
   ): Promise<CommonApiResponse<ReviewPaginationResponseDto>> {
-    const { userId, userType } = req.user;
+    const { userId, userType } = req.user || {};
     const result = await this.moverReviewService.getMoverReviewList(
       userId,
       userType,
