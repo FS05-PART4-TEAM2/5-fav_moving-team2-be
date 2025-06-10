@@ -9,13 +9,18 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { MoverQuotationService } from "../services/mover-quotation.service";
-import { ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiOkResponse, ApiOperation } from "@nestjs/swagger";
 import { JwtCookieAuthGuard } from "src/common/guards/jwt-cookie-auth.guard";
 import { CommonApiResponse } from "src/common/dto/api-response.dto";
 import { QuotationResponseDto } from "../dtos/quotation.response.dto";
 import { GetQuotationListRequestDto } from "../dtos/get-quotation-list.request.dto";
 import { CreateReceivedQuotationDto } from "../dtos/create-received-quotation.request.dto";
 import { ReceivedQuoteResponseDto } from "../dtos/received-quotation.response.dto";
+import {
+  PaginatedScrollDto,
+  PaginatedScrollResponseDto,
+} from "src/common/dto/pagination.dto";
+import { SentQuotationResponseData } from "../dtos/get-sent-quotation.response";
 
 @Controller("api/quotation/mover")
 export class MoverQuotationController {
@@ -91,5 +96,73 @@ export class MoverQuotationController {
     );
 
     return CommonApiResponse.success(data, "성공적으로 견적을 보냈습니다.");
+  }
+
+  /**
+   * @TODO POST 받은 요청에 견적 보내기 API
+   */
+
+  /**
+   *
+   */
+  @Get("sent")
+  @ApiOperation({ summary: "보낸 견적(기사님) 목록 조회" })
+  @ApiBearerAuth("access-token")
+  @UseGuards(JwtCookieAuthGuard)
+  @ApiOkResponse({
+    description: "보낸 견적 리스트 조회 성공",
+    schema: {
+      example: {
+        success: true,
+        data: {
+          list: [
+            {
+              id: "bd4383a9-f7b2-4de0-a967-94c2a6652da4",
+              price: 100000,
+              customerNick: "동혁",
+              isAssignQuo: true,
+              moveType: "SMALL_MOVE",
+              status: "PENDING",
+              startAddress: "경기 양주",
+              endAddress: "경기 수원",
+              moveDate: "2025-05-26T00:00:00.000Z",
+              createdAt: "2025-06-04T07:50:06.212Z",
+            },
+            {
+              id: "89b054ef-eb00-43b5-8c18-1dbf41a7e75f",
+              price: 100000,
+              customerNick: "동혁",
+              isAssignQuo: true,
+              moveType: "SMALL_MOVE",
+              status: "PENDING",
+              startAddress: "경기 양주",
+              endAddress: "경기 수원",
+              moveDate: "2025-05-26T00:00:00.000Z",
+              createdAt: "2025-06-04T07:46:41.245Z",
+            },
+          ],
+          total: 2,
+          page: 1,
+          limit: 5,
+          hasNextPage: false,
+        },
+        message: "보낸 견적 리스트 조회 성공",
+      },
+    },
+  })
+  async getSentQuotationList(
+    @Req() req,
+    @Query() paginationDto: PaginatedScrollDto,
+  ): Promise<
+    CommonApiResponse<PaginatedScrollResponseDto<SentQuotationResponseData>>
+  > {
+    const { userId, userType } = req.user;
+    const result = await this.moverQuotationService.getSentQuotationList(
+      userId,
+      userType,
+      paginationDto,
+    );
+
+    return CommonApiResponse.success(result, "보낸 견적 리스트 조회 성공");
   }
 }
