@@ -248,7 +248,9 @@ export class MoverQuotationService {
           `q.status AS "status"`,
           `q.startAddress AS "startAddress"`,
           `q.endAddress AS "endAddress"`,
+          `CASE WHEN q.confirmedMoverId = :moverId THEN true ELSE false END AS "isConfirmedToMe"`,
         ])
+        .setParameter("moverId", userId)
         .orderBy("r.createdAt", "DESC")
         .take(limit)
         .skip(skip)
@@ -326,6 +328,7 @@ export class MoverQuotationService {
       endAddress: quotation.endAddress,
       moveDate: new Date(quotation.moveDate).toISOString().slice(2, 10).replace(/-/g, "."),
       startQuoDate: receivedQuo.createdAt.toISOString().slice(2, 10).replace(/-/g, "."),
+      isConfirmedToMe: quotation.confirmedMoverId === userId
     };
   }
 }
