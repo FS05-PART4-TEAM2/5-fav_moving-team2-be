@@ -11,6 +11,7 @@ import { Quotation } from "../quotation.entity";
 import { InvalidQuotationException } from "src/common/exceptions/invalid-quotation.exception";
 import { QUOTATION_STATE_KEY } from "src/common/constants/quotation-state.constant";
 import { ASSIGN_STATUS_KEY } from "src/common/constants/assign-status.constant";
+import { RejectAssignQuotationRequestDto } from "../dtos/reject-assign-quote.request.dto";
 
 @Injectable()
 export class AssignQuotationService {
@@ -76,10 +77,7 @@ export class AssignQuotationService {
    */
   async rejectAssignQuotation(
     user: { userId: string; userType: string },
-    request: {
-      quotationId: string;
-      comment: string;
-    },
+    request: RejectAssignQuotationRequestDto,
   ): Promise<void> {
     const { userId, userType } = user;
     const { quotationId, comment } = request;

@@ -154,25 +154,28 @@ export class MoverInfoService {
       idNumNextCursor = lastMover.idNum;
     }
 
-    const assignedMovers = await this.assignMoverRepository.find({
-      where: {
-        customerId: userId,
-        moverId: In(result.map((mover) => mover.id)),
-      },
-      select: ["moverId"],
-    });
+    let assignedMoverIdSet = new Set<string>();
+    let likedMoverIdSet = new Set<string>();
 
-    const assignedMoverIdSet = new Set(assignedMovers.map((am) => am.moverId));
+    if (userType === "customer" && userId) {
+      const assignedMovers = await this.assignMoverRepository.find({
+        where: {
+          customerId: userId,
+          moverId: In(result.map((mover) => mover.id)),
+        },
+        select: ["moverId"],
+      });
+      assignedMoverIdSet = new Set(assignedMovers.map((am) => am.moverId));
 
-    const likedMovers = await this.likeMoverRepository.find({
-      where: {
-        customerId: userId,
-        moverId: In(result.map((mover) => mover.id)),
-      },
-      select: ["moverId"],
-    });
-
-    const likedMoverIdSet = new Set(likedMovers.map((lm) => lm.moverId));
+      const likedMovers = await this.likeMoverRepository.find({
+        where: {
+          customerId: userId,
+          moverId: In(result.map((mover) => mover.id)),
+        },
+        select: ["moverId"],
+      });
+      likedMoverIdSet = new Set(likedMovers.map((lm) => lm.moverId));
+    }
 
     const moverInfos: FindMoverData[] = result.map((mover) => {
       const isAssigned = assignedMoverIdSet.has(mover.id);
