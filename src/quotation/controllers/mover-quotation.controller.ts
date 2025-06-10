@@ -167,7 +167,7 @@ export class MoverQuotationController {
   ): Promise<
     CommonApiResponse<PaginatedScrollResponseDto<SentQuotationResponseData>>
   > {
-    const { userId, userType } = req.user;
+    const { userId, userType } = req.user!;
     const result = await this.moverQuotationService.getSentQuotationList(
       userId,
       userType,
