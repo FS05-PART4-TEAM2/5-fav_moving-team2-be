@@ -31,12 +31,12 @@ export class ReviewPaginationRequestDto {
   @Min(1)
   page: number = 1;
 
-  @ApiPropertyOptional({ default: 5 })
+  @ApiPropertyOptional({ default: 6 })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  limit: number = 5;
+  limit: number = 6;
 }
 
 export class ReviewPaginationResponseDto {
@@ -64,14 +64,16 @@ export class CustomerReviewPaginationResponseDto {
   list: {
     content: string;
     rating: number;
-    reviewDate: Date;
+    reviewDate: Date | null;
     moverName: string;
+    moverProfileImage?: string | null;
     moveDate: string;
     startAddress: string;
     endAddress: string;
     moveType: string;
     price: string;
     isAssignedMover: boolean;
+    offerId?: string; // 작성 가능한 리뷰 조회 시 필요
   }[];
   totalPages: number;
   totalCount: number;

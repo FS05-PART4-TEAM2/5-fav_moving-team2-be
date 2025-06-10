@@ -1,9 +1,10 @@
-import { Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
-import { ApiOperation } from "@nestjs/swagger";
+import { Controller, Get, Param, Post, Query, UseGuards } from "@nestjs/common";
+import { ApiOperation, ApiQuery } from "@nestjs/swagger";
 import { CommonApiResponse } from "src/common/dto/api-response.dto";
 import { JwtCookieAuthGuard } from "src/common/guards/jwt-cookie-auth.guard";
 import { ReceivedQuotationService } from "../services/customer-quotation.service";
 import { ReceivedQuotationResponseDto } from "../dtos/customer-receivedQuotation.response.dto";
+import { PaginatedResponseDto } from "src/common/dto/pagination.dto";
 
 @Controller("api/receivedQuo")
 export class ReceivedQuotationController {
@@ -35,16 +36,39 @@ export class ReceivedQuotationController {
   }
   @Get("customer/completed")
   @ApiOperation({ summary: "일반유저 모든 완료된 견적 요청 조회" })
+  @ApiQuery({
+    name: "page",
+    required: false,
+    type: Number,
+    description: "페이지 번호 (기본값: 1)",
+  })
+  @ApiQuery({
+    name: "limit",
+    required: false,
+    type: Number,
+    description: "페이지당 항목 수 (기본값: 6)",
+  })
   @UseGuards(JwtCookieAuthGuard)
-  async getAllCompletedReceivedQuotations(): Promise<
-    CommonApiResponse<ReceivedQuotationResponseDto[]>
+  async getAllCompletedReceivedQuotations(
+    @Query("page") pageParam: string = "1",
+    @Query("limit") limitParam: string = "6",
+  ): Promise<
+    CommonApiResponse<
+      PaginatedResponseDto<ReceivedQuotationResponseDto> & {
+        currentPage: number;
+        totalPages: number;
+      }
+    >
   > {
-    const receivedQuotations =
-      await this.receivedQuotationService.getAllCompletedReceivedQuotations();
-    return CommonApiResponse.success(
-      receivedQuotations,
-      "모든 완료된 견적 요청 조회",
-    );
+    const page = parseInt(pageParam) || 1;
+    const limit = parseInt(limitParam) || 6;
+
+    const result =
+      await this.receivedQuotationService.getAllCompletedReceivedQuotations(
+        page,
+        limit,
+      );
+    return CommonApiResponse.success(result, "모든 완료된 견적 요청 조회");
   }
 
   @Get("customer/detail/:receivedQuotationId")

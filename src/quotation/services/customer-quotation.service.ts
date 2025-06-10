@@ -8,6 +8,7 @@ import { Repository } from "typeorm";
 import { Quotation } from "src/quotation/quotation.entity";
 import { ReceivedQuote } from "../entities/received-quote.entity";
 import { ReceivedQuotationResponseDto } from "../dtos/customer-receivedQuotation.response.dto";
+import { PaginatedResponseDto } from "src/common/dto/pagination.dto";
 
 @Injectable()
 export class ReceivedQuotationService {
@@ -86,10 +87,8 @@ export class ReceivedQuotationService {
       };
 
       if (groupedMap.has(quotationId)) {
-        // 기존 quotation에 offer 추가
         groupedMap.get(quotationId)!.offers.push(offer);
       } else {
-        // 새로운 quotation 생성
         groupedMap.set(quotationId, {
           quotationId: quotation?.id,
           requestedAt: quotation?.createdAt.toISOString(),
@@ -158,43 +157,51 @@ export class ReceivedQuotationService {
       id: receivedQuotationId,
     };
   }
-  // 일반유저 모든 완료된 요청 조회
-  async getAllCompletedReceivedQuotations(): Promise<
-    ReceivedQuotationResponseDto[]
+  async getAllCompletedReceivedQuotations(
+    page: number = 1,
+    limit: number = 6,
+  ): Promise<
+    PaginatedResponseDto<ReceivedQuotationResponseDto> & {
+      currentPage: number;
+      totalPages: number;
+    }
   > {
     const receivedQuotations = await this.receivedQuotationRepository.find({
       where: { isCompleted: true },
+      order: {
+        createdAt: "DESC",
+      },
     });
 
     if (receivedQuotations.length === 0) {
-      return [];
+      return {
+        data: [],
+        total: 0,
+        currentPage: page,
+        totalPages: 0,
+      };
     }
 
-    // 필요한 ID들 수집
     const moverIds = [...new Set(receivedQuotations.map((rq) => rq.moverId))];
     const quotationIds = [
       ...new Set(receivedQuotations.map((rq) => rq.quotationId)),
     ];
 
-    // 한 번에 Mover 조회
     const movers = await this.receivedQuotationRepository.manager
       .createQueryBuilder("mover", "mover")
       .where("mover.id IN (:...moverIds)", { moverIds })
       .getMany();
 
-    // 한 번에 Quotation 조회
     const quotations = await this.receivedQuotationRepository.manager
       .createQueryBuilder("quotation", "quotation")
       .where("quotation.id IN (:...quotationIds)", { quotationIds })
       .getMany();
 
-    // Map으로 빠른 조회를 위한 인덱스 생성
     const moverMap = new Map(movers.map((mover) => [mover.id, mover]));
     const quotationMap = new Map(
       quotations.map((quotation) => [quotation.id, quotation]),
     );
 
-    // quotationId별로 그룹화
     const groupedMap = new Map<string, ReceivedQuotationResponseDto>();
 
     for (const receivedQuotation of receivedQuotations) {
@@ -226,10 +233,8 @@ export class ReceivedQuotationService {
       };
 
       if (groupedMap.has(quotationId)) {
-        // 기존 quotation에 offer 추가
         groupedMap.get(quotationId)!.offers.push(offer);
       } else {
-        // 새로운 quotation 생성
         groupedMap.set(quotationId, {
           quotationId: quotation?.id,
           requestedAt: quotation?.createdAt.toISOString(),
@@ -241,9 +246,62 @@ export class ReceivedQuotationService {
         });
       }
     }
+    const allOffers = Array.from(groupedMap.values()).flatMap(
+      (quotation) => quotation.offers,
+    );
+    const totalCount = allOffers.length;
+    const totalPages = Math.ceil(totalCount / limit);
+    if (page > totalPages && totalPages > 0) {
+      return {
+        data: [
+          {
+            quotationId: Array.from(groupedMap.values())[0]?.quotationId,
+            requestedAt: Array.from(groupedMap.values())[0]?.requestedAt,
+            moveType: Array.from(groupedMap.values())[0]?.moveType,
+            moveDate: Array.from(groupedMap.values())[0]?.moveDate,
+            startAddress: Array.from(groupedMap.values())[0]?.startAddress,
+            endAddress: Array.from(groupedMap.values())[0]?.endAddress,
+            offers: [],
+          },
+        ],
+        total: totalCount,
+        currentPage: page,
+        totalPages,
+      };
+    }
+    const offset = (page - 1) * limit;
+    const paginatedOffers = allOffers.slice(offset, offset + limit);
 
-    return Array.from(groupedMap.values());
-  } //견적 상세 보기
+    const firstQuotation = Array.from(groupedMap.values())[0];
+
+    if (!firstQuotation) {
+      return {
+        data: [],
+        total: totalCount,
+        currentPage: page,
+        totalPages,
+      };
+    }
+
+    const result: ReceivedQuotationResponseDto[] = [
+      {
+        quotationId: firstQuotation.quotationId,
+        requestedAt: firstQuotation.requestedAt,
+        moveType: firstQuotation.moveType,
+        moveDate: firstQuotation.moveDate,
+        startAddress: firstQuotation.startAddress,
+        endAddress: firstQuotation.endAddress,
+        offers: paginatedOffers,
+      },
+    ];
+
+    return {
+      data: result,
+      total: totalCount,
+      currentPage: page,
+      totalPages,
+    };
+  }
   async getReceivedQuotationById(
     receivedQuotationId: string,
   ): Promise<ReceivedQuotationResponseDto> {

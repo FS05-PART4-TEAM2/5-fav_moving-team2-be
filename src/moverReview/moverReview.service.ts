@@ -144,6 +144,77 @@ export class MoverReviewService {
     return await this.moverReviewRepository.save(review);
   }
 
+  // 작성 가능한 리뷰 조회
+  async getAvailableMoverReviews(
+    customerId: string,
+    paginationDto: PaginationDto,
+  ): Promise<CustomerReviewPaginationResponseDto> {
+    const { page, limit } = paginationDto;
+    const offset = (page - 1) * limit;
+    // 완료되었지만 리뷰를 작성하지 않은 견적 조회
+    const [receivedQuotations, total] =
+      await this.receivedQuotationRepository.findAndCount({
+        where: {
+          customerId,
+          isCompleted: true,
+          isConfirmedMover: true,
+          isReviewed: false,
+        },
+        skip: offset,
+        take: limit,
+        order: { createdAt: "DESC" },
+      });
+
+    const reviewsWithDetails = await Promise.all(
+      receivedQuotations.map(async (receivedQuotation) => {
+        const mover = await this.moverRepository.findOne({
+          where: { id: receivedQuotation.moverId },
+          select: ["username", "serviceList", "profileImage"],
+        });
+
+        const quotation = await this.quotationRepository.findOne({
+          where: { id: receivedQuotation.quotationId },
+          select: [
+            "moveDate",
+            "startAddress",
+            "endAddress",
+            "moveDate",
+            "moveType",
+            "price",
+            "assignMover",
+            "createdAt",
+          ],
+        });
+
+        return {
+          content: "",
+          rating: 0,
+          reviewDate: null,
+          moverName: mover?.username || "알 수 없음",
+          moverProfileImage: mover?.profileImage || null,
+          moveDate: quotation?.moveDate || "",
+          startAddress: quotation?.startAddress || "",
+          endAddress: quotation?.endAddress || "",
+          moveType: quotation?.moveType || "UNKNOWN",
+          price: quotation?.price || "0",
+          isAssignedMover:
+            quotation?.assignMover?.includes(receivedQuotation.moverId) ||
+            false,
+          offerId: receivedQuotation.id,
+        };
+      }),
+    );
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      totalPages,
+      currentPage: page,
+      totalCount: total,
+      list: reviewsWithDetails,
+    };
+  }
+
   // 일반유저 리뷰 작성
   async createMoverReview(
     createReviewDto: CreateMoverReviewDto,

@@ -181,8 +181,47 @@ export class MoverReviewController {
       data: result,
     };
   }
+  // 일반유저 작성 가능한 리뷰 조회
+  @Get("customer/offer")
+  @ApiOperation({
+    summary: "일반유저 : 작성 가능한 리뷰 조회",
+  })
+  @ApiQuery({
+    name: "page",
+    required: false,
+    type: Number,
+    description: "페이지 번호 (기본값: 1)",
+  })
+  @ApiQuery({
+    name: "limit",
+    required: false,
+    type: Number,
+    description: "페이지 당 리뷰 개수 (기본값: 6)",
+  })
+  @UseGuards(JwtCookieAuthGuard)
+  async getAvailableMoverReviews(
+    @Req() req,
+    @Query() paginationDto: ReviewPaginationRequestDto,
+  ): Promise<CommonApiResponse<any>> {
+    const { userId, userType } = req.user;
+
+    if (userType !== "customer") {
+      throw new ForbiddenException("일반유저만 접근할 수 있는 API입니다.");
+    }
+
+    const result = await this.moverReviewService.getAvailableMoverReviews(
+      userId,
+      paginationDto,
+    );
+
+    return CommonApiResponse.success(
+      result,
+      "작성 가능한 리뷰 조회에 성공하였습니다.",
+    );
+  }
+
   // 일반유저가 기사 리뷰 작성
-  @Post(":offerId")
+  @Post("customer/offer/:offerId")
   @ApiOperation({ summary: "일반유저 : 기사 리뷰 작성 " })
   @UseGuards(JwtCookieAuthGuard)
   async createMoverReview(
