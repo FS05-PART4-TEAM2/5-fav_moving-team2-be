@@ -36,7 +36,11 @@ import {
 } from "../dtos/get-sent-quotation.response";
 import { PagedResponseDto } from "src/common/dto/paged.response.dto";
 
-@ApiExtraModels(CommonApiResponse, ReceivedQuoteResponseDto)
+@ApiExtraModels(
+  CommonApiResponse,
+  ReceivedQuoteResponseDto,
+  QuotationResponseDto,
+)
 @Controller("api/quotation/mover")
 export class MoverQuotationController {
   constructor(private readonly moverQuotationService: MoverQuotationService) {}
@@ -67,6 +71,39 @@ export class MoverQuotationController {
   @ApiOperation({ summary: "받은 요청(기사님) 목록 조회" })
   @ApiBearerAuth("access-token")
   @UseGuards(JwtCookieAuthGuard)
+  @ApiOkResponse({
+    description: "받은 요청(기사님) 목록 조회에 성공하였습니다.",
+    schema: {
+      allOf: [
+        { $ref: getSchemaPath(CommonApiResponse) },
+        {
+          properties: {
+            data: {
+              allOf: [
+                { $ref: getSchemaPath(PagedResponseDto) },
+                {
+                  properties: {
+                    data: {
+                      type: "array",
+                      items: { $ref: getSchemaPath(QuotationResponseDto) },
+                    },
+                    nextCursor: {
+                      type: "object",
+                      properties: {
+                        cursorId: { type: "string" },
+                        cursorDate: { type: "string", format: "date-time" },
+                      },
+                      nullable: true,
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        },
+      ],
+    },
+  })
   async getReceivedQuotationList(
     @Req() req,
     @Query() queries: GetQuotationListRequestDto,
