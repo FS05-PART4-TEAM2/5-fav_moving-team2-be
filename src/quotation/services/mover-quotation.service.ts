@@ -30,6 +30,7 @@ import {
   SentQuotationDetailResponse,
   SentQuotationResponseData,
 } from "../dtos/get-sent-quotation.response";
+import { CursorDto, PagedResponseDto } from "src/common/dto/paged.response.dto";
 
 @Injectable()
 export class MoverQuotationService {
@@ -53,32 +54,51 @@ export class MoverQuotationService {
   async getReceivedQuotationList(
     user: { userId: string; userType: string },
     queries: GetQuotationListRequestDto,
-  ): Promise<QuotationResponseDto[]> {
+  ): Promise<PagedResponseDto<QuotationResponseDto>> {
     const { userId } = user;
-    const { type, region, isAssigned, username, sorted } = queries;
+    const {
+      type,
+      region,
+      isAssigned,
+      username,
+      sorted,
+      cursorDate,
+      cursorId,
+      take,
+    } = queries;
 
-    // 1. username으로 고객 ID 조회
     let customerId: string | undefined;
     if (username) {
       const customer = await this.customerRepository.findOne({
-        where: {
-          username: ILike(`%${username}%`),
-        },
+        where: { username: ILike(`%${username}%`) },
       });
       customerId = customer?.id;
     }
 
-    // 2. 견적 조회: QueryBuilder 사용
-    const regionKeys = region?.split(",") ?? [];
     const today = new Date();
-
-    // 키 → 라벨 변환
+    const regionKeys = region?.split(",") ?? [];
     const regionLabels = regionKeys
       .map((key) => getRegionLabelByKey(key as RegionKey))
-      .filter((label): label is RegionLabel => !!label); // undefined 제거
+      .filter((label): label is RegionLabel => !!label);
+
+    const limit = Number(take ?? 10);
+
+    // 1. 현재 기사님에게 지정된 요청 조회
+    const assignMover = await this.assignMoverRepository.find({
+      where: {
+        moverId: userId,
+        createdAt: MoreThanOrEqual(today),
+        status: ASSIGN_STATUS_KEY.PENDING,
+      },
+    });
+
+    const assignedQuotationIdSet = new Set(
+      assignMover.map((a) => a.quotationId),
+    );
 
     const qb = this.quotationRepository.createQueryBuilder("quotation");
 
+    // 기본 조건
     qb.where("quotation.status = :status", {
       status: QUOTATION_STATE_KEY.PENDING,
     }).andWhere("quotation.moveDate >= :today", { today });
@@ -107,29 +127,84 @@ export class MoverQuotationService {
       );
     }
 
-    qb.orderBy(
-      sorted === "REQUEST_DATE_ASC"
-        ? "quotation.createdAt"
-        : "quotation.moveDate",
-      "ASC",
-    );
+    // 2. isAssigned 필터링을 데이터베이스 레벨에서 처리
+    if (isAssigned !== undefined) {
+      if (isAssigned === "true") {
+        if (assignedQuotationIdSet.size > 0) {
+          qb.andWhere("quotation.id IN (:...assignedIds)", {
+            assignedIds: Array.from(assignedQuotationIdSet),
+          });
+        } else {
+          // 지정된 견적이 없으면 빈 결과 반환
+          qb.andWhere("1 = 0");
+        }
+      } else {
+        if (assignedQuotationIdSet.size > 0) {
+          qb.andWhere("quotation.id NOT IN (:...assignedIds)", {
+            assignedIds: Array.from(assignedQuotationIdSet),
+          });
+        }
+      }
+    }
+
+    // 3. 정렬 기준 설정
+    let orderField = "quotation.moveDate";
+    let needCustomerJoin = false;
+
+    if (sorted === "REQUEST_DATE_ASC") {
+      orderField = "quotation.createdAt";
+    } else if (sorted === "USERNAME_ASC") {
+      orderField = "customer.username";
+      needCustomerJoin = true;
+    }
+
+    if (needCustomerJoin) {
+      qb.leftJoin("quotation.customer", "customer");
+    }
+
+    qb.orderBy(orderField, "ASC").addOrderBy("quotation.id", "ASC");
+
+    // 4. 커서 기반 필터링
+    if (cursorDate && cursorId) {
+      if (sorted === "USERNAME_ASC") {
+        // 문자열 비교
+        qb.andWhere(
+          new Brackets((qb) => {
+            qb.where(`${orderField} > :cursorValue`, {
+              cursorValue: cursorDate,
+            });
+            qb.orWhere(
+              `${orderField} = :cursorValue AND quotation.id > :cursorId`,
+              {
+                cursorValue: cursorDate,
+                cursorId,
+              },
+            );
+          }),
+        );
+      } else {
+        // 날짜 비교
+        qb.andWhere(
+          new Brackets((qb) => {
+            qb.where(`${orderField} > :cursorDate`, { cursorDate });
+            qb.orWhere(
+              `${orderField} = :cursorDate AND quotation.id > :cursorId`,
+              {
+                cursorDate,
+                cursorId,
+              },
+            );
+          }),
+        );
+      }
+    }
+
+    // 5. 여유분을 두고 데이터 조회 (필터링으로 인한 데이터 부족 방지)
+    qb.take(limit);
 
     const quotations = await qb.getMany();
 
-    // 3. 현재 기사님에게 지정된 요청 조회
-    const assignMover = await this.assignMoverRepository.find({
-      where: {
-        moverId: userId,
-        createdAt: MoreThanOrEqual(today),
-        status: ASSIGN_STATUS_KEY.PENDING,
-      },
-    });
-
-    const assignedQuotationIdSet = new Set(
-      assignMover.map((a) => a.quotationId),
-    );
-
-    // 4. 고객 정보 조회
+    // 6. 고객 정보 조회 (USERNAME_ASC가 아닐 때도 필요)
     const customerIds = Array.from(
       new Set(quotations.map((q) => q.customerId)),
     );
@@ -138,17 +213,8 @@ export class MoverQuotationService {
     });
     const customerMap = new Map(customers.map((c) => [c.id, c]));
 
-    // 5. isAssigned 조건으로 필터링
-    const filteredQuotations =
-      isAssigned === undefined
-        ? quotations
-        : quotations.filter((q) => {
-            const matched = assignedQuotationIdSet.has(q.id);
-            return isAssigned ? matched : !matched;
-          });
-
-    // 6. 응답 생성
-    const result = filteredQuotations.map((q) =>
+    // 7. 응답 생성
+    const result = quotations.map((q) =>
       QuotationResponseDto.of(
         q,
         assignedQuotationIdSet.has(q.id),
@@ -156,7 +222,30 @@ export class MoverQuotationService {
       ),
     );
 
-    return result;
+    // 8. 다음 커서 생성
+    let nextCursor: CursorDto | null = null;
+    if (result.length === limit) {
+      const lastQuotation = quotations[quotations.length - 1];
+
+      // 정렬 기준에 따라 date 값 선택
+      let dateField: Date | string;
+      if (sorted === "REQUEST_DATE_ASC") {
+        dateField = lastQuotation.createdAt;
+      } else if (sorted === "USERNAME_ASC") {
+        const customer = customerMap.get(lastQuotation.customerId);
+        dateField = customer?.username || "";
+      } else {
+        dateField = lastQuotation.moveDate;
+      }
+
+      nextCursor = {
+        cursorId: lastQuotation.id,
+        cursorDate:
+          typeof dateField === "string" ? dateField : dateField.toISOString(),
+      };
+    }
+
+    return PagedResponseDto.of(result, nextCursor);
   }
 
   /**

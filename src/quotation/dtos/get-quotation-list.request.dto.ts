@@ -49,4 +49,31 @@ export class GetQuotationListRequestDto {
   @IsString()
   @IsOptional()
   sorted?: string;
+
+  @ApiProperty({
+    description: "커서 기준 ID",
+    example: "uuid",
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  cursorId?: string;
+
+  @ApiProperty({
+    description: "커서 기준 날짜",
+    example: "2025-06-10T12:00:00Z",
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  cursorDate?: string;
+
+  @ApiProperty({
+    description: "가져올 데이터 수",
+    example: "10",
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  take?: string;
 }

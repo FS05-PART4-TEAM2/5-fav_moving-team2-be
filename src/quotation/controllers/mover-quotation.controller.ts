@@ -34,6 +34,7 @@ import {
   SentQuotationDetailResponse,
   SentQuotationResponseData,
 } from "../dtos/get-sent-quotation.response";
+import { PagedResponseDto } from "src/common/dto/paged.response.dto";
 
 @ApiExtraModels(CommonApiResponse, ReceivedQuoteResponseDto)
 @Controller("api/quotation/mover")
@@ -59,8 +60,8 @@ export class MoverQuotationController {
    *   - startAddress
    *   - endAddress
    *   - status
-   * 5. 무한 스크롤, 페이징 처리 없음 => 요청이 많이 없을 것으로 예상상
-   * 6. 이사일이 지난 요청은 조회하지 않음
+   * 5. 이사일이 지난 요청은 조회하지 않음
+   * 6. 무한 스크롤(06/10 추가)
    */
   @Get("")
   @ApiOperation({ summary: "받은 요청(기사님) 목록 조회" })
@@ -69,8 +70,7 @@ export class MoverQuotationController {
   async getReceivedQuotationList(
     @Req() req,
     @Query() queries: GetQuotationListRequestDto,
-  ): Promise<CommonApiResponse<QuotationResponseDto[]>> {
-    // ): Promise<CommonApiResponse<null>> {
+  ): Promise<CommonApiResponse<PagedResponseDto<QuotationResponseDto>>> {
     const { userId, userType } = req.user!;
     const data = await this.moverQuotationService.getReceivedQuotationList(
       { userId, userType },
