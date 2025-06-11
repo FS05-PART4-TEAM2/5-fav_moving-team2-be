@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class LikeMover {
@@ -10,4 +10,7 @@ export class LikeMover {
 
   @Column()
   customerId: string;
+
+  @CreateDateColumn({ default: () => "CURRENT_TIMESTAMP" })
+  createdAt: Date;
 }
