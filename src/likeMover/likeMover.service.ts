@@ -197,44 +197,6 @@ export class likeMoverService {
       .setParameter("userId", userId)
       .getRawMany();
 
-    // const likedMovers = await this.likeRepository
-    //   .createQueryBuilder("like")
-    //   .innerJoin("mover", "mover", "like.moverId = mover.id::text")
-    //   .where("like.customerId = :userId", { userId })
-    //   .andWhere("mover.isProfile = true")
-    //   .select([
-    //     `mover.id AS "id"`,
-    //     `mover.idNum AS "idNum"`,
-    //     `mover.nickname AS "nickName"`,
-    //     `mover.profileImage AS "profileImage"`,
-    //     `mover.serviceList AS "serviceList"`,
-    //     `mover.likeCount AS "likeCount"`,
-    //     `mover.totalRating / NULLIF(mover.reviewCounts, 0) AS "totalRating"`, // 평균 별점
-    //     `mover.reviewCounts AS "reviewCounts"`,
-    //     `mover.intro AS "intro"`,
-    //     `mover.career AS "career"`,
-    //     `mover.confirmedCounts AS "confirmedCounts"`,
-    //     `mover.createdAt AS "createdAt"`,
-    //   ])
-    //   .addSelect("true", "isLiked")
-    //   .addSelect(
-    //     `CASE
-    //         WHEN EXISTS (
-    //           SELECT 1 FROM assign_mover assign
-    //           WHERE assign."customerId" = :userId
-    //             AND assign."moverId" = mover.id::text
-    //         )
-    //         THEN true
-    //         ELSE false
-    //       END`,
-    //     "isAssigned",
-    //   )
-    //   .setParameter("userId", userId)
-    //   .orderBy("mover.createdAt", "DESC")
-    //   .take(limit)
-    //   .skip(skip)
-    //   .getRawMany();
-
     const total = await this.likeRepository
       .createQueryBuilder("like")
       .where("like.customerId = :userId", { userId })
