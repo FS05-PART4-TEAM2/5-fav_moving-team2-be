@@ -179,7 +179,6 @@ export class likeMoverService {
         `mover.intro AS "intro"`,
         `mover.career AS "career"`,
         `mover.confirmedCounts AS "confirmedCounts"`,
-        `mover.createdAt AS "createdAt"`,
       ])
       .addSelect("true", "isLiked")
       .addSelect(
