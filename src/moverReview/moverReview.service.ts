@@ -1,10 +1,22 @@
-import { Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { MoverReview } from "./moverReview.entity";
 import { Repository } from "typeorm";
-import { ReviewPaginationResponseDto } from "src/common/dto/pagination.dto";
+import {
+  ReviewPaginationResponseDto,
+  CustomerReviewPaginationResponseDto,
+  PaginationDto,
+} from "src/common/dto/pagination.dto";
 import { faker } from "@faker-js/faker";
 import { Mover } from "src/mover/mover.entity";
+import { CreateMoverReviewDto } from "./dto/createReview.request.dto";
+import { Customer } from "src/customer/customer.entity";
+import { ReceivedQuote } from "src/quotation/entities/received-quote.entity";
+import { Quotation } from "src/quotation/quotation.entity";
 
 @Injectable()
 export class MoverReviewService {
@@ -13,6 +25,12 @@ export class MoverReviewService {
     private moverReviewRepository: Repository<MoverReview>,
     @InjectRepository(Mover)
     private moverRepository: Repository<Mover>,
+    @InjectRepository(ReceivedQuote)
+    private receivedQuotationRepository: Repository<ReceivedQuote>,
+    @InjectRepository(Customer)
+    private customerRepository: Repository<Customer>,
+    @InjectRepository(Quotation)
+    private quotationRepository: Repository<Quotation>,
   ) {}
 
   async getMoverReviewList(
@@ -132,5 +150,219 @@ export class MoverReviewService {
     });
 
     return await this.moverReviewRepository.save(review);
+  }
+
+  // 작성 가능한 리뷰 조회
+  async getAvailableMoverReviews(
+    customerId: string,
+    paginationDto: PaginationDto,
+  ): Promise<CustomerReviewPaginationResponseDto> {
+    const { page, limit } = paginationDto;
+    const offset = (page - 1) * limit;
+    // 완료되었지만 리뷰를 작성하지 않은 견적 조회
+    const [receivedQuotations, total] =
+      await this.receivedQuotationRepository.findAndCount({
+        where: {
+          customerId,
+          isCompleted: true,
+          isConfirmedMover: true,
+          isReviewed: false,
+        },
+        skip: offset,
+        take: limit,
+        order: { createdAt: "DESC" },
+      });
+
+    const reviewsWithDetails = await Promise.all(
+      receivedQuotations.map(async (receivedQuotation) => {
+        const mover = await this.moverRepository.findOne({
+          where: { id: receivedQuotation.moverId },
+          select: ["username", "serviceList", "profileImage"],
+        });
+
+        const quotation = await this.quotationRepository.findOne({
+          where: { id: receivedQuotation.quotationId },
+          select: [
+            "moveDate",
+            "startAddress",
+            "endAddress",
+            "moveDate",
+            "moveType",
+            "price",
+            "assignMover",
+            "createdAt",
+          ],
+        });
+
+        return {
+          content: "",
+          rating: 0,
+          reviewDate: null,
+          moverName: mover?.username || "알 수 없음",
+          moverProfileImage: mover?.profileImage || null,
+          moveDate: quotation?.moveDate || "",
+          startAddress: quotation?.startAddress || "",
+          endAddress: quotation?.endAddress || "",
+          moveType: quotation?.moveType || "UNKNOWN",
+          price: quotation?.price || "0",
+          isAssignedMover:
+            quotation?.assignMover?.includes(receivedQuotation.moverId) ||
+            false,
+          offerId: receivedQuotation.id,
+        };
+      }),
+    );
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      totalPages,
+      currentPage: page,
+      totalCount: total,
+      list: reviewsWithDetails,
+    };
+  }
+
+  // 일반유저 리뷰 작성
+  async createMoverReview(
+    createReviewDto: CreateMoverReviewDto,
+  ): Promise<MoverReview> {
+    const receivedQuotation = await this.receivedQuotationRepository.findOne({
+      where: { id: createReviewDto.offerId },
+    });
+
+    if (!receivedQuotation) {
+      throw new BadRequestException("존재하지 않는 요청입니다.");
+    }
+
+    if (createReviewDto.userId !== receivedQuotation.customerId) {
+      throw new BadRequestException("리뷰 작성 권한이 없습니다.");
+    }
+
+    const existingReview = await this.receivedQuotationRepository.findOne({
+      where: {
+        id: createReviewDto.offerId,
+        customerId: createReviewDto.userId,
+        isReviewed: true,
+      },
+    });
+
+    if (existingReview) {
+      throw new BadRequestException("이미 해당 요청에 리뷰를 작성하였습니다.");
+    }
+
+    const customer = await this.customerRepository.findOne({
+      where: { id: createReviewDto.userId },
+    });
+
+    const customerNick = customer?.username;
+
+    const review = this.moverReviewRepository.create({
+      content: createReviewDto.content,
+      rating: createReviewDto.rating,
+      moverId: receivedQuotation.moverId,
+      quotationId: receivedQuotation.quotationId,
+      customerId: createReviewDto.userId,
+      customerNick: customerNick,
+    });
+    const savedReview = await this.moverReviewRepository.save(review);
+
+    await this.updateMoverReviewStats(
+      receivedQuotation.moverId,
+      createReviewDto.rating,
+    );
+
+    await this.receivedQuotationRepository.update(
+      { id: createReviewDto.offerId },
+      { isReviewed: true },
+    );
+    return savedReview;
+  }
+
+  private async updateMoverReviewStats(
+    moverId: string,
+    newRating: number,
+  ): Promise<void> {
+    const mover = await this.moverRepository.findOne({
+      where: { id: moverId },
+      select: ["reviewCounts", "totalRating"],
+    });
+
+    if (!mover) {
+      throw new BadRequestException("기사를 찾을 수 없습니다.");
+    }
+
+    const newReviewCount = mover.reviewCounts + 1;
+    const newTotalRating = mover.totalRating + newRating;
+
+    await this.moverRepository.update(
+      { id: moverId },
+      {
+        reviewCounts: newReviewCount,
+        totalRating: newTotalRating,
+      },
+    );
+  }
+
+  // 일반유저 : 작성한 리뷰 조회
+  async getCustomerReview(
+    customerId: string,
+    paginationDto: PaginationDto,
+  ): Promise<CustomerReviewPaginationResponseDto> {
+    const { page, limit } = paginationDto;
+    const offset = (page - 1) * limit;
+
+    const [reviews, total] = await this.moverReviewRepository.findAndCount({
+      where: { customerId },
+      skip: offset,
+      take: limit,
+      order: { createdAt: "DESC" },
+    });
+
+    const reviewsWithDetails = await Promise.all(
+      reviews.map(async (review) => {
+        const mover = await this.moverRepository.findOne({
+          where: { id: review.moverId },
+          select: ["username", "serviceList", "profileImage"],
+        });
+
+        const quotation = await this.quotationRepository.findOne({
+          where: { id: review.quotationId },
+          select: [
+            "moveDate",
+            "startAddress",
+            "endAddress",
+            "moveDate",
+            "moveType",
+            "price",
+            "assignMover",
+            "createdAt",
+          ],
+        });
+        return {
+          content: review.content,
+          rating: review.rating,
+          reviewDate: review.createdAt,
+          moverName: mover?.username || "알 수 없음",
+          moverProfileImage: mover?.profileImage || null,
+          moveDate: quotation?.moveDate || "",
+          startAddress: quotation?.startAddress || "",
+          endAddress: quotation?.endAddress || "",
+          moveType: quotation?.moveType || "UNKNOWN",
+          price: quotation?.price || "0",
+          isAssignedMover:
+            quotation?.assignMover?.includes(review.moverId) || false,
+        };
+      }),
+    );
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      totalPages,
+      currentPage: page,
+      totalCount: total,
+      list: reviewsWithDetails,
+    };
   }
 }

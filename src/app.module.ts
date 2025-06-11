@@ -5,7 +5,6 @@ import { MoverModule } from "./mover/mover.module";
 import { CustomerModule } from "./customer/customer.module";
 import { StorageModule } from "./common/storage/storage.module";
 import { QuotationModule } from "./quotation/quotation.module";
-import { MockApiModule } from "./mock-api/mock-api.module";
 import { LikeModule } from "./likeMover/likeMover.module";
 import { MoverReviewModule } from "./moverReview/moverReview.module";
 import { NotificationsModule } from "./notifications/notification.module";
@@ -24,7 +23,6 @@ import { ScheduleModule } from "@nestjs/schedule";
     CustomerModule,
     StorageModule,
     QuotationModule,
-    MockApiModule, // mock api 모듈 추가
     LikeModule,
     MoverReviewModule,
     NotificationsModule,
