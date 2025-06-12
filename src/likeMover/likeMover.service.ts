@@ -196,13 +196,21 @@ export class likeMoverService {
       .setParameter("userId", userId)
       .getRawMany();
 
+    const parsedMovers = likedMovers.map((m) => ({
+      ...m,
+      serviceList:
+        typeof m.serviceList === "string"
+          ? m.serviceList.split(",")
+          : m.serviceList,
+    }));
+
     const total = await this.likeRepository
       .createQueryBuilder("like")
       .where("like.customerId = :userId", { userId })
       .getCount();
 
     return new PaginatedScrollResponseDto<GetLikeMoverData>(
-      likedMovers,
+      parsedMovers,
       total,
       page,
       limit,
