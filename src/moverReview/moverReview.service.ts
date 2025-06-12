@@ -50,10 +50,12 @@ export class MoverReviewService {
 
     const totalRating = await this.moverRepository
       .createQueryBuilder("mover")
-      .select("mover.totalRating", "totalRating")
+      .select([
+        `mover.totalRating AS "totalRating"`,
+        `mover.reviewCounts AS "reviewCounts"`,
+      ])
       .where("mover.id = :moverId", { moverId })
-      .getRawOne()
-      .then((res) => res?.totalRating ?? 0);
+      .getRawOne();
 
     // 별점 분포 조회
     const ratingCountsRaw = await this.moverReviewRepository
@@ -129,7 +131,10 @@ export class MoverReviewService {
       currentPage: page,
       ratingCounts,
       ratingPercentages,
-      totalRating,
+      totalRating:
+        totalRating.reviewCounts > 0
+          ? totalRating.totalRating / totalRating.reviewCounts
+          : 0,
     };
   }
 
