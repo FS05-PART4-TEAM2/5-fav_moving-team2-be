@@ -323,36 +323,57 @@ export class MoverQuotationService {
     const safePage = Math.max(page, 1);
     const skip = (safePage - 1) * limit;
 
-    const [sentQuotations, total] = await Promise.all([
-      this.receivedQuoteRepository
-        .createQueryBuilder("r")
-        .innerJoin("customer", "c", "r.customerId = c.id::text")
-        .innerJoin("quotation", "q", "r.quotationId = q.id::text")
-        .where(`r.moverId = :moverId::text`, { moverId: userId })
-        .select([
-          `r.id AS "id"`,
-          `r.price AS "price"`,
-          `r.createdAt AS "createdAt"`,
-          `c.username AS "customerNick"`,
-          `r.isAssignQuo AS "isAssignQuo"`,
-          `q.moveType AS "moveType"`,
-          `q.moveDate AS "moveDate"`,
-          `q.status AS "status"`,
-          `q.startAddress AS "startAddress"`,
-          `q.endAddress AS "endAddress"`,
-          `CASE WHEN q.confirmedMoverId = :moverId THEN true ELSE false END AS "isConfirmedToMe"`,
-        ])
-        .setParameter("moverId", userId)
-        .orderBy("r.createdAt", "DESC")
-        .take(limit)
-        .skip(skip)
-        .getRawMany(),
+    const sentQuotationIdsRaw = await this.receivedQuoteRepository
+      .createQueryBuilder("r")
+      .select("r.id", "r_id")
+      .where("r.moverId = :moverId", { moverId: userId })
+      .orderBy("r.createdAt", "DESC")
+      .addOrderBy("r.id", "DESC")
+      .skip(skip)
+      .take(limit)
+      .getRawMany();
 
-      this.receivedQuoteRepository
-        .createQueryBuilder("r")
-        .where("r.moverId = :moverId", { moverId: userId })
-        .getCount(),
-    ]);
+    const ids = sentQuotationIdsRaw.map((row) => row.r_id);
+
+    // 정렬 보존용 CASE 구문
+
+    if (ids.length === 0) {
+      return new PaginatedScrollResponseDto([], 0, safePage, limit);
+    }
+
+    // 실제 상세 정보 연결해서 조회
+    const sentQuotations = await this.receivedQuoteRepository
+      .createQueryBuilder("r")
+      .innerJoin("customer", "c", "r.customerId = c.id::text")
+      .innerJoin("quotation", "q", "r.quotationId = q.id::text")
+      .where("r.id IN (:...ids)", { ids })
+      .select([
+        `r.id AS "id"`,
+        `r.price AS "price"`,
+        `r.createdAt AS "createdAt"`,
+        `c.username AS "customerNick"`,
+        `r.isAssignQuo AS "isAssignQuo"`,
+        `q.moveType AS "moveType"`,
+        `q.moveDate AS "moveDate"`,
+        `q.status AS "status"`,
+        `q.startAddress AS "startAddress"`,
+        `q.endAddress AS "endAddress"`,
+        `CASE WHEN q.confirmedMoverId = :moverId THEN true ELSE false END AS "isConfirmedToMe"`,
+      ])
+      .setParameter("moverId", userId)
+      .orderBy(
+        `CASE r.id
+          ${ids.map((id, index) => `WHEN '${id}' THEN ${index}`).join("\n")}
+          ELSE ${ids.length}
+        END`,
+      )
+      .getRawMany();
+
+    // total 개수 구하기
+    const total = await this.receivedQuoteRepository
+      .createQueryBuilder("r")
+      .where("r.moverId = :moverId", { moverId: userId })
+      .getCount();
 
     const data = sentQuotations.map(
       (row) => new SentQuotationResponseData(row),

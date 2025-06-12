@@ -133,32 +133,42 @@ export class AssignQuotationService {
     const safePage = Math.max(page, 1);
     const skip = (safePage - 1) * limit;
 
-    const [rejectedRequests, total] = await Promise.all([
-      this.assignMoverRepository
-        .createQueryBuilder("a")
-        .innerJoin("customer", "c", "a.customerId = c.id::text")
-        .innerJoin("quotation", "q", "a.quotationId = q.id::text")
-        .where(`a.moverId = :moverId::text`, { moverId: userId })
-        .andWhere("a.status = :status", { status: "REJECTED" })
-        .select([
-          `a.id AS "id"`,
-          `c.username AS "customerNick"`,
-          `q.moveType AS "moveType"`,
-          `q.startAddress AS "startAddress"`,
-          `q.endAddress AS "endAddress"`,
-          `q.moveDate AS "moveDate"`,
-        ])
-        .orderBy("a.createdAt", "DESC")
-        .take(limit)
-        .skip(skip)
-        .getRawMany(),
+    const rejectedRequestsIdsRaw = await this.assignMoverRepository
+      .createQueryBuilder("a")
+      .select("a.id", "id")
+      .where("a.moverId = :moverId", { moverId: userId })
+      .orderBy("a.createdAt")
+      .skip(skip)
+      .take(limit)
+      .getRawMany();
 
-      this.assignMoverRepository
-        .createQueryBuilder("a")
-        .where("a.moverId = :moverId", { moverId: userId })
-        .andWhere("a.status = :status", { status: "REJECTED" })
-        .getCount(),
-    ]);
+    const ids = rejectedRequestsIdsRaw.map((row) => row.id);
+
+    if (ids.length === 0) {
+      return new PaginatedScrollResponseDto([], 0, safePage, limit);
+    }
+
+    const rejectedRequests = await this.assignMoverRepository
+      .createQueryBuilder("a")
+      .innerJoin("customer", "c", "a.customerId = c.id::text")
+      .innerJoin("quotation", "q", "a.quotationId = q.id::text")
+      .where("a.id IN (:...ids)", { ids })
+      .andWhere("a.status = :status", { status: "REJECTED" })
+      .select([
+        `a.id AS "id"`,
+        `c.username AS "customerNick"`,
+        `q.moveType AS "moveType"`,
+        `q.startAddress AS "startAddress"`,
+        `q.endAddress AS "endAddress"`,
+        `q.moveDate AS "moveDate"`,
+      ])
+      .orderBy("a.createdAt", "DESC")
+      .getRawMany();
+
+    const total = await this.assignMoverRepository
+      .createQueryBuilder("a")
+      .where("a.moverId = :moverId", { moverId: userId })
+      .getCount();
 
     const data = rejectedRequests.map((row) => new GetRejectedData(row));
     return new PaginatedScrollResponseDto(data, total, safePage, limit);
