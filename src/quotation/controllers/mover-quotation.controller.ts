@@ -289,6 +289,20 @@ export class MoverQuotationController {
   @ApiOperation({ summary: "받은 요청(기사님) 목록 개수 조회" })
   @ApiBearerAuth("access-token")
   @UseGuards(JwtCookieAuthGuard)
+  @ApiOkResponse({
+    description: "받은 요청(기사님) 목록 개수 조회에 성공하였습니다.",
+    schema: {
+      allOf: [
+        { $ref: getSchemaPath(CommonApiResponse) },
+        {
+          properties: {
+            data: { $ref: getSchemaPath(QuotationStatisticsDto) },
+          },
+        },
+      ],
+    },
+  })
+  @ApiExtraModels(QuotationStatisticsDto)
   async getReceivedQuotationListCount(
     @Req() req,
     @Query() queries: GetQuotationListCountRequestDto,
