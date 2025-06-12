@@ -35,6 +35,8 @@ import {
   SentQuotationResponseData,
 } from "../dtos/get-sent-quotation.response";
 import { PagedResponseDto } from "src/common/dto/paged.response.dto";
+import { GetQuotationListCountRequestDto } from "../dtos/get-quotation-list-count.request.dto";
+import { QuotationStatisticsDto } from "../dtos/get-quotation-list-count.response.dto";
 
 @ApiExtraModels(
   CommonApiResponse,
@@ -66,6 +68,7 @@ export class MoverQuotationController {
    *   - status
    * 5. 이사일이 지난 요청은 조회하지 않음
    * 6. 무한 스크롤(06/10 추가)
+   * 7. 응답에 개수 넘겨주기
    */
   @Get("")
   @ApiOperation({ summary: "받은 요청(기사님) 목록 조회" })
@@ -231,6 +234,9 @@ export class MoverQuotationController {
     return CommonApiResponse.success(result, "보낸 견적 리스트 조회 성공");
   }
 
+  /**
+   *
+   */
   @Get("sent/:id")
   @ApiOperation({ summary: "보낸 견적(기사님) 상세 조회" })
   @ApiParam({
@@ -274,5 +280,29 @@ export class MoverQuotationController {
     );
 
     return CommonApiResponse.success(result, "보낸 견적 상세 조회 성공");
+  }
+
+  /**
+   *
+   */
+  @Get("count")
+  @ApiOperation({ summary: "받은 요청(기사님) 목록 개수 조회" })
+  @ApiBearerAuth("access-token")
+  @UseGuards(JwtCookieAuthGuard)
+  async getReceivedQuotationListCount(
+    @Req() req,
+    @Query() queries: GetQuotationListCountRequestDto,
+  ): Promise<CommonApiResponse<QuotationStatisticsDto>> {
+    const { userId, userType } = req.user!;
+    const result =
+      await this.moverQuotationService.getReceivedQuotationListCount(
+        { userId, userType },
+        queries,
+      );
+
+    return CommonApiResponse.success(
+      result,
+      "받은 요청(기사님) 목록 개수 조회에 성공하였습니다.",
+    );
   }
 }

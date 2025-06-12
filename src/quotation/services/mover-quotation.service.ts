@@ -31,6 +31,9 @@ import {
   SentQuotationResponseData,
 } from "../dtos/get-sent-quotation.response";
 import { CursorDto, PagedResponseDto } from "src/common/dto/paged.response.dto";
+import { GetQuotationListCountRequestDto } from "../dtos/get-quotation-list-count.request.dto";
+import { ServiceTypeKey } from "src/common/constants/service-type.constant";
+import { QuotationStatisticsDto } from "../dtos/get-quotation-list-count.response.dto";
 
 @Injectable()
 export class MoverQuotationService {
@@ -450,4 +453,250 @@ export class MoverQuotationService {
       isConfirmedToMe: quotation.confirmedMoverId === userId,
     };
   }
+
+  /**
+   *
+   */
+  async getReceivedQuotationListCount(
+    user: { userId: string; userType: string },
+    queries: GetQuotationListCountRequestDto,
+  ): Promise<QuotationStatisticsDto> {
+    const { userId } = user;
+    const { type, region, isAssigned, username } = queries;
+
+    let customerId: string | undefined;
+    if (username) {
+      const customer = await this.customerRepository.findOne({
+        where: { username: ILike(`%${username}%`) },
+      });
+      customerId = customer?.id;
+    }
+
+    const today = new Date();
+    const regionKeys = region?.split(",") ?? [];
+    const regionLabels = regionKeys
+      .map((key) => getRegionLabelByKey(key as RegionKey))
+      .filter((label): label is RegionLabel => !!label);
+
+    // 1. 현재 기사님에게 지정된 요청 조회
+    const assignMover = await this.assignMoverRepository.find({
+      where: {
+        moverId: userId,
+        createdAt: MoreThanOrEqual(today),
+        status: ASSIGN_STATUS_KEY.PENDING,
+      },
+    });
+
+    const assignedQuotationIdSet = new Set(
+      assignMover.map((a) => a.quotationId),
+    );
+
+    const qb = this.quotationRepository.createQueryBuilder("quotation");
+
+    // 기본 조건
+    qb.where("quotation.status = :status", {
+      status: QUOTATION_STATE_KEY.PENDING,
+    }).andWhere("quotation.moveDate >= :today", { today });
+
+    if (customerId) {
+      qb.andWhere("quotation.customerId = :customerId", { customerId });
+    }
+
+    if (type) {
+      const typeList = type.split(",");
+      qb.andWhere("quotation.moveType IN (:...typeList)", { typeList });
+    }
+
+    if (regionLabels.length > 0) {
+      qb.andWhere(
+        new Brackets((qb) => {
+          regionLabels.forEach((label, i) => {
+            qb.orWhere("quotation.startAddress LIKE :region" + i, {
+              ["region" + i]: `%${label}%`,
+            });
+            qb.orWhere("quotation.endAddress LIKE :region" + i, {
+              ["region" + i]: `%${label}%`,
+            });
+          });
+        }),
+      );
+    }
+
+    // 2. isAssigned 필터링을 데이터베이스 레벨에서 처리
+    if (isAssigned !== undefined) {
+      if (isAssigned === "true") {
+        if (assignedQuotationIdSet.size > 0) {
+          qb.andWhere("quotation.id IN (:...assignedIds)", {
+            assignedIds: Array.from(assignedQuotationIdSet),
+          });
+        } else {
+          // 지정된 견적이 없으면 빈 통계 반환
+          return {
+            moveTypeStats: {
+              SMALL_MOVE: 0,
+              FAMILY_MOVE: 0,
+              OFFICE_MOVE: 0,
+            },
+            startRegionStats: {
+              SEOUL: 0,
+              BUSAN: 0,
+              DAEGU: 0,
+              INCHEON: 0,
+              GWANGJU: 0,
+              DAEJEON: 0,
+              ULSAN: 0,
+              SEJONG: 0,
+              GYEONGGI: 0,
+              GANGWON: 0,
+              CHUNGBUK: 0,
+              CHUNGNAM: 0,
+              JEONBUK: 0,
+              JEONNAM: 0,
+              GYEONGBUK: 0,
+              GYEONGNAM: 0,
+              JEJU: 0,
+            },
+            endRegionStats: {
+              SEOUL: 0,
+              BUSAN: 0,
+              DAEGU: 0,
+              INCHEON: 0,
+              GWANGJU: 0,
+              DAEJEON: 0,
+              ULSAN: 0,
+              SEJONG: 0,
+              GYEONGGI: 0,
+              GANGWON: 0,
+              CHUNGBUK: 0,
+              CHUNGNAM: 0,
+              JEONBUK: 0,
+              JEONNAM: 0,
+              GYEONGBUK: 0,
+              GYEONGNAM: 0,
+              JEJU: 0,
+            },
+            assignedQuotationCount: 0,
+            totalQuotationCount: 0,
+          };
+        }
+      } else {
+        if (assignedQuotationIdSet.size > 0) {
+          qb.andWhere("quotation.id NOT IN (:...assignedIds)", {
+            assignedIds: Array.from(assignedQuotationIdSet),
+          });
+        }
+      }
+    }
+
+    // 3. 모든 견적 데이터 조회
+    const quotations = await qb.getMany();
+
+    // 4. 통계 데이터 계산
+    const moveTypeStats: { [key in ServiceTypeKey]: number } = {
+      SMALL_MOVE: 0,
+      FAMILY_MOVE: 0,
+      OFFICE_MOVE: 0,
+    };
+
+    const startRegionStats: { [key in RegionKey]: number } = {
+      SEOUL: 0,
+      BUSAN: 0,
+      DAEGU: 0,
+      INCHEON: 0,
+      GWANGJU: 0,
+      DAEJEON: 0,
+      ULSAN: 0,
+      SEJONG: 0,
+      GYEONGGI: 0,
+      GANGWON: 0,
+      CHUNGBUK: 0,
+      CHUNGNAM: 0,
+      JEONBUK: 0,
+      JEONNAM: 0,
+      GYEONGBUK: 0,
+      GYEONGNAM: 0,
+      JEJU: 0,
+    };
+
+    const endRegionStats: { [key in RegionKey]: number } = {
+      SEOUL: 0,
+      BUSAN: 0,
+      DAEGU: 0,
+      INCHEON: 0,
+      GWANGJU: 0,
+      DAEJEON: 0,
+      ULSAN: 0,
+      SEJONG: 0,
+      GYEONGGI: 0,
+      GANGWON: 0,
+      CHUNGBUK: 0,
+      CHUNGNAM: 0,
+      JEONBUK: 0,
+      JEONNAM: 0,
+      GYEONGBUK: 0,
+      GYEONGNAM: 0,
+      JEJU: 0,
+    };
+
+    quotations.forEach((quotation) => {
+      // moveType 통계
+      moveTypeStats[quotation.moveType]++;
+
+      // startAddress에서 지역 키 추출
+      const startRegionKey = this.getRegionKeyByAddress(quotation.startAddress);
+      if (startRegionKey) {
+        startRegionStats[startRegionKey]++;
+      }
+
+      // endAddress에서 지역 키 추출
+      const endRegionKey = this.getRegionKeyByAddress(quotation.endAddress);
+      if (endRegionKey) {
+        endRegionStats[endRegionKey]++;
+      }
+    });
+
+    // 5. 지정된 견적 개수 계산
+    const assignedQuotationCount = quotations.filter((q) =>
+      assignedQuotationIdSet.has(q.id),
+    ).length;
+
+    return {
+      moveTypeStats,
+      startRegionStats,
+      endRegionStats,
+      assignedQuotationCount,
+      totalQuotationCount: quotations.length,
+    };
+  }
+
+  // 주소에서 지역 키를 추출하는 헬퍼 함수 (utils 파일에 정의하거나 별도로 구현)
+  private getRegionKeyByAddress = (address: string): RegionKey | null => {
+    const regionMappings = [
+      { keys: ["서울"], regionKey: "SEOUL" as RegionKey },
+      { keys: ["부산"], regionKey: "BUSAN" as RegionKey },
+      { keys: ["대구"], regionKey: "DAEGU" as RegionKey },
+      { keys: ["인천"], regionKey: "INCHEON" as RegionKey },
+      { keys: ["광주"], regionKey: "GWANGJU" as RegionKey },
+      { keys: ["대전"], regionKey: "DAEJEON" as RegionKey },
+      { keys: ["울산"], regionKey: "ULSAN" as RegionKey },
+      { keys: ["세종"], regionKey: "SEJONG" as RegionKey },
+      { keys: ["경기"], regionKey: "GYEONGGI" as RegionKey },
+      { keys: ["강원"], regionKey: "GANGWON" as RegionKey },
+      { keys: ["충북", "충청북도"], regionKey: "CHUNGBUK" as RegionKey },
+      { keys: ["충남", "충청남도"], regionKey: "CHUNGNAM" as RegionKey },
+      { keys: ["전북", "전라북도"], regionKey: "JEONBUK" as RegionKey },
+      { keys: ["전남", "전라남도"], regionKey: "JEONNAM" as RegionKey },
+      { keys: ["경북", "경상북도"], regionKey: "GYEONGBUK" as RegionKey },
+      { keys: ["경남", "경상남도"], regionKey: "GYEONGNAM" as RegionKey },
+      { keys: ["제주"], regionKey: "JEJU" as RegionKey },
+    ];
+
+    for (const mapping of regionMappings) {
+      if (mapping.keys.some((key) => address.includes(key))) {
+        return mapping.regionKey;
+      }
+    }
+
+    return null;
+  };
 }
