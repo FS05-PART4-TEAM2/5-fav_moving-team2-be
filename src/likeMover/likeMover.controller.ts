@@ -52,9 +52,10 @@ export class LikeMoverController {
       example: {
         success: true,
         data: {
-          id: "80b89c9b-0215-4be0-9f6a-301770606669",
-          moverId: "1503b09e-41a3-48f7-af15-7643e8c1a38d",
-          customerId: "a19d165c-4255-4e58-84aa-d574c565895f",
+          id: "28824b5f-76b0-417f-9867-883750637039",
+          moverId: "30f49cce-1f3e-4103-91e8-d23d960447ed",
+          customerId: "39d35584-a217-4f35-9575-f6ee81a9180b",
+          createdAt: "2025-06-12T00:48:53.797Z",
         },
         message: "기사 찜하기 성공",
       },
@@ -177,7 +178,7 @@ export class LikeMoverController {
               nickName: null,
               profileImage:
                 "http://img1.kakaocdn.net/thumb/R640x640.q70/?fname=http://t1.kakaocdn.net/account_images/default_profile.jpeg",
-              serviceList: "SMALL_MOVE",
+              serviceList: ["SMALL_MOVE", "BIG_MOVE"],
               likeCount: 8,
               totalRating: 3,
               reviewCounts: 55,
