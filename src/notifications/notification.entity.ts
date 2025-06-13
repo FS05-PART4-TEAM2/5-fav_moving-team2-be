@@ -16,7 +16,7 @@ export type NotificationType =
   | "MOVE_SCHEDULE";
 
 @Entity()
-export class Notification {
+export class Notifications {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
@@ -30,7 +30,7 @@ export class Notification {
   })
   type: NotificationType;
 
-  @Column("text", { array: true })
+  @Column("jsonb")
   segments: NotificationTextSegment[];
 
   @Column({ default: false })
