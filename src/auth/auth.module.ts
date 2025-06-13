@@ -36,6 +36,6 @@ import { KakaoStrategy } from "./strategies/kakao.strategy";
     CustomerAuthService,
     MoverAuthService,
   ],
-  exports: [AuthService],
+  exports: [AuthService, JwtModule],
 })
 export class AuthModule {}

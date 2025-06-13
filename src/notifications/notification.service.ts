@@ -14,12 +14,14 @@ import {
 import { CursorDto, PagedResponseDto } from "src/common/dto/paged.response.dto";
 import { NotificationRequestDto } from "./dto/notification.request.dto";
 import { NotificationResponseDto } from "./dto/notification.response.dto";
+import { NotificationsGateway } from "./notification.gateway";
 
 @Injectable()
 export class NotificationService {
   constructor(
     @InjectRepository(Notifications)
     private readonly notificationRepository: Repository<Notifications>,
+    private readonly gateway: NotificationsGateway,
   ) {}
 
   /**
@@ -91,7 +93,7 @@ export class NotificationService {
   }
 
   /**
-   * 테스트용 알림 생성
+   * 새로운 알림 생성
    */
   async createNotification(
     userId: string,
@@ -106,6 +108,8 @@ export class NotificationService {
       segments: request.segments,
     });
 
-    await this.notificationRepository.save(noti);
+    const newNoti = await this.notificationRepository.save(noti);
+
+    this.gateway.sendToUser(userId, NotificationResponseDto.of(newNoti));
   }
 }
