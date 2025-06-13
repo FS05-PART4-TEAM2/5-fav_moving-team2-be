@@ -443,13 +443,9 @@ export class MoverQuotationService {
       startAddress: quotation.startAddress,
       endAddress: quotation.endAddress,
       moveDate: new Date(quotation.moveDate)
-        .toISOString()
-        .slice(2, 10)
-        .replace(/-/g, "."),
+        .toISOString(),
       startQuoDate: receivedQuo.createdAt
-        .toISOString()
-        .slice(2, 10)
-        .replace(/-/g, "."),
+        .toISOString(),
       isConfirmedToMe: quotation.confirmedMoverId === userId,
     };
   }
