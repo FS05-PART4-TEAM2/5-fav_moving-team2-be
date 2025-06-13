@@ -6,10 +6,11 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { Customer } from "./customer.entity";
 import { StorageModule } from "src/common/storage/storage.module";
 import { AuthModule } from "src/auth/auth.module";
+import { Quotation } from "src/quotation/quotation.entity";
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Customer]),
+    TypeOrmModule.forFeature([Customer, Quotation]),
     CustomerAuthModule,
     StorageModule,
     AuthModule,

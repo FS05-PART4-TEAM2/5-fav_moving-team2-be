@@ -13,12 +13,15 @@ import { StorageService } from "src/common/interfaces/storage.service";
 import { CustomerProfileResponseDto } from "../dto/customer-profile.response.dto";
 import * as bcrypt from "bcrypt";
 import { InvalidCredentialsException } from "src/common/exceptions/invalid-credentials.exception";
+import { Quotation } from "src/quotation/quotation.entity";
 
 @Injectable()
 export class CustomerProfileService {
   constructor(
     @InjectRepository(Customer)
     private customerRepository: Repository<Customer>,
+    @InjectRepository(Quotation)
+    private quotationRepository: Repository<Quotation>,
     @Inject("StorageService")
     private readonly storageService: StorageService,
   ) {}
@@ -90,6 +93,12 @@ export class CustomerProfileService {
 
     if (!customer) throw new ForbiddenException();
 
-    return CustomerProfileResponseDto.of(customer);
+    const hasQuotation = await this.quotationRepository.exists({
+      where: {
+        customerId: userId,
+      },
+    });
+
+    return CustomerProfileResponseDto.of(customer, hasQuotation);
   }
 }
