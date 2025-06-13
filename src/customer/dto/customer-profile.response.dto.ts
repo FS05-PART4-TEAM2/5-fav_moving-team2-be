@@ -11,8 +11,12 @@ export class CustomerProfileResponseDto {
   profileImage: string | null;
   wantService: ServiceTypeKey[];
   livingPlace: RegionKey[];
+  hasQuotation?: boolean;
 
-  static of(customer: Customer): CustomerProfileResponseDto {
+  static of(
+    customer: Customer,
+    hasQuotation?: boolean,
+  ): CustomerProfileResponseDto {
     const dto = new CustomerProfileResponseDto();
     dto.id = customer.id;
     dto.username = customer.username;
@@ -22,6 +26,10 @@ export class CustomerProfileResponseDto {
     dto.profileImage = customer.profileImage;
     dto.wantService = customer.wantService;
     dto.livingPlace = customer.livingPlace;
+
+    if (typeof hasQuotation === "boolean") {
+      dto.hasQuotation = hasQuotation;
+    }
 
     return dto;
   }
