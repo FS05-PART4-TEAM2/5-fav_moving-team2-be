@@ -93,7 +93,7 @@ export class NotificationService {
   }
 
   /**
-   * 테스트용 알림 생성
+   * 새로운 알림 생성
    */
   async createNotification(
     userId: string,
