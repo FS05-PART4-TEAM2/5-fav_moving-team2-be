@@ -4,11 +4,12 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Repository, In } from "typeorm";
 import { Quotation } from "src/quotation/quotation.entity";
 import { ReceivedQuote } from "../entities/received-quote.entity";
 import { ReceivedQuotationResponseDto } from "../dtos/customer-receivedQuotation.response.dto";
 import { PaginatedResponseDto } from "src/common/dto/pagination.dto";
+import { LikeMover } from "src/likeMover/likeMover.entity";
 
 @Injectable()
 export class ReceivedQuotationService {
@@ -17,12 +18,13 @@ export class ReceivedQuotationService {
     private readonly receivedQuotationRepository: Repository<ReceivedQuote>,
     @InjectRepository(Quotation)
     private readonly quotationRepository: Repository<Quotation>,
+    @InjectRepository(LikeMover)
+    private readonly likeMoverRepository: Repository<LikeMover>,
   ) {}
-
   // 일반유저 모든 진행중인 요청 조회
-  async getAllPendingReceivedQuotations(): Promise<
-    ReceivedQuotationResponseDto[]
-  > {
+  async getAllPendingReceivedQuotations(
+    customerId: string,
+  ): Promise<ReceivedQuotationResponseDto[]> {
     const receivedQuotations = await this.receivedQuotationRepository.find({
       where: { isCompleted: false },
     });
@@ -48,6 +50,15 @@ export class ReceivedQuotationService {
       .createQueryBuilder("quotation", "quotation")
       .where("quotation.id IN (:...quotationIds)", { quotationIds })
       .getMany();
+
+    // 찜한 기사들 조회 (IN 조건을 위해 FindOperator 사용)
+    const likedMovers = await this.likeMoverRepository.find({
+      where: {
+        customerId,
+        ...(moverIds.length > 0 && { moverId: In(moverIds) }),
+      },
+    });
+    const likedMoverIds = new Set(likedMovers.map((like) => like.moverId));
 
     // Map으로 빠른 조회를 위한 인덱스 생성
     const moverMap = new Map(movers.map((mover) => [mover.id, mover]));
@@ -79,7 +90,7 @@ export class ReceivedQuotationService {
         reviewCounts: mover?.reviewCounts,
         intro: mover?.intro,
         career: mover?.career,
-        isLiked: false,
+        isLiked: likedMoverIds.has(receivedQuotation.moverId),
         confirmedQuotationCount: mover?.confirmedCounts,
         isCompleted: receivedQuotation.isCompleted,
         isConfirmedMover: receivedQuotation.isConfirmedMover,
@@ -158,6 +169,7 @@ export class ReceivedQuotationService {
     };
   }
   async getAllCompletedReceivedQuotations(
+    customerId: string,
     page: number = 1,
     limit: number = 6,
   ): Promise<
@@ -197,6 +209,14 @@ export class ReceivedQuotationService {
       .where("quotation.id IN (:...quotationIds)", { quotationIds })
       .getMany();
 
+    const likedMovers = await this.likeMoverRepository.find({
+      where: {
+        customerId,
+        ...(moverIds.length > 0 && { moverId: In(moverIds) }),
+      },
+    });
+    const likedMoverIds = new Set(likedMovers.map((like) => like.moverId));
+
     const moverMap = new Map(movers.map((mover) => [mover.id, mover]));
     const quotationMap = new Map(
       quotations.map((quotation) => [quotation.id, quotation]),
@@ -225,7 +245,7 @@ export class ReceivedQuotationService {
         reviewCounts: mover?.reviewCounts,
         intro: mover?.intro,
         career: mover?.career,
-        isLiked: false,
+        isLiked: likedMoverIds.has(receivedQuotation.moverId),
         confirmedQuotationCount: mover?.confirmedCounts,
         isCompleted: receivedQuotation.isCompleted,
         isConfirmedMover: receivedQuotation.isConfirmedMover,
@@ -303,6 +323,7 @@ export class ReceivedQuotationService {
     };
   }
   async getReceivedQuotationById(
+    customerId: string,
     receivedQuotationId: string,
   ): Promise<ReceivedQuotationResponseDto> {
     const uuidRegex =
@@ -335,6 +356,13 @@ export class ReceivedQuotationService {
       ? quotation.assignMover.includes(receivedQuotation.moverId)
       : false;
 
+    const liked = await this.likeMoverRepository.findOne({
+      where: {
+        customerId,
+        moverId: receivedQuotation.moverId,
+      },
+    });
+
     const offer = {
       offerId: receivedQuotation.id,
       moverId: mover?.id,
@@ -347,7 +375,7 @@ export class ReceivedQuotationService {
       reviewCounts: mover?.reviewCounts,
       intro: mover?.intro,
       career: mover?.career,
-      isLiked: false,
+      isLiked: !!liked,
       confirmedQuotationCount: mover?.confirmedCounts,
       isCompleted: receivedQuotation.isCompleted,
       isConfirmedMover: receivedQuotation.isConfirmedMover,

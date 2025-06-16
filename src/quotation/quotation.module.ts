@@ -13,10 +13,13 @@ import { AssignQuotationService } from "./services/assign-quotation.service";
 import { AssignMover } from "./entities/assign-mover.entity";
 import { ReceivedQuotationService } from "./services/customer-quotation.service";
 import { ReceivedQuotationController } from "./controllers/customer-quotation.controller";
+import { LikeMover } from "src/likeMover/likeMover.entity";
+import { LikeModule } from "src/likeMover/likeMover.module";
 @Module({
   imports: [
     TypeOrmModule.forFeature([Quotation, AssignMover, ReceivedQuote, Customer]),
     forwardRef(() => AuthModule),
+    LikeModule,
   ],
   providers: [
     QuotationService,
