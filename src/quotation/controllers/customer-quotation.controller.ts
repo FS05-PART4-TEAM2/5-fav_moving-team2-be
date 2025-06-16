@@ -1,4 +1,12 @@
-import { Controller, Get, Param, Post, Query, UseGuards, Req } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from "@nestjs/common";
 import { ApiOperation, ApiQuery } from "@nestjs/swagger";
 import { CommonApiResponse } from "src/common/dto/api-response.dto";
 import { JwtCookieAuthGuard } from "src/common/guards/jwt-cookie-auth.guard";
@@ -10,17 +18,17 @@ import { PaginatedResponseDto } from "src/common/dto/pagination.dto";
 export class ReceivedQuotationController {
   constructor(
     private readonly receivedQuotationService: ReceivedQuotationService,
-  ) {}  @Get("customer/pending")
+  ) {}
+  @Get("customer/pending")
   @ApiOperation({ summary: "일반유저 모든 견적 요청 조회" })
   @UseGuards(JwtCookieAuthGuard)
   async getAllReceivedQuotations(
     @Req() req,
-  ): Promise<
-    CommonApiResponse<ReceivedQuotationResponseDto[]>
-  > {
-    const { userId } = req.user;
+  ): Promise<CommonApiResponse<ReceivedQuotationResponseDto[]>> {
     const receivedQuotations =
-      await this.receivedQuotationService.getAllPendingReceivedQuotations(userId);
+      await this.receivedQuotationService.getAllPendingReceivedQuotations(
+        req.user.id,
+      );
     return CommonApiResponse.success(receivedQuotations, "모든 견적 요청 조회");
   }
 
@@ -49,7 +57,8 @@ export class ReceivedQuotationController {
     required: false,
     type: Number,
     description: "페이지당 항목 수 (기본값: 6)",
-  })  @UseGuards(JwtCookieAuthGuard)
+  })
+  @UseGuards(JwtCookieAuthGuard)
   async getAllCompletedReceivedQuotations(
     @Req() req,
     @Query("page") pageParam: string = "1",
@@ -61,13 +70,13 @@ export class ReceivedQuotationController {
         totalPages: number;
       }
     >
-  > {    const page = parseInt(pageParam) || 1;
+  > {
+    const page = parseInt(pageParam) || 1;
     const limit = parseInt(limitParam) || 6;
-    const { userId } = req.user;
 
     const result =
       await this.receivedQuotationService.getAllCompletedReceivedQuotations(
-        userId,
+        req.user.id,
         page,
         limit,
       );
@@ -80,10 +89,9 @@ export class ReceivedQuotationController {
     @Req() req,
     @Param("receivedQuotationId") receivedQuotationId: string,
   ): Promise<CommonApiResponse<ReceivedQuotationResponseDto>> {
-    const { userId } = req.user;
     const receivedQuotation =
       await this.receivedQuotationService.getReceivedQuotationById(
-        userId,
+        req.user.id,
         receivedQuotationId,
       );
     return CommonApiResponse.success(receivedQuotation, "견적 상세 조회");
