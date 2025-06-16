@@ -49,10 +49,8 @@ export class MoverQuotationService {
   ) {}
 
   /**
-   *
-   * @param user
-   * @param queries
-   * @returns
+   * @TODO 반려한 요청 제거
+   * @TODO 견적 보낸 요청 제거
    */
   async getReceivedQuotationList(
     user: { userId: string; userType: string },
@@ -86,7 +84,7 @@ export class MoverQuotationService {
 
     const limit = Number(take ?? 10);
 
-    // 1. 현재 기사님에게 지정된 요청 조회
+    // 1. 현재 기사님에게 지정된 요청 조회 (REJECTED 상태 제외)
     const assignMover = await this.assignMoverRepository.find({
       where: {
         moverId: userId,
@@ -97,6 +95,29 @@ export class MoverQuotationService {
     const assignedQuotationIdSet = new Set(
       assignMover.map((a) => a.quotationId),
     );
+
+    // 2. REJECTED 상태인 AssignMover의 quotationId 조회
+    const rejectedAssignMover = await this.assignMoverRepository.find({
+      where: {
+        moverId: userId,
+        status: ASSIGN_STATUS_KEY.REJECTED,
+      },
+      select: ["quotationId"],
+    });
+
+    const rejectedQuotationIdSet = new Set(
+      rejectedAssignMover.map((a) => a.quotationId),
+    );
+
+    // 3. 이미 견적을 보낸 quotationId 조회
+    const sentQuotes = await this.receivedQuoteRepository.find({
+      where: {
+        moverId: userId,
+      },
+      select: ["quotationId"],
+    });
+
+    const sentQuotationIdSet = new Set(sentQuotes.map((q) => q.quotationId));
 
     const qb = this.quotationRepository.createQueryBuilder("quotation");
 
@@ -118,18 +139,32 @@ export class MoverQuotationService {
       qb.andWhere(
         new Brackets((qb) => {
           regionLabels.forEach((label, i) => {
-            qb.orWhere("quotation.startAddress LIKE :region" + i, {
-              ["region" + i]: `%${label}%`,
+            qb.orWhere(`quotation.startAddress LIKE :region${i}`, {
+              [`region${i}`]: `%${label}%`,
             });
-            qb.orWhere("quotation.endAddress LIKE :region" + i, {
-              ["region" + i]: `%${label}%`,
+            qb.orWhere(`quotation.endAddress LIKE :region${i}`, {
+              [`region${i}`]: `%${label}%`,
             });
           });
         }),
       );
     }
 
-    // 2. isAssigned 필터링을 데이터베이스 레벨에서 처리
+    // 4. REJECTED 상태인 견적 제외
+    if (rejectedQuotationIdSet.size > 0) {
+      qb.andWhere("quotation.id NOT IN (:...rejectedIds)", {
+        rejectedIds: Array.from(rejectedQuotationIdSet),
+      });
+    }
+
+    // 5. 이미 견적을 보낸 견적 제외
+    if (sentQuotationIdSet.size > 0) {
+      qb.andWhere("quotation.id NOT IN (:...sentIds)", {
+        sentIds: Array.from(sentQuotationIdSet),
+      });
+    }
+
+    // 6. isAssigned 필터링을 데이터베이스 레벨에서 처리
     if (isAssigned !== undefined) {
       if (isAssigned === "true") {
         if (assignedQuotationIdSet.size > 0) {
@@ -149,7 +184,7 @@ export class MoverQuotationService {
       }
     }
 
-    // 3. 정렬 기준 설정
+    // 7. 정렬 기준 설정
     let orderField = "quotation.moveDate";
     let needCustomerJoin = false;
 
@@ -166,7 +201,7 @@ export class MoverQuotationService {
 
     qb.orderBy(orderField, "ASC").addOrderBy("quotation.id", "ASC");
 
-    // 4. 커서 기반 필터링
+    // 8. 커서 기반 필터링
     if (cursorDate && cursorId) {
       if (sorted === "USERNAME_ASC") {
         // 문자열 비교
@@ -201,12 +236,12 @@ export class MoverQuotationService {
       }
     }
 
-    // 5. 여유분을 두고 데이터 조회 (필터링으로 인한 데이터 부족 방지)
+    // 9. 여유분을 두고 데이터 조회 (필터링으로 인한 데이터 부족 방지)
     qb.take(limit);
 
     const quotations = await qb.getMany();
 
-    // 6. 고객 정보 조회 (USERNAME_ASC가 아닐 때도 필요)
+    // 10. 고객 정보 조회 (USERNAME_ASC가 아닐 때도 필요)
     const customerIds = Array.from(
       new Set(quotations.map((q) => q.customerId)),
     );
@@ -215,7 +250,7 @@ export class MoverQuotationService {
     });
     const customerMap = new Map(customers.map((c) => [c.id, c]));
 
-    // 7. 응답 생성
+    // 11. 응답 생성
     const result = quotations.map((q) =>
       QuotationResponseDto.of(
         q,
@@ -224,7 +259,7 @@ export class MoverQuotationService {
       ),
     );
 
-    // 8. 다음 커서 생성
+    // 12. 다음 커서 생성
     let nextCursor: CursorDto | null = null;
     if (result.length === limit) {
       const lastQuotation = quotations[quotations.length - 1];
