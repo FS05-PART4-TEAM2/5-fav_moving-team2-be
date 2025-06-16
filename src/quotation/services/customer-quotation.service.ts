@@ -143,7 +143,7 @@ export class ReceivedQuotationService {
           .createQueryBuilder()
           .update(Quotation)
           .set({
-            status: "confirmed",
+            status: "CONFIRMED",
             confirmedMoverId: targetRequest.moverId,
             price: targetRequest.price.toString(),
           })
