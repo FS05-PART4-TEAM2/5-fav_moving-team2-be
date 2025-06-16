@@ -1,4 +1,5 @@
 import {
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -32,8 +33,14 @@ import {
 } from "../dtos/get-sent-quotation.response";
 import { CursorDto, PagedResponseDto } from "src/common/dto/paged.response.dto";
 import { GetQuotationListCountRequestDto } from "../dtos/get-quotation-list-count.request.dto";
-import { ServiceTypeKey } from "src/common/constants/service-type.constant";
+import {
+  SERVICE_TYPE_LABEL_MAP,
+  ServiceTypeKey,
+} from "src/common/constants/service-type.constant";
 import { QuotationStatisticsDto } from "../dtos/get-quotation-list-count.response.dto";
+import { NotificationService } from "src/notifications/notification.service";
+import { Mover } from "src/mover/mover.entity";
+import { NotificationTextSegment } from "src/notifications/notification.entity";
 
 @Injectable()
 export class MoverQuotationService {
@@ -46,13 +53,14 @@ export class MoverQuotationService {
     private readonly receivedQuoteRepository: Repository<ReceivedQuote>,
     @InjectRepository(Customer)
     private readonly customerRepository: Repository<Customer>,
+    @InjectRepository(Mover)
+    private readonly moverRepository: Repository<Mover>,
+    private readonly notificationService: NotificationService,
   ) {}
 
   /**
-   *
-   * @param user
-   * @param queries
-   * @returns
+   * @TODO 반려한 요청 제거
+   * @TODO 견적 보낸 요청 제거
    */
   async getReceivedQuotationList(
     user: { userId: string; userType: string },
@@ -86,11 +94,10 @@ export class MoverQuotationService {
 
     const limit = Number(take ?? 10);
 
-    // 1. 현재 기사님에게 지정된 요청 조회
+    // 1. 현재 기사님에게 지정된 요청 조회 (REJECTED 상태 제외)
     const assignMover = await this.assignMoverRepository.find({
       where: {
         moverId: userId,
-        createdAt: MoreThanOrEqual(today),
         status: ASSIGN_STATUS_KEY.PENDING,
       },
     });
@@ -98,6 +105,29 @@ export class MoverQuotationService {
     const assignedQuotationIdSet = new Set(
       assignMover.map((a) => a.quotationId),
     );
+
+    // 2. REJECTED 상태인 AssignMover의 quotationId 조회
+    const rejectedAssignMover = await this.assignMoverRepository.find({
+      where: {
+        moverId: userId,
+        status: ASSIGN_STATUS_KEY.REJECTED,
+      },
+      select: ["quotationId"],
+    });
+
+    const rejectedQuotationIdSet = new Set(
+      rejectedAssignMover.map((a) => a.quotationId),
+    );
+
+    // 3. 이미 견적을 보낸 quotationId 조회
+    const sentQuotes = await this.receivedQuoteRepository.find({
+      where: {
+        moverId: userId,
+      },
+      select: ["quotationId"],
+    });
+
+    const sentQuotationIdSet = new Set(sentQuotes.map((q) => q.quotationId));
 
     const qb = this.quotationRepository.createQueryBuilder("quotation");
 
@@ -119,18 +149,32 @@ export class MoverQuotationService {
       qb.andWhere(
         new Brackets((qb) => {
           regionLabels.forEach((label, i) => {
-            qb.orWhere("quotation.startAddress LIKE :region" + i, {
-              ["region" + i]: `%${label}%`,
+            qb.orWhere(`quotation.startAddress LIKE :region${i}`, {
+              [`region${i}`]: `%${label}%`,
             });
-            qb.orWhere("quotation.endAddress LIKE :region" + i, {
-              ["region" + i]: `%${label}%`,
+            qb.orWhere(`quotation.endAddress LIKE :region${i}`, {
+              [`region${i}`]: `%${label}%`,
             });
           });
         }),
       );
     }
 
-    // 2. isAssigned 필터링을 데이터베이스 레벨에서 처리
+    // 4. REJECTED 상태인 견적 제외
+    if (rejectedQuotationIdSet.size > 0) {
+      qb.andWhere("quotation.id NOT IN (:...rejectedIds)", {
+        rejectedIds: Array.from(rejectedQuotationIdSet),
+      });
+    }
+
+    // 5. 이미 견적을 보낸 견적 제외
+    if (sentQuotationIdSet.size > 0) {
+      qb.andWhere("quotation.id NOT IN (:...sentIds)", {
+        sentIds: Array.from(sentQuotationIdSet),
+      });
+    }
+
+    // 6. isAssigned 필터링을 데이터베이스 레벨에서 처리
     if (isAssigned !== undefined) {
       if (isAssigned === "true") {
         if (assignedQuotationIdSet.size > 0) {
@@ -150,7 +194,7 @@ export class MoverQuotationService {
       }
     }
 
-    // 3. 정렬 기준 설정
+    // 7. 정렬 기준 설정
     let orderField = "quotation.moveDate";
     let needCustomerJoin = false;
 
@@ -167,7 +211,7 @@ export class MoverQuotationService {
 
     qb.orderBy(orderField, "ASC").addOrderBy("quotation.id", "ASC");
 
-    // 4. 커서 기반 필터링
+    // 8. 커서 기반 필터링
     if (cursorDate && cursorId) {
       if (sorted === "USERNAME_ASC") {
         // 문자열 비교
@@ -202,12 +246,12 @@ export class MoverQuotationService {
       }
     }
 
-    // 5. 여유분을 두고 데이터 조회 (필터링으로 인한 데이터 부족 방지)
+    // 9. 여유분을 두고 데이터 조회 (필터링으로 인한 데이터 부족 방지)
     qb.take(limit);
 
     const quotations = await qb.getMany();
 
-    // 6. 고객 정보 조회 (USERNAME_ASC가 아닐 때도 필요)
+    // 10. 고객 정보 조회 (USERNAME_ASC가 아닐 때도 필요)
     const customerIds = Array.from(
       new Set(quotations.map((q) => q.customerId)),
     );
@@ -216,7 +260,7 @@ export class MoverQuotationService {
     });
     const customerMap = new Map(customers.map((c) => [c.id, c]));
 
-    // 7. 응답 생성
+    // 11. 응답 생성
     const result = quotations.map((q) =>
       QuotationResponseDto.of(
         q,
@@ -225,7 +269,7 @@ export class MoverQuotationService {
       ),
     );
 
-    // 8. 다음 커서 생성
+    // 12. 다음 커서 생성
     let nextCursor: CursorDto | null = null;
     if (result.length === limit) {
       const lastQuotation = quotations[quotations.length - 1];
@@ -261,9 +305,6 @@ export class MoverQuotationService {
     user: { userId: string; userType: string },
     request: CreateReceivedQuotationDto,
   ): Promise<ReceivedQuoteResponseDto> {
-    console.log(user);
-    console.log(request);
-
     const { userId, userType } = user;
     const { price, comment, isAssignQuo, customerId, quotationId } = request;
 
@@ -283,6 +324,13 @@ export class MoverQuotationService {
       },
     });
     if (!customer) throw new InvalidUserException();
+
+    const mover = await this.moverRepository.findOne({
+      where: {
+        id: userId,
+      },
+    });
+    if (!mover) throw new InvalidUserException();
 
     // 3. 지정 여부 확인
     const assignMover = await this.assignMoverRepository.findOne({
@@ -306,6 +354,26 @@ export class MoverQuotationService {
     });
     const newReceivedQuote =
       await this.receivedQuoteRepository.save(receivedQuote);
+
+    // 5. 알림 생성
+    const notiSegments: NotificationTextSegment[] = [
+      {
+        text: `${mover.nickname} 기사님의 `,
+        isHighlight: false,
+      },
+      {
+        text: `${SERVICE_TYPE_LABEL_MAP[quotation.moveType]} 견적`,
+        isHighlight: true,
+      },
+      {
+        text: `이 도착했어요`,
+        isHighlight: false,
+      },
+    ];
+    await this.notificationService.createNotification(customerId, {
+      type: "QUOTE_ARRIVED",
+      segments: notiSegments,
+    });
 
     const result = ReceivedQuoteResponseDto.of(newReceivedQuote);
 
@@ -442,10 +510,8 @@ export class MoverQuotationService {
       status: quotation.status,
       startAddress: quotation.startAddress,
       endAddress: quotation.endAddress,
-      moveDate: new Date(quotation.moveDate)
-        .toISOString(),
-      startQuoDate: receivedQuo.createdAt
-        .toISOString(),
+      moveDate: new Date(quotation.moveDate).toISOString(),
+      startQuoDate: receivedQuo.createdAt.toISOString(),
       isConfirmedToMe: quotation.confirmedMoverId === userId,
     };
   }
@@ -474,11 +540,10 @@ export class MoverQuotationService {
       .map((key) => getRegionLabelByKey(key as RegionKey))
       .filter((label): label is RegionLabel => !!label);
 
-    // 1. 현재 기사님에게 지정된 요청 조회
+    // 1. 현재 기사님에게 지정된 요청 조회 (REJECTED 상태 제외)
     const assignMover = await this.assignMoverRepository.find({
       where: {
         moverId: userId,
-        createdAt: MoreThanOrEqual(today),
         status: ASSIGN_STATUS_KEY.PENDING,
       },
     });
@@ -486,6 +551,29 @@ export class MoverQuotationService {
     const assignedQuotationIdSet = new Set(
       assignMover.map((a) => a.quotationId),
     );
+
+    // 2. REJECTED 상태인 AssignMover의 quotationId 조회
+    const rejectedAssignMover = await this.assignMoverRepository.find({
+      where: {
+        moverId: userId,
+        status: ASSIGN_STATUS_KEY.REJECTED,
+      },
+      select: ["quotationId"],
+    });
+
+    const rejectedQuotationIdSet = new Set(
+      rejectedAssignMover.map((a) => a.quotationId),
+    );
+
+    // 3. 이미 견적을 보낸 quotationId 조회
+    const sentQuotes = await this.receivedQuoteRepository.find({
+      where: {
+        moverId: userId,
+      },
+      select: ["quotationId"],
+    });
+
+    const sentQuotationIdSet = new Set(sentQuotes.map((q) => q.quotationId));
 
     const qb = this.quotationRepository.createQueryBuilder("quotation");
 
@@ -507,18 +595,32 @@ export class MoverQuotationService {
       qb.andWhere(
         new Brackets((qb) => {
           regionLabels.forEach((label, i) => {
-            qb.orWhere("quotation.startAddress LIKE :region" + i, {
-              ["region" + i]: `%${label}%`,
+            qb.orWhere(`quotation.startAddress LIKE :region${i}`, {
+              [`region${i}`]: `%${label}%`,
             });
-            qb.orWhere("quotation.endAddress LIKE :region" + i, {
-              ["region" + i]: `%${label}%`,
+            qb.orWhere(`quotation.endAddress LIKE :region${i}`, {
+              [`region${i}`]: `%${label}%`,
             });
           });
         }),
       );
     }
 
-    // 2. isAssigned 필터링을 데이터베이스 레벨에서 처리
+    // 4. REJECTED 상태인 견적 제외
+    if (rejectedQuotationIdSet.size > 0) {
+      qb.andWhere("quotation.id NOT IN (:...rejectedIds)", {
+        rejectedIds: Array.from(rejectedQuotationIdSet),
+      });
+    }
+
+    // 5. 이미 견적을 보낸 견적 제외
+    if (sentQuotationIdSet.size > 0) {
+      qb.andWhere("quotation.id NOT IN (:...sentIds)", {
+        sentIds: Array.from(sentQuotationIdSet),
+      });
+    }
+
+    // 6. isAssigned 필터링을 데이터베이스 레벨에서 처리
     if (isAssigned !== undefined) {
       if (isAssigned === "true") {
         if (assignedQuotationIdSet.size > 0) {
@@ -584,10 +686,10 @@ export class MoverQuotationService {
       }
     }
 
-    // 3. 모든 견적 데이터 조회
+    // 7. 모든 견적 데이터 조회
     const quotations = await qb.getMany();
 
-    // 4. 통계 데이터 계산
+    // 8. 통계 데이터 계산
     const moveTypeStats: { [key in ServiceTypeKey]: number } = {
       SMALL_MOVE: 0,
       FAMILY_MOVE: 0,
@@ -651,7 +753,7 @@ export class MoverQuotationService {
       }
     });
 
-    // 5. 지정된 견적 개수 계산
+    // 9. 지정된 견적 개수 계산
     const assignedQuotationCount = quotations.filter((q) =>
       assignedQuotationIdSet.has(q.id),
     ).length;

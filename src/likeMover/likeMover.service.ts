@@ -165,7 +165,7 @@ export class likeMoverService {
 
     const likedMovers = await this.moverRepository
       .createQueryBuilder("mover")
-      .where("mover.id IN (:...ids)", { ids })
+      .where(ids.length > 0 ? "mover.id IN (:...ids)" : "1 = 0", { ids })
       .andWhere("mover.isProfile = true")
       .select([
         `mover.id AS "id"`,

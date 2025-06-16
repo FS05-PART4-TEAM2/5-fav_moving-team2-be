@@ -9,6 +9,10 @@ import { Quotation } from "src/quotation/quotation.entity";
 import { ReceivedQuote } from "../entities/received-quote.entity";
 import { ReceivedQuotationResponseDto } from "../dtos/customer-receivedQuotation.response.dto";
 import { PaginatedResponseDto } from "src/common/dto/pagination.dto";
+import { NotificationService } from "src/notifications/notification.service";
+import { NotificationTextSegment } from "src/notifications/notification.entity";
+import { Mover } from "src/mover/mover.entity";
+import { InvalidUserException } from "src/common/exceptions/invalid-user.exception";
 import { LikeMover } from "src/likeMover/likeMover.entity";
 
 @Injectable()
@@ -16,8 +20,11 @@ export class ReceivedQuotationService {
   constructor(
     @InjectRepository(ReceivedQuote)
     private readonly receivedQuotationRepository: Repository<ReceivedQuote>,
+    @InjectRepository(Mover)
+    private readonly moverRepository: Repository<Mover>,
     @InjectRepository(Quotation)
     private readonly quotationRepository: Repository<Quotation>,
+    private readonly notificationService: NotificationService,
     @InjectRepository(LikeMover)
     private readonly likeMoverRepository: Repository<LikeMover>,
   ) {}
@@ -129,12 +136,20 @@ export class ReceivedQuotationService {
       where: { id: receivedQuotationId },
     });
 
+    const mover = await this.moverRepository.findOne({
+      where: { id: targetRequest?.moverId },
+    });
+
     if (!targetRequest) {
       throw new NotFoundException("해당 견적을 찾을 수 없음");
     }
 
     if (targetRequest.isCompleted) {
       throw new BadRequestException("이미 완료된 견적입니다.");
+    }
+
+    if (!mover) {
+      throw new InvalidUserException();
     }
 
     await this.receivedQuotationRepository.manager.transaction(
@@ -164,6 +179,34 @@ export class ReceivedQuotationService {
           .execute();
       },
     );
+
+    // 알림 생성
+    const notiSegments: NotificationTextSegment[] = [
+      {
+        text: `${mover.nickname} 기사님의 견적이 `,
+        isHighlight: false,
+      },
+      {
+        text: `확정`,
+        isHighlight: true,
+      },
+      {
+        text: `되었어요`,
+        isHighlight: false,
+      },
+    ];
+    await this.notificationService.createNotification(mover.id, {
+      type: "QUOTE_CONFIRMED",
+      segments: notiSegments,
+    });
+    await this.notificationService.createNotification(
+      targetRequest.customerId,
+      {
+        type: "QUOTE_CONFIRMED",
+        segments: notiSegments,
+      },
+    );
+
     return {
       id: receivedQuotationId,
     };

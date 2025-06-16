@@ -3,7 +3,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Quotation } from "src/quotation/quotation.entity";
-import { In, LessThan, Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 
 @Injectable()
 export class TaskService {
