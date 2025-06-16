@@ -1,4 +1,5 @@
 import {
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -32,8 +33,14 @@ import {
 } from "../dtos/get-sent-quotation.response";
 import { CursorDto, PagedResponseDto } from "src/common/dto/paged.response.dto";
 import { GetQuotationListCountRequestDto } from "../dtos/get-quotation-list-count.request.dto";
-import { ServiceTypeKey } from "src/common/constants/service-type.constant";
+import {
+  SERVICE_TYPE_LABEL_MAP,
+  ServiceTypeKey,
+} from "src/common/constants/service-type.constant";
 import { QuotationStatisticsDto } from "../dtos/get-quotation-list-count.response.dto";
+import { NotificationService } from "src/notifications/notification.service";
+import { Mover } from "src/mover/mover.entity";
+import { NotificationTextSegment } from "src/notifications/notification.entity";
 
 @Injectable()
 export class MoverQuotationService {
@@ -46,6 +53,9 @@ export class MoverQuotationService {
     private readonly receivedQuoteRepository: Repository<ReceivedQuote>,
     @InjectRepository(Customer)
     private readonly customerRepository: Repository<Customer>,
+    @InjectRepository(Mover)
+    private readonly moverRepository: Repository<Mover>,
+    private readonly notificationService: NotificationService,
   ) {}
 
   /**
@@ -295,9 +305,6 @@ export class MoverQuotationService {
     user: { userId: string; userType: string },
     request: CreateReceivedQuotationDto,
   ): Promise<ReceivedQuoteResponseDto> {
-    console.log(user);
-    console.log(request);
-
     const { userId, userType } = user;
     const { price, comment, isAssignQuo, customerId, quotationId } = request;
 
@@ -317,6 +324,13 @@ export class MoverQuotationService {
       },
     });
     if (!customer) throw new InvalidUserException();
+
+    const mover = await this.moverRepository.findOne({
+      where: {
+        id: userId,
+      },
+    });
+    if (!mover) throw new InvalidUserException();
 
     // 3. 지정 여부 확인
     const assignMover = await this.assignMoverRepository.findOne({
@@ -340,6 +354,26 @@ export class MoverQuotationService {
     });
     const newReceivedQuote =
       await this.receivedQuoteRepository.save(receivedQuote);
+
+    // 5. 알림 생성
+    const notiSegments: NotificationTextSegment[] = [
+      {
+        text: `${mover.nickname} 기사님의 `,
+        isHighlight: false,
+      },
+      {
+        text: `${SERVICE_TYPE_LABEL_MAP[quotation.moveType]} 견적`,
+        isHighlight: true,
+      },
+      {
+        text: `이 도착했어요`,
+        isHighlight: false,
+      },
+    ];
+    await this.notificationService.createNotification(customerId, {
+      type: "QUOTE_ARRIVED",
+      segments: notiSegments,
+    });
 
     const result = ReceivedQuoteResponseDto.of(newReceivedQuote);
 
