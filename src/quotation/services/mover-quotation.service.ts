@@ -506,11 +506,10 @@ export class MoverQuotationService {
       .map((key) => getRegionLabelByKey(key as RegionKey))
       .filter((label): label is RegionLabel => !!label);
 
-    // 1. 현재 기사님에게 지정된 요청 조회
+    // 1. 현재 기사님에게 지정된 요청 조회 (REJECTED 상태 제외)
     const assignMover = await this.assignMoverRepository.find({
       where: {
         moverId: userId,
-        createdAt: MoreThanOrEqual(today),
         status: ASSIGN_STATUS_KEY.PENDING,
       },
     });
@@ -518,6 +517,29 @@ export class MoverQuotationService {
     const assignedQuotationIdSet = new Set(
       assignMover.map((a) => a.quotationId),
     );
+
+    // 2. REJECTED 상태인 AssignMover의 quotationId 조회
+    const rejectedAssignMover = await this.assignMoverRepository.find({
+      where: {
+        moverId: userId,
+        status: ASSIGN_STATUS_KEY.REJECTED,
+      },
+      select: ["quotationId"],
+    });
+
+    const rejectedQuotationIdSet = new Set(
+      rejectedAssignMover.map((a) => a.quotationId),
+    );
+
+    // 3. 이미 견적을 보낸 quotationId 조회
+    const sentQuotes = await this.receivedQuoteRepository.find({
+      where: {
+        moverId: userId,
+      },
+      select: ["quotationId"],
+    });
+
+    const sentQuotationIdSet = new Set(sentQuotes.map((q) => q.quotationId));
 
     const qb = this.quotationRepository.createQueryBuilder("quotation");
 
@@ -539,18 +561,32 @@ export class MoverQuotationService {
       qb.andWhere(
         new Brackets((qb) => {
           regionLabels.forEach((label, i) => {
-            qb.orWhere("quotation.startAddress LIKE :region" + i, {
-              ["region" + i]: `%${label}%`,
+            qb.orWhere(`quotation.startAddress LIKE :region${i}`, {
+              [`region${i}`]: `%${label}%`,
             });
-            qb.orWhere("quotation.endAddress LIKE :region" + i, {
-              ["region" + i]: `%${label}%`,
+            qb.orWhere(`quotation.endAddress LIKE :region${i}`, {
+              [`region${i}`]: `%${label}%`,
             });
           });
         }),
       );
     }
 
-    // 2. isAssigned 필터링을 데이터베이스 레벨에서 처리
+    // 4. REJECTED 상태인 견적 제외
+    if (rejectedQuotationIdSet.size > 0) {
+      qb.andWhere("quotation.id NOT IN (:...rejectedIds)", {
+        rejectedIds: Array.from(rejectedQuotationIdSet),
+      });
+    }
+
+    // 5. 이미 견적을 보낸 견적 제외
+    if (sentQuotationIdSet.size > 0) {
+      qb.andWhere("quotation.id NOT IN (:...sentIds)", {
+        sentIds: Array.from(sentQuotationIdSet),
+      });
+    }
+
+    // 6. isAssigned 필터링을 데이터베이스 레벨에서 처리
     if (isAssigned !== undefined) {
       if (isAssigned === "true") {
         if (assignedQuotationIdSet.size > 0) {
@@ -616,10 +652,10 @@ export class MoverQuotationService {
       }
     }
 
-    // 3. 모든 견적 데이터 조회
+    // 7. 모든 견적 데이터 조회
     const quotations = await qb.getMany();
 
-    // 4. 통계 데이터 계산
+    // 8. 통계 데이터 계산
     const moveTypeStats: { [key in ServiceTypeKey]: number } = {
       SMALL_MOVE: 0,
       FAMILY_MOVE: 0,
@@ -683,7 +719,7 @@ export class MoverQuotationService {
       }
     });
 
-    // 5. 지정된 견적 개수 계산
+    // 9. 지정된 견적 개수 계산
     const assignedQuotationCount = quotations.filter((q) =>
       assignedQuotationIdSet.has(q.id),
     ).length;

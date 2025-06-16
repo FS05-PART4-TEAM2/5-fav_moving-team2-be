@@ -5,9 +5,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { Quotation } from "src/quotation/quotation.entity";
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Quotation]),
-  ],
+  imports: [TypeOrmModule.forFeature([Quotation])],
   providers: [TaskService],
 })
 export class TaskModule {}
