@@ -141,7 +141,7 @@ export class NotificationController {
               },
               isHighlight: {
                 type: "boolean",
-                description: "하이라이트 여부부",
+                description: "하이라이트 여부",
                 additionalProperties: { type: "boolean" },
                 example: true,
               },
