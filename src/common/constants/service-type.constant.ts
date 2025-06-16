@@ -10,3 +10,7 @@ export type ServiceTypeLabel = (typeof SERVICE_TYPES)[number]["label"];
 
 // SERVICE_KEYS: class-validator의 IsIn에 사용할 검증용 배열
 export const SERVICE_KEYS = SERVICE_TYPES.map((s) => s.key);
+export const SERVICE_TYPE_LABEL_MAP: Record<ServiceTypeKey, string> =
+  Object.fromEntries(
+    SERVICE_TYPES.map(({ key, label }) => [key, label]),
+  ) as Record<ServiceTypeKey, string>;

@@ -13,16 +13,26 @@ import { AssignQuotationService } from "./services/assign-quotation.service";
 import { AssignMover } from "./entities/assign-mover.entity";
 import { ReceivedQuotationService } from "./services/customer-quotation.service";
 import { ReceivedQuotationController } from "./controllers/customer-quotation.controller";
+import { Mover } from "src/mover/mover.entity";
+import { NotificationsModule } from "src/notifications/notification.module";
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Quotation, AssignMover, ReceivedQuote, Customer]),
+    TypeOrmModule.forFeature([
+      Quotation,
+      AssignMover,
+      ReceivedQuote,
+      Customer,
+      Mover,
+    ]),
     forwardRef(() => AuthModule),
+    forwardRef(() => NotificationsModule), // NotificationsModule이 임포트되었는지 확인
   ],
   providers: [
     QuotationService,
     MoverQuotationService,
     AssignQuotationService,
     ReceivedQuotationService,
+    // NotificationService는 여기서 제공할 필요 없음, NotificationsModule에서 내보내므로
   ],
   controllers: [
     QuotationController,
