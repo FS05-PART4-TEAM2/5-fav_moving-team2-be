@@ -90,7 +90,6 @@ export class MoverQuotationService {
     const assignMover = await this.assignMoverRepository.find({
       where: {
         moverId: userId,
-        createdAt: MoreThanOrEqual(today),
         status: ASSIGN_STATUS_KEY.PENDING,
       },
     });
@@ -442,10 +441,8 @@ export class MoverQuotationService {
       status: quotation.status,
       startAddress: quotation.startAddress,
       endAddress: quotation.endAddress,
-      moveDate: new Date(quotation.moveDate)
-        .toISOString(),
-      startQuoDate: receivedQuo.createdAt
-        .toISOString(),
+      moveDate: new Date(quotation.moveDate).toISOString(),
+      startQuoDate: receivedQuo.createdAt.toISOString(),
       isConfirmedToMe: quotation.confirmedMoverId === userId,
     };
   }
