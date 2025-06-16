@@ -19,6 +19,8 @@ import {
 import { ReceivedQuote } from "../entities/received-quote.entity";
 import { Customer } from "src/customer/customer.entity";
 import { GetRejectedData } from "../dtos/get-rejected-Data.response.dto";
+import { NotificationTextSegment } from "src/notifications/notification.entity";
+import { NotificationService } from "src/notifications/notification.service";
 
 @Injectable()
 export class AssignQuotationService {
@@ -30,6 +32,7 @@ export class AssignQuotationService {
     private quotationRepository: Repository<Quotation>,
     @InjectRepository(Customer)
     private readonly customerRepository: Repository<Customer>,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async postAssignMover(
@@ -52,9 +55,9 @@ export class AssignQuotationService {
       const quotation = await queryRunner.manager.findOne(Quotation, {
         where: {
           customerId: userId,
-          status: "PENDING"
-        }
-      })
+          status: "PENDING",
+        },
+      });
 
       if (!quotation) {
         throw new NotFoundException("견적 요청을 먼저 진행해주세요.");
@@ -63,39 +66,59 @@ export class AssignQuotationService {
       const isExistsAssign = await queryRunner.manager.exists(AssignMover, {
         where: {
           moverId,
-          customerId: userId
-        }
-      })
+          customerId: userId,
+        },
+      });
 
-      if (isExistsAssign){
+      if (isExistsAssign) {
         throw new BadRequestException("이미 지정한 기사입니다.");
       }
 
       const prev = quotation.assignMover ?? [];
       const updatedAssignMovers = Array.from(new Set([...prev, moverId]));
 
-      await queryRunner.manager.update(Quotation, quotation.id , {
-        assignMover: updatedAssignMovers
-      })
+      await queryRunner.manager.update(Quotation, quotation.id, {
+        assignMover: updatedAssignMovers,
+      });
 
       const newAssignMover = queryRunner.manager.create(AssignMover, {
         moverId,
         quotationId: quotation.id,
         customerId: userId,
-        status: "PENDING"
-      })
+        status: "PENDING",
+      });
 
       await queryRunner.manager.save(AssignMover, newAssignMover);
 
       await queryRunner.commitTransaction();
+
+      // 알림 생성
+      const notiSegments: NotificationTextSegment[] = [
+        {
+          text: `새로운 `,
+          isHighlight: false,
+        },
+        {
+          text: `지정 견적 요청`,
+          isHighlight: true,
+        },
+        {
+          text: `이 도착했어요`,
+          isHighlight: false,
+        },
+      ];
+      await this.notificationService.createNotification(moverId, {
+        type: "QUOTE_ARRIVED",
+        segments: notiSegments,
+      });
+      
       return newAssignMover;
     } catch (err) {
       await queryRunner.rollbackTransaction();
-      throw err
+      throw err;
     } finally {
       await queryRunner.release();
     }
-
   }
 
   /**
