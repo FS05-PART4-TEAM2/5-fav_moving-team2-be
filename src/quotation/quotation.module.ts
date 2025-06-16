@@ -15,6 +15,8 @@ import { ReceivedQuotationService } from "./services/customer-quotation.service"
 import { ReceivedQuotationController } from "./controllers/customer-quotation.controller";
 import { Mover } from "src/mover/mover.entity";
 import { NotificationsModule } from "src/notifications/notification.module";
+import { LikeMover } from "src/likeMover/likeMover.entity";
+import { LikeModule } from "src/likeMover/likeMover.module";
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -26,6 +28,7 @@ import { NotificationsModule } from "src/notifications/notification.module";
     ]),
     forwardRef(() => AuthModule),
     forwardRef(() => NotificationsModule), // NotificationsModule이 임포트되었는지 확인
+    LikeModule,
   ],
   providers: [
     QuotationService,
