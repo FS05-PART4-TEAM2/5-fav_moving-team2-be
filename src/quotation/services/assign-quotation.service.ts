@@ -19,6 +19,8 @@ import {
 import { ReceivedQuote } from "../entities/received-quote.entity";
 import { Customer } from "src/customer/customer.entity";
 import { GetRejectedData } from "../dtos/get-rejected-Data.response.dto";
+import { NotificationTextSegment } from "src/notifications/notification.entity";
+import { NotificationService } from "src/notifications/notification.service";
 
 @Injectable()
 export class AssignQuotationService {
@@ -29,6 +31,7 @@ export class AssignQuotationService {
     private quotationRepository: Repository<Quotation>,
     @InjectRepository(Customer)
     private readonly customerRepository: Repository<Customer>,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async postAssignMover(
@@ -74,6 +77,26 @@ export class AssignQuotationService {
     });
 
     await this.assignMoverRepository.save(newAssignMover);
+
+    // 알림 생성
+    const notiSegments: NotificationTextSegment[] = [
+      {
+        text: `새로운 `,
+        isHighlight: false,
+      },
+      {
+        text: `지정 견적 요청`,
+        isHighlight: true,
+      },
+      {
+        text: `이 도착했어요`,
+        isHighlight: false,
+      },
+    ];
+    await this.notificationService.createNotification(moverId, {
+      type: "QUOTE_ARRIVED",
+      segments: notiSegments,
+    });
 
     return newAssignMover;
   }
