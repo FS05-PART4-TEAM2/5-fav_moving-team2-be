@@ -46,39 +46,13 @@ export class ReceivedQuotationController {
   }
   @Get("customer/completed")
   @ApiOperation({ summary: "일반유저 모든 완료된 견적 요청 조회" })
-  @ApiQuery({
-    name: "page",
-    required: false,
-    type: Number,
-    description: "페이지 번호 (기본값: 1)",
-  })
-  @ApiQuery({
-    name: "limit",
-    required: false,
-    type: Number,
-    description: "페이지당 항목 수 (기본값: 6)",
-  })
   @UseGuards(JwtCookieAuthGuard)
   async getAllCompletedReceivedQuotations(
     @Req() req,
-    @Query("page") pageParam: string = "1",
-    @Query("limit") limitParam: string = "6",
-  ): Promise<
-    CommonApiResponse<
-      PaginatedResponseDto<ReceivedQuotationResponseDto> & {
-        currentPage: number;
-        totalPages: number;
-      }
-    >
-  > {
-    const page = parseInt(pageParam) || 1;
-    const limit = parseInt(limitParam) || 6;
-
+  ): Promise<CommonApiResponse<ReceivedQuotationResponseDto[]>> {
     const result =
       await this.receivedQuotationService.getAllCompletedReceivedQuotations(
         req.user.id,
-        page,
-        limit,
       );
     return CommonApiResponse.success(result, "모든 완료된 견적 요청 조회");
   }

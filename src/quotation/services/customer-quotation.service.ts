@@ -154,7 +154,7 @@ export class ReceivedQuotationService {
           .createQueryBuilder()
           .update(Quotation)
           .set({
-            status: "confirmed",
+            status: "CONFIRMED",
             confirmedMoverId: targetRequest.moverId,
             price: targetRequest.price.toString(),
           })
@@ -168,30 +168,17 @@ export class ReceivedQuotationService {
       id: receivedQuotationId,
     };
   }
+
   async getAllCompletedReceivedQuotations(
     customerId: string,
-    page: number = 1,
-    limit: number = 6,
-  ): Promise<
-    PaginatedResponseDto<ReceivedQuotationResponseDto> & {
-      currentPage: number;
-      totalPages: number;
-    }
-  > {
+  ): Promise<ReceivedQuotationResponseDto[]> {
     const receivedQuotations = await this.receivedQuotationRepository.find({
       where: { isCompleted: true },
-      order: {
-        createdAt: "DESC",
-      },
+      order: { createdAt: "DESC" },
     });
 
     if (receivedQuotations.length === 0) {
-      return {
-        data: [],
-        total: 0,
-        currentPage: page,
-        totalPages: 0,
-      };
+      return [];
     }
 
     const moverIds = [...new Set(receivedQuotations.map((rq) => rq.moverId))];
@@ -266,61 +253,8 @@ export class ReceivedQuotationService {
         });
       }
     }
-    const allOffers = Array.from(groupedMap.values()).flatMap(
-      (quotation) => quotation.offers,
-    );
-    const totalCount = allOffers.length;
-    const totalPages = Math.ceil(totalCount / limit);
-    if (page > totalPages && totalPages > 0) {
-      return {
-        data: [
-          {
-            quotationId: Array.from(groupedMap.values())[0]?.quotationId,
-            requestedAt: Array.from(groupedMap.values())[0]?.requestedAt,
-            moveType: Array.from(groupedMap.values())[0]?.moveType,
-            moveDate: Array.from(groupedMap.values())[0]?.moveDate,
-            startAddress: Array.from(groupedMap.values())[0]?.startAddress,
-            endAddress: Array.from(groupedMap.values())[0]?.endAddress,
-            offers: [],
-          },
-        ],
-        total: totalCount,
-        currentPage: page,
-        totalPages,
-      };
-    }
-    const offset = (page - 1) * limit;
-    const paginatedOffers = allOffers.slice(offset, offset + limit);
 
-    const firstQuotation = Array.from(groupedMap.values())[0];
-
-    if (!firstQuotation) {
-      return {
-        data: [],
-        total: totalCount,
-        currentPage: page,
-        totalPages,
-      };
-    }
-
-    const result: ReceivedQuotationResponseDto[] = [
-      {
-        quotationId: firstQuotation.quotationId,
-        requestedAt: firstQuotation.requestedAt,
-        moveType: firstQuotation.moveType,
-        moveDate: firstQuotation.moveDate,
-        startAddress: firstQuotation.startAddress,
-        endAddress: firstQuotation.endAddress,
-        offers: paginatedOffers,
-      },
-    ];
-
-    return {
-      data: result,
-      total: totalCount,
-      currentPage: page,
-      totalPages,
-    };
+    return Array.from(groupedMap.values());
   }
   async getReceivedQuotationById(
     customerId: string,
