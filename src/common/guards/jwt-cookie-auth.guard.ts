@@ -38,7 +38,6 @@ export class JwtCookieAuthGuard implements CanActivate {
         userId: user.userId,
         userType: user.userType,
       };
-      console.log("JWT Cookie Auth Guard: User authenticated", request.user);
 
       return true;
     } catch (error) {

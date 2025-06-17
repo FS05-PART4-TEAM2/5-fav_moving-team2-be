@@ -67,7 +67,7 @@ export class ReceivedQuotationController {
   ): Promise<CommonApiResponse<ReceivedQuotationResponseDto>> {
     const receivedQuotation =
       await this.receivedQuotationService.getReceivedQuotationById(
-        req.user.id,
+        req.user.userId,
         receivedQuotationId,
       );
     return CommonApiResponse.success(receivedQuotation, "견적 상세 조회");

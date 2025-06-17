@@ -191,6 +191,12 @@ export class ReceivedQuotationService {
             quotationId: targetRequest.quotationId,
           })
           .execute();
+
+        await manager.update(
+          Mover,
+          { id: targetRequest.moverId },
+          { confirmedCounts: () => "confirmedCounts + 1" },
+        );
       },
     );
 
@@ -329,6 +335,10 @@ export class ReceivedQuotationService {
 
     if (!receivedQuotation) {
       throw new NotFoundException("해당 견적 요청을 찾을 수 없음");
+    }
+
+    if (receivedQuotation.customerId !== customerId) {
+      throw new BadRequestException("본인 요청만 조회할 수 있습니다.");
     }
 
     const mover = await this.receivedQuotationRepository.manager
