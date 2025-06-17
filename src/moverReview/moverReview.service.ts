@@ -177,6 +177,7 @@ export class MoverReviewService {
         take: limit,
         order: { createdAt: "DESC" },
       });
+    const currentDate = new Date();
 
     const reviewsWithDetails = await Promise.all(
       receivedQuotations.map(async (receivedQuotation) => {
@@ -191,13 +192,17 @@ export class MoverReviewService {
             "moveDate",
             "startAddress",
             "endAddress",
-            "moveDate",
             "moveType",
             "price",
             "assignMover",
             "createdAt",
           ],
         });
+
+        // 이사 날짜가 현재 날짜보다 과거인지 확인
+        if (!quotation?.moveDate) return null;
+        const moveDate = new Date(quotation.moveDate);
+        if (moveDate >= currentDate) return null;
 
         return {
           content: "",
@@ -216,14 +221,14 @@ export class MoverReviewService {
           offerId: receivedQuotation.id,
         };
       }),
-    );
+    ).then((results) => results.filter((result) => result !== null));
 
-    const totalPages = Math.ceil(total / limit);
+    const totalPages = Math.ceil(reviewsWithDetails.length / limit);
 
     return {
       totalPages,
       currentPage: page,
-      totalCount: total,
+      totalCount: reviewsWithDetails.length,
       list: reviewsWithDetails,
     };
   }

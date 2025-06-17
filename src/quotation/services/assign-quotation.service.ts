@@ -6,7 +6,7 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { AssignMover } from "../entities/assign-mover.entity";
-import { Repository } from "typeorm";
+import { DataSource, Repository } from "typeorm";
 import { Quotation } from "../quotation.entity";
 import { InvalidQuotationException } from "src/common/exceptions/invalid-quotation.exception";
 import { QUOTATION_STATE_KEY } from "src/common/constants/quotation-state.constant";
@@ -25,6 +25,7 @@ import { NotificationService } from "src/notifications/notification.service";
 @Injectable()
 export class AssignQuotationService {
   constructor(
+    private readonly dataSource: DataSource,
     @InjectRepository(AssignMover)
     private assignMoverRepository: Repository<AssignMover>,
     @InjectRepository(Quotation)
@@ -45,60 +46,79 @@ export class AssignQuotationService {
         "기사 계정으로는 지정 기사 요청을 할 수 없습니다.",
       );
     }
-    // userId에 해당하는 quotation을 찾아본다
-    const quotation = await this.quotationRepository.findOne({
-      where: {
-        customerId: userId,
-        status: "PENDING", // 아직 진행중인 견적일 때
-      },
-    });
 
-    if (!quotation) {
-      throw new NotFoundException("견적 요청을 먼저 진행해주세요.");
-    }
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    const isExistsAssign = await this.assignMoverRepository.exists({
-      where: {
+    try {
+      const quotation = await queryRunner.manager.findOne(Quotation, {
+        where: {
+          customerId: userId,
+          status: "PENDING",
+        },
+      });
+
+      if (!quotation) {
+        throw new NotFoundException("견적 요청을 먼저 진행해주세요.");
+      }
+
+      const isExistsAssign = await queryRunner.manager.exists(AssignMover, {
+        where: {
+          moverId,
+          customerId: userId,
+        },
+      });
+
+      if (isExistsAssign) {
+        throw new BadRequestException("이미 지정한 기사입니다.");
+      }
+
+      const prev = quotation.assignMover ?? [];
+      const updatedAssignMovers = Array.from(new Set([...prev, moverId]));
+
+      await queryRunner.manager.update(Quotation, quotation.id, {
+        assignMover: updatedAssignMovers,
+      });
+
+      const newAssignMover = queryRunner.manager.create(AssignMover, {
         moverId,
+        quotationId: quotation.id,
         customerId: userId,
-      },
-    });
+        status: "PENDING",
+      });
 
-    if (isExistsAssign) {
-      throw new BadRequestException("이미 지정한 기사입니다.");
+      await queryRunner.manager.save(AssignMover, newAssignMover);
+
+      await queryRunner.commitTransaction();
+
+      // 알림 생성
+      const notiSegments: NotificationTextSegment[] = [
+        {
+          text: `새로운 `,
+          isHighlight: false,
+        },
+        {
+          text: `지정 견적 요청`,
+          isHighlight: true,
+        },
+        {
+          text: `이 도착했어요`,
+          isHighlight: false,
+        },
+      ];
+      await this.notificationService.createNotification(moverId, {
+        type: "QUOTE_ARRIVED",
+        segments: notiSegments,
+      });
+      
+      return newAssignMover;
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
     }
-
-    // 찾은 quotationId, moverId 바탕으로 assignMover 생성
-    const newAssignMover = this.assignMoverRepository.create({
-      moverId,
-      quotationId: quotation?.id,
-      customerId: userId,
-      status: "PENDING",
-    });
-
-    await this.assignMoverRepository.save(newAssignMover);
-
-    // 알림 생성
-    const notiSegments: NotificationTextSegment[] = [
-      {
-        text: `새로운 `,
-        isHighlight: false,
-      },
-      {
-        text: `지정 견적 요청`,
-        isHighlight: true,
-      },
-      {
-        text: `이 도착했어요`,
-        isHighlight: false,
-      },
-    ];
-    await this.notificationService.createNotification(moverId, {
-      type: "QUOTE_ARRIVED",
-      segments: notiSegments,
-    });
-
-    return newAssignMover;
   }
 
   /**
