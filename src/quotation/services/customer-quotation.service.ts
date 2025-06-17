@@ -13,6 +13,7 @@ import { NotificationService } from "src/notifications/notification.service";
 import { NotificationTextSegment } from "src/notifications/notification.entity";
 import { Mover } from "src/mover/mover.entity";
 import { InvalidUserException } from "src/common/exceptions/invalid-user.exception";
+import { Customer } from "src/customer/customer.entity";
 
 @Injectable()
 export class ReceivedQuotationService {
@@ -21,6 +22,8 @@ export class ReceivedQuotationService {
     private readonly receivedQuotationRepository: Repository<ReceivedQuote>,
     @InjectRepository(Mover)
     private readonly moverRepository: Repository<Mover>,
+    @InjectRepository(Customer)
+    private readonly customerRepository: Repository<Customer>,
     @InjectRepository(Quotation)
     private readonly quotationRepository: Repository<Quotation>,
     private readonly notificationService: NotificationService,
@@ -128,6 +131,11 @@ export class ReceivedQuotationService {
     const mover = await this.moverRepository.findOne({
       where: { id: targetRequest?.moverId },
     });
+    const customer = await this.customerRepository.findOne({
+      where: {
+        id: targetRequest?.customerId,
+      },
+    });
 
     if (!targetRequest) {
       throw new NotFoundException("해당 견적을 찾을 수 없음");
@@ -138,6 +146,9 @@ export class ReceivedQuotationService {
     }
 
     if (!mover) {
+      throw new InvalidUserException();
+    }
+    if (!customer) {
       throw new InvalidUserException();
     }
 
@@ -172,7 +183,7 @@ export class ReceivedQuotationService {
     // 알림 생성
     const notiSegments: NotificationTextSegment[] = [
       {
-        text: `${mover.nickname} 기사님의 견적이 `,
+        text: `${customer.username} 님께 보낸 견적이 `,
         isHighlight: false,
       },
       {
