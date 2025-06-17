@@ -1,13 +1,15 @@
 import { Injectable, BadRequestException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Quotation } from "./quotation.entity";
-import { Repository } from "typeorm";
+import { Between, Repository } from "typeorm";
 import { CustomerCreateQuotationRequestDto } from "src/common/dto/quotation.request.dto";
 import {
   ServiceTypeKey,
   SERVICE_TYPES,
 } from "src/common/constants/service-type.constant";
 import { RegionKey } from "src/common/constants/region.constant";
+import { QUOTATION_STATE_KEY } from "src/common/constants/quotation-state.constant";
+import { format } from "date-fns";
 
 @Injectable()
 export class QuotationService {
@@ -55,5 +57,20 @@ export class QuotationService {
     });
 
     return { data, total };
+  }
+
+  /**
+   *
+   */
+  async getConfirmedQuotationsByDate(date: Date): Promise<Quotation[]> {
+    const dateString = format(date, "yyyy-MM-dd");
+
+    return this.quotationRepository
+      .createQueryBuilder("quotation")
+      .where("quotation.status = :status", {
+        status: QUOTATION_STATE_KEY.CONFIRMED,
+      })
+      .andWhere("quotation.moveDate::date = :date", { date: dateString })
+      .getMany();
   }
 }
