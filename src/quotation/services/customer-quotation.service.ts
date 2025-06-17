@@ -191,6 +191,12 @@ export class ReceivedQuotationService {
             quotationId: targetRequest.quotationId,
           })
           .execute();
+
+        await manager.update(
+          Mover,
+          { id: targetRequest.moverId },
+          { confirmedCounts: () => "confirmedCounts + 1" },
+        );
       },
     );
 
