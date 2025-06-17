@@ -35,7 +35,7 @@ export class ReceivedQuotationService {
     customerId: string,
   ): Promise<ReceivedQuotationResponseDto[]> {
     const receivedQuotations = await this.receivedQuotationRepository.find({
-      where: { isCompleted: false },
+      where: { isCompleted: false, customerId: customerId },
     });
 
     if (receivedQuotations.length === 0) {
@@ -126,6 +126,7 @@ export class ReceivedQuotationService {
   //요청 확정하기
   async confirmReceivedQuotation(
     receivedQuotationId: string,
+    customerId: string,
   ): Promise<{ id: string }> {
     // UUID 형식 검증
     const uuidRegex =
@@ -147,6 +148,9 @@ export class ReceivedQuotationService {
       },
     });
 
+    if (targetRequest?.customerId !== customerId) {
+      throw new BadRequestException("본인 요청만 확정할 수 있습니다.");
+    }
     if (!targetRequest) {
       throw new NotFoundException("해당 견적을 찾을 수 없음");
     }
@@ -226,7 +230,7 @@ export class ReceivedQuotationService {
     customerId: string,
   ): Promise<ReceivedQuotationResponseDto[]> {
     const receivedQuotations = await this.receivedQuotationRepository.find({
-      where: { isCompleted: true },
+      where: { isCompleted: true, customerId },
       order: { createdAt: "DESC" },
     });
 
