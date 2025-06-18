@@ -2,8 +2,10 @@
 import { DataSource } from "typeorm";
 import * as fs from "fs";
 import * as path from "path";
+import { config } from "dotenv";
 
 // 환경에 따른 .env 파일 로드
+config({ path: ".env" });
 
 const isProduction = process.env.NODE_ENV === "production";
 const useSSL = process.env.DB_SSL === "true";
