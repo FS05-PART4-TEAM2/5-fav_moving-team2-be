@@ -8,6 +8,14 @@ import * as path from "path";
 const isProduction = process.env.NODE_ENV === "production";
 const useSSL = process.env.DB_SSL === "true";
 
+console.log("Environment check:", {
+  NODE_ENV: process.env.NODE_ENV,
+  DB_HOST: process.env.DB_HOST,
+  DB_PORT: process.env.DB_PORT,
+  DB_USERNAME: process.env.DB_USERNAME,
+  DB_DATABASE: process.env.DB_DATABASE,
+});
+
 const AppDataSource = new DataSource({
   type: "postgres",
   host: process.env.DB_HOST,
