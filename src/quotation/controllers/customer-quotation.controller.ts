@@ -27,7 +27,7 @@ export class ReceivedQuotationController {
   ): Promise<CommonApiResponse<ReceivedQuotationResponseDto[]>> {
     const receivedQuotations =
       await this.receivedQuotationService.getAllPendingReceivedQuotations(
-        req.user.id,
+        req.user.userId,
       );
     return CommonApiResponse.success(receivedQuotations, "모든 견적 요청 조회");
   }
@@ -37,10 +37,12 @@ export class ReceivedQuotationController {
   @UseGuards(JwtCookieAuthGuard)
   async confirmReceivedQuotation(
     @Param("receivedQuotationId") receivedQuotationId: string,
+    @Req() req,
   ): Promise<CommonApiResponse<{ id: string }>> {
     const response =
       await this.receivedQuotationService.confirmReceivedQuotation(
         receivedQuotationId,
+        req.user.userId,
       );
     return CommonApiResponse.success(response, "견적 확정 완료");
   }
@@ -52,7 +54,7 @@ export class ReceivedQuotationController {
   ): Promise<CommonApiResponse<ReceivedQuotationResponseDto[]>> {
     const result =
       await this.receivedQuotationService.getAllCompletedReceivedQuotations(
-        req.user.id,
+        req.user.userId,
       );
     return CommonApiResponse.success(result, "모든 완료된 견적 요청 조회");
   }
@@ -65,7 +67,7 @@ export class ReceivedQuotationController {
   ): Promise<CommonApiResponse<ReceivedQuotationResponseDto>> {
     const receivedQuotation =
       await this.receivedQuotationService.getReceivedQuotationById(
-        req.user.id,
+        req.user.userId,
         receivedQuotationId,
       );
     return CommonApiResponse.success(receivedQuotation, "견적 상세 조회");

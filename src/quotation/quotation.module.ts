@@ -43,6 +43,6 @@ import { LikeModule } from "src/likeMover/likeMover.module";
     AssignQuotationController,
     ReceivedQuotationController,
   ],
-  exports: [TypeOrmModule],
+  exports: [TypeOrmModule, QuotationService],
 })
 export class QuotationModule {}
