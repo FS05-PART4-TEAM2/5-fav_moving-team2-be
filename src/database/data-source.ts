@@ -32,5 +32,5 @@ export const AppDataSource = new DataSource({
   entities: ["src/**/*.entity.ts"],
   migrations: ["src/database/migrations/*.ts"],
 
-  synchronize: false, // 마이그레이션 사용 시 false로 설정
+  synchronize: !isProduction, // 마이그레이션 사용 시 false로 설정
 });
