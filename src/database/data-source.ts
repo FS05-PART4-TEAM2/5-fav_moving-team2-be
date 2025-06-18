@@ -29,8 +29,8 @@ export const AppDataSource = new DataSource({
             .toString(),
         }
       : useSSL,
-  entities: ["src/**/*.entity.ts"],
-  migrations: ["src/database/migrations/*.ts"],
+  entities: [path.join(__dirname, "../**/*.entity.{js,ts}")],
+  migrations: [path.join(__dirname, "./migrations/*.{js,ts}")],
 
   synchronize: !isProduction, // 마이그레이션 사용 시 false로 설정
 });
