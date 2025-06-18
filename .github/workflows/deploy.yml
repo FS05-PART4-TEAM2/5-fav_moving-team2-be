@@ -71,7 +71,7 @@ jobs:
             unzip -o deploy.zip -d app
             cd app
             echo "✅ Start npm install"
-            npm install --omit=dev
+            timeout 600 npm ci --omit=dev
             echo "✅ Start migration"
             npm run migration:run
             echo "✅ Start PM2"
