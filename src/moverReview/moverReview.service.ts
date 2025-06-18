@@ -177,7 +177,11 @@ export class MoverReviewService {
         take: limit,
         order: { createdAt: "DESC" },
       });
-    const currentDate = new Date();
+    // const currentDate = new Date();
+
+    const isCompleted = await this.quotationRepository.findOne({
+      where: { status: "COMPLETED" },
+    });
 
     const reviewsWithDetails = await Promise.all(
       receivedQuotations.map(async (receivedQuotation) => {
@@ -199,10 +203,12 @@ export class MoverReviewService {
           ],
         });
 
-        // 이사 날짜가 현재 날짜보다 과거인지 확인
-        if (!quotation?.moveDate) return null;
-        const moveDate = new Date(quotation.moveDate);
-        if (moveDate >= currentDate) return null;
+        // // 이사 날짜가 현재 날짜보다 과거인지 확인
+        // if (!quotation?.moveDate) return null;
+        // const moveDate = new Date(quotation.moveDate);
+        // if (moveDate >= currentDate) return null;
+
+        if (isCompleted?.status !== "COMPLETED") return null;
 
         return {
           content: "",
