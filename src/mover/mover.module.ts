@@ -10,10 +10,11 @@ import { MoverInfoController } from "./controllers/mover-info.controller";
 import { MoverInfoService } from "./services/mover-info.service";
 import { AssignMover } from "src/quotation/entities/assign-mover.entity";
 import { LikeModule } from "src/likeMover/likeMover.module";
+import { Quotation } from "src/quotation/quotation.entity";
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Mover]),
+    TypeOrmModule.forFeature([Mover, Quotation]),
     TypeOrmModule.forFeature([AssignMover]),
     StorageModule,
     MoverAuthModule,
