@@ -71,8 +71,6 @@ jobs:
             unzip -o deploy.zip -d app
             cd app
             echo "✅ Start npm install"
-            timeout 600 npm ci --omit=dev
-            echo "✅ Start migration"
-            npm run migration:run
+            npm install --omit=dev
             echo "✅ Start PM2"
             pm2 restart ecosystem.config.js || pm2 start ecosystem.config.js
