@@ -34,3 +34,5 @@ export const AppDataSource = new DataSource({
 
   synchronize: !isProduction, // 마이그레이션 사용 시 false로 설정
 });
+
+export default AppDataSource;

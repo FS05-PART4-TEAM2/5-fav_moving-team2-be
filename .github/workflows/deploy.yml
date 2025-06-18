@@ -74,6 +74,6 @@ jobs:
             echo "✅ Start npm install"
             npm install --omit=dev
             echo "✅ Start migration"
-            npm run migration:run
+            npm run migration:run:prod
             echo "✅ Start PM2"
             pm2 restart ecosystem.config.js || pm2 start ecosystem.config.js
