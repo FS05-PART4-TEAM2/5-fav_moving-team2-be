@@ -65,11 +65,14 @@ jobs:
         run: |
           scp -o StrictHostKeyChecking=no deploy.zip ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USERNAME }}/
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
+            set -x
             cd /home/${{ secrets.EC2_USERNAME }}
             rm -rf app
             unzip -o deploy.zip -d app
             cd app
+            echo "✅ Start npm install"
             npm install --omit=dev
+            echo "✅ Start migration"
             npm run migration:run
+            echo "✅ Start PM2"
             pm2 restart ecosystem.config.js || pm2 start ecosystem.config.js
-          EOF
