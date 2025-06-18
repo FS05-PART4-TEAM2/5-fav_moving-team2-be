@@ -7,7 +7,7 @@ import {
   HttpStatus,
 } from "@nestjs/common";
 import { Response } from "express";
-import { ApiResponse } from "../dto/api-response.dto";
+import { CommonApiResponse } from "../dto/api-response.dto";
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -39,6 +39,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       errorMessage = "알 수 없는 에러입니다.";
     }
 
-    res.status(status).json(ApiResponse.fail(errorMessage, errorName));
+    if (status === 500) console.error("[AllExceptionsFilter]", exception);
+    res.status(status).json(CommonApiResponse.fail(errorMessage, errorName));
   }
 }

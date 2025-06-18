@@ -1,8 +1,15 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { DatabaseModule } from "./database/database.module";
-import { CustomerModule } from "./customer/customer.module";
 import { MoverModule } from "./mover/mover.module";
+import { CustomerModule } from "./customer/customer.module";
+import { StorageModule } from "./common/storage/storage.module";
+import { QuotationModule } from "./quotation/quotation.module";
+import { LikeModule } from "./likeMover/likeMover.module";
+import { MoverReviewModule } from "./moverReview/moverReview.module";
+import { NotificationsModule } from "./notifications/notification.module";
+import { TaskModule } from "./task/task.module";
+import { ScheduleModule } from "@nestjs/schedule";
 
 @Module({
   imports: [
@@ -12,8 +19,15 @@ import { MoverModule } from "./mover/mover.module";
       envFilePath: [".env", `.env.${process.env.NODE_ENV}`],
     }),
     DatabaseModule,
-    CustomerModule,
     MoverModule,
+    CustomerModule,
+    StorageModule,
+    QuotationModule,
+    LikeModule,
+    MoverReviewModule,
+    NotificationsModule,
+    ScheduleModule.forRoot(),
+    TaskModule,
   ],
 })
 export class AppModule {}

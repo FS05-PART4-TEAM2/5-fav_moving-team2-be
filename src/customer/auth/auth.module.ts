@@ -1,12 +1,21 @@
-import { Module } from "@nestjs/common";
-import { AuthService } from "./auth.service";
-import { AuthController } from "./auth.controller";
+import { forwardRef, Module } from "@nestjs/common";
+import { CustomerAuthController } from "./auth.controller";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Customer } from "../customer.entity";
+import { CustomerAuthService } from "./auth.service";
+import { JwtModule } from "@nestjs/jwt";
+import { AuthModule as CommonAuthModule } from "src/auth/auth.module";
+import { QuotationModule } from "src/quotation/quotation.module";
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Customer])],
-  providers: [AuthService],
-  controllers: [AuthController],
+  imports: [
+    TypeOrmModule.forFeature([Customer]),
+    JwtModule.register({}),
+    forwardRef(() => CommonAuthModule),
+    QuotationModule, // QuotationModule 추가
+  ],
+  providers: [CustomerAuthService],
+  controllers: [CustomerAuthController],
+  exports: [CustomerAuthService],
 })
-export class AuthModule {}
+export class CustomerAuthModule {}
