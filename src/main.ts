@@ -11,9 +11,10 @@ import { ValidationPipe } from "@nestjs/common";
 import { AppModule } from "./app.module";
 import { AllExceptionsFilter } from "./common/filters/http-exception.filter";
 import * as cookieParser from "cookie-parser";
+import { NestExpressApplication } from "@nestjs/platform-express";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   /** class-validator가 정상 동작하도록 전역 파이프 적용  */
   app.useGlobalPipes(
@@ -54,6 +55,9 @@ async function bootstrap() {
   SwaggerModule.setup("api-docs", app, document);
 
   app.use(cookieParser());
+    // 프록시 신뢰 설정
+  app.set('trust proxy',1);
+
 
   await app.listen(process.env.PORT ?? 8080);
 }
