@@ -13,6 +13,7 @@ import getCursorField from "src/common/utils/get-cursor-field.util";
 import { MoverDetailResponseDto } from "../dto/mover-detail.response.dto";
 import { AssignMover } from "src/quotation/entities/assign-mover.entity";
 import { LikeMover } from "src/likeMover/likeMover.entity";
+import { Quotation } from "src/quotation/quotation.entity";
 
 @Injectable()
 export class MoverInfoService {
@@ -23,6 +24,8 @@ export class MoverInfoService {
     private assignMoverRepository: Repository<AssignMover>,
     @InjectRepository(LikeMover)
     private likeMoverRepository: Repository<LikeMover>,
+    @InjectRepository(Quotation)
+    private quotationRepository: Repository<Quotation>,
   ) {}
 
   async getMoverDetail(
@@ -46,10 +49,22 @@ export class MoverInfoService {
 
     let isAssigned = false;
     if (userType === "customer") {
-      isAssigned = await this.assignMoverRepository.exists({
+      /**
+       * @todo
+       * 현재 활성화 된 견적일 때만 isAssigned true
+       */
+
+      const assignMover = await this.assignMoverRepository.findOne({
         where: {
           customerId: userId,
           moverId: mover.id,
+        },
+      });
+
+      isAssigned = await this.quotationRepository.exists({
+        where: {
+          id: assignMover?.quotationId,
+          status: In(["PENDING", "CONFIRMED"]),
         },
       });
     }
@@ -157,16 +172,17 @@ export class MoverInfoService {
 
     let assignedMoverIdSet = new Set<string>();
     let likedMoverIdSet = new Set<string>();
+    const moverIds = result.map((m) => m.id);
 
-    if (userType === "customer" && userId) {
-      const assignedMovers = await this.assignMoverRepository.find({
-        where: {
-          customerId: userId,
-          moverId: In(result.map((mover) => mover.id)),
-        },
-        select: ["moverId"],
-      });
-      assignedMoverIdSet = new Set(assignedMovers.map((am) => am.moverId));
+    if (userType === "customer" && userId && moverIds.length > 0) {
+      /**
+       * @todo
+       * 현재 활성화 된 견적일 때만 isAssigned true
+       */
+      assignedMoverIdSet = await this.getActiveAssignedMoverIds(
+        userId,
+        moverIds,
+      );
 
       const likedMovers = await this.likeMoverRepository.find({
         where: {
@@ -205,5 +221,28 @@ export class MoverInfoService {
       idNumNextCursor: idNumNextCursor ?? null,
       hasNext,
     };
+  }
+
+  private async getActiveAssignedMoverIds(
+    userId: string,
+    moverIds: string[],
+  ): Promise<Set<string>> {
+    if (moverIds.length === 0) return new Set();
+    const rows = await this.assignMoverRepository
+      .createQueryBuilder("assign")
+      .innerJoin(
+        "quotation",
+        "quotation",
+        "assign.quotationId = quotation.id::text",
+      )
+      .where("assign.customerId = :userId", { userId })
+      .andWhere("assign.moverId IN (:...moverIds)", { moverIds })
+      .andWhere("quotation.status IN (:...statuses)", {
+        statuses: ["PENDING", "CONFIRMED"],
+      })
+      .select("assign.moverId", "moverId")
+      .getRawMany();
+
+    return new Set(rows.map((row) => row.moverId));
   }
 }
