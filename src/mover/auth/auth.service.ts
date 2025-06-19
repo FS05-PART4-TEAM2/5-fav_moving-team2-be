@@ -52,7 +52,7 @@ export class MoverAuthService {
       }
 
       // access token, refresh token 발급
-      const payload = { sub: existedMover.id, email: existedMover.email, role: "mover" };
+      const payload = { sub: existedMover.id, email: existedMover.email, role: "mover", isProfile: existedMover.isProfile };
       const { accessToken, refreshToken } =
         this.sharedAuthService.generateTokens(payload);
 
@@ -85,7 +85,7 @@ export class MoverAuthService {
     const newMover = await this.moverRepository.save(newMoverObject);
 
     // access token, refresh token 발급
-    const payload = { sub: newMover.id, email: newMover.email, role: "mover" };
+    const payload = { sub: newMover.id, email: newMover.email, role: "mover", isProfile: newMover.isProfile };
     const { accessToken, refreshToken } =
       this.sharedAuthService.generateTokens(payload);
 
@@ -147,7 +147,7 @@ export class MoverAuthService {
     if (!isPasswordValid) {
       throw new InvalidCredentialsException();
     }
-    const payload = { sub: mover.id, email: mover.email, role: "mover" };
+    const payload = { sub: mover.id, email: mover.email, role: "mover", isProfile: mover.isProfile };
     const { accessToken, refreshToken } =
       this.sharedAuthService.generateTokens(payload);
     const response: MoverLoginResponseDto = {
