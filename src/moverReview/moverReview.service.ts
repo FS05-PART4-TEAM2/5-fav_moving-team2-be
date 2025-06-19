@@ -177,7 +177,6 @@ export class MoverReviewService {
         take: limit,
         order: { createdAt: "DESC" },
       });
-    const currentDate = new Date();
 
     const reviewsWithDetails = await Promise.all(
       receivedQuotations.map(async (receivedQuotation) => {
@@ -196,14 +195,13 @@ export class MoverReviewService {
             "price",
             "assignMover",
             "createdAt",
+            "status",
           ],
         });
 
-        // 이사 날짜가 현재 날짜보다 과거인지 확인
-        if (!quotation?.moveDate) return null;
-        const moveDate = new Date(quotation.moveDate);
-        if (moveDate >= currentDate) return null;
-
+        // status가 COMPLETED가 아니면 리뷰 작성 불가
+        console.log(quotation?.status);
+        if (quotation?.status !== "COMPLETED") return null;
         return {
           content: "",
           rating: 0,

@@ -5,19 +5,33 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { AuthService } from "../../auth/auth.service";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class JwtCookieAuthGuard implements CanActivate {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     let accessToken = request.headers["access-token"];
 
-    const authHeader = request.headers["authorization"];
+    // production 환경인지 체크
+    const isProd = this.configService.get("NODE_ENV") === "production";
 
-    if (authHeader?.startsWith("Bearer ")) {
-      accessToken = authHeader.replace("Bearer ", "");
+    if (isProd) {
+      accessToken = request.cookies?.accessToken;
+    } else {
+      const authHeader = request.headers["authorization"];
+
+      if (authHeader?.startsWith("Bearer ")) {
+        accessToken = authHeader.replace("Bearer ", "");
+      } else {
+        // fallback: access-token 헤더도 고려
+        accessToken = request.headers["access-token"];
+      }
     }
 
     if (!accessToken) {

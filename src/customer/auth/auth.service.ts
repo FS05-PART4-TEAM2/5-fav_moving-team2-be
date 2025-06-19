@@ -51,7 +51,7 @@ export class CustomerAuthService {
       }
 
       // access token, refresh token 발급
-      const payload = { sub: existedCustomer.id, email: existedCustomer.email };
+      const payload = { sub: existedCustomer.id, email: existedCustomer.email, role: "customer" };
       const { accessToken, refreshToken } =
         this.sharedAuthService.generateTokens(payload);
 
@@ -84,7 +84,7 @@ export class CustomerAuthService {
     const newCustomer = await this.customerRepository.save(newCustomerObject);
 
     // access token, refresh token 발급
-    const payload = { sub: newCustomer.id, email: newCustomer.email };
+    const payload = { sub: newCustomer.id, email: newCustomer.email, role: "customer" };
     const { accessToken, refreshToken } =
       this.sharedAuthService.generateTokens(payload);
 
@@ -149,7 +149,7 @@ export class CustomerAuthService {
     if (!isPasswordValid) {
       throw new InvalidCredentialsException();
     }
-    const payload = { sub: customer.id, email: customer.email };
+    const payload = { sub: customer.id, email: customer.email, role: "customer" };
     const { accessToken, refreshToken } =
       this.sharedAuthService.generateTokens(payload);
 
