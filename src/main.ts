@@ -29,7 +29,7 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionsFilter());
 
   app.enableCors({
-    origin: ["http://localhost:3000","https://5-favmoving-team2-fe.vercel.app/","https://5-moving-team2.vercel.app/"], // 허용할 Origin
+    origin: ["http://localhost:3000","https://5-favmoving-team2-fe.vercel.app","https://5-moving-team2.vercel.app"], // 허용할 Origin
     credentials: true, // 쿠키 허용
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // 허용할 HTTP 메서드
     allowedHeaders: "Content-Type, Authorization", // 허용할 헤더
