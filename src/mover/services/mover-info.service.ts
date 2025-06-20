@@ -61,12 +61,14 @@ export class MoverInfoService {
         },
       });
 
-      isAssigned = await this.quotationRepository.exists({
-        where: {
-          id: assignMover?.quotationId,
-          status: In(["PENDING", "CONFIRMED"]),
-        },
-      });
+      if (assignMover?.quotationId) {
+        isAssigned = await this.quotationRepository.exists({
+          where: {
+            id: assignMover.quotationId,
+            status: In(["PENDING", "CONFIRMED"]),
+          },
+        });
+      }
     }
 
     let isLiked = false;
