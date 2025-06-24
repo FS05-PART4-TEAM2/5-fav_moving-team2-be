@@ -49,6 +49,7 @@ jobs:
           echo "JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}" >> .env
           echo "JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }}" >> .env
           echo "JWT_REFRESH_EXPIRES_IN=${{ secrets.JWT_REFRESH_EXPIRES_IN }}" >> .env
+          echo "FRONT_URL=${{ secrets.FRONT_URL }}" >> .env
           echo "NODE_ENV=production" >> .env
 
       - name: 📥 Download RDS SSL cert
