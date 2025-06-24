@@ -5,7 +5,7 @@ export class Migration1750751645306 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE "notifications" ADD "quotationId" character varying NOT NULL`,
+      `ALTER TABLE "notifications" ADD "quotationId" character varying`,
     );
   }
 
