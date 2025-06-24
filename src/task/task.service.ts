@@ -75,6 +75,7 @@ export class TaskService {
       await this.notificationService.createNotification(quotation.customerId, {
         type: "MOVE_SCHEDULE",
         segments,
+        quotationId: quotation.id,
       });
 
       // 기사 알림
@@ -83,6 +84,7 @@ export class TaskService {
         {
           type: "MOVE_SCHEDULE",
           segments,
+          quotationId: quotation.id,
         },
       );
     }

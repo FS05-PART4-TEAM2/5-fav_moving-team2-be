@@ -47,6 +47,12 @@ export class NotificationResponseDto {
   isRead: boolean;
 
   @ApiProperty({
+    description: "견적 ID",
+    example: "123e4567-e89b-12d3-a456-426614174000",
+  })
+  quotationId: string;
+
+  @ApiProperty({
     description: "생성일시",
     example: "2025-06-12T10:30:00.000Z",
   })
@@ -62,6 +68,7 @@ export class NotificationResponseDto {
       isHighlight: segment.isHighlight,
     }));
     dto.isRead = n.isRead;
+    dto.quotationId = n.quotationId;
     dto.createdAt = n.createdAt.toISOString();
 
     return dto;
