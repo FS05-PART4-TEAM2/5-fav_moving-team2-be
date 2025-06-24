@@ -97,7 +97,7 @@ export class AuthService {
     refreshToken: string,
   ): Promise<RefreshTokenResponseDto> {
     try {
-      const payload: { userId: string; userType: string } =
+      const payload =
         this.jwtService.verify(refreshToken, {
           secret: process.env.JWT_REFRESH_SECRET,
         });
@@ -117,10 +117,7 @@ export class AuthService {
       }
 
       const newAccessToken = this.jwtService.sign(
-        {
-          userId: payload.userId,
-          userType: payload.userType,
-        },
+        payload,
         {
           secret: process.env.JWT_SECRET,
           expiresIn: process.env.JWT_EXPIRES_IN,

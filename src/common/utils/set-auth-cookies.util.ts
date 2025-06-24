@@ -25,4 +25,18 @@ export class SetAuthCookies {
       maxAge: 1000 * 60 * 60 * 24 * 7,
     });
   }
+
+  static clear(req: Request, res: Response) {
+    const origin = req.headers.origin ?? "";
+    const isLocal = origin.startsWith("http://localhost");
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: !isLocal,
+      sameSite: isLocal ? "lax" : "none",
+    } as const;
+
+    res.clearCookie("accessToken", cookieOptions);
+    res.clearCookie("refreshToken", cookieOptions);
+  }
 }
