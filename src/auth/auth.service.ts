@@ -131,6 +131,7 @@ export class AuthService {
       });
       return { accessToken: newAccessToken, refreshToken };
     } catch (error) {
+      console.log(error);
       if (error instanceof NotFoundException) {
         throw error;
       }
