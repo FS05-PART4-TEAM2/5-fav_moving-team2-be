@@ -168,7 +168,11 @@ export class NotificationController {
   async createNotification(
     @Req() req,
     @Body()
-    request: { type: NotificationType; segments: NotificationTextSegment[] },
+    request: {
+      type: NotificationType;
+      segments: NotificationTextSegment[];
+      quotationId: string;
+    },
   ) {
     const userId = req.user.userId as string;
     const data = await this.notificationService.createNotification(
