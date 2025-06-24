@@ -307,9 +307,21 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const userData = await this.handleOauthRedirect(req, res);
-    res.redirect(
-      `${this.configService.get("FRONT_URL") ?? "http://localhost:3000"}/oauth/callback?accessToken=${userData.data?.accessToken}&refreshToken=${userData.data?.refreshToken}&type=${userData.data?.type}`,
-    );
+    const frontUrl =
+      this.configService.get("FRONT_URL") ?? "http://localhost:3000";
+    const redirectUrl = `${frontUrl}/oauth/callback?accessToken=${userData.data?.accessToken}&refreshToken=${userData.data?.refreshToken}&type=${userData.data?.type}`;
+
+    res.send(`
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <script>
+          window.location.href = "${redirectUrl}";
+        </script>
+      </head>
+      <body>로그인 완료, 리다이렉트 중입니다...</body>
+    </html>
+  `);
   }
 
   @Get("naver/redirect")
@@ -324,9 +336,21 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const userData = await this.handleOauthRedirect(req, res);
-    res.redirect(
-      `${this.configService.get("FRONT_URL") ?? "http://localhost:3000"}/oauth/callback?accessToken=${userData.data?.accessToken}&refreshToken=${userData.data?.refreshToken}&type=${userData.data?.type}`,
-    );
+    const frontUrl =
+      this.configService.get("FRONT_URL") ?? "http://localhost:3000";
+    const redirectUrl = `${frontUrl}/oauth/callback?accessToken=${userData.data?.accessToken}&refreshToken=${userData.data?.refreshToken}&type=${userData.data?.type}`;
+
+    res.send(`
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <script>
+          window.location.href = "${redirectUrl}";
+        </script>
+      </head>
+      <body>로그인 완료, 리다이렉트 중입니다...</body>
+    </html>
+  `);
   }
 
   @Get("kakao/redirect")
@@ -341,10 +365,21 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const userData = await this.handleOauthRedirect(req, res);
+    const frontUrl =
+      this.configService.get("FRONT_URL") ?? "http://localhost:3000";
+    const redirectUrl = `${frontUrl}/oauth/callback?accessToken=${userData.data?.accessToken}&refreshToken=${userData.data?.refreshToken}&type=${userData.data?.type}`;
 
-    res.redirect(
-      `${this.configService.get("FRONT_URL") ?? "http://localhost:3000"}/oauth/callback?accessToken=${userData.data?.accessToken}&refreshToken=${userData.data?.refreshToken}&type=${userData.data?.type}`,
-    );
+    res.send(`
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <script>
+          window.location.href = "${redirectUrl}";
+        </script>
+      </head>
+      <body>로그인 완료, 리다이렉트 중입니다...</body>
+    </html>
+  `);
   }
 
   //OauthRedirect 공통 로직 분리
@@ -423,8 +458,8 @@ export class AuthController {
   @ApiOperation({ summary: "로그아웃" })
   async logout(
     @Req() req: Request,
-    @Res({ passthrough: true}) res: Response,
-    @AccessToken() accessToken: string
+    @Res({ passthrough: true }) res: Response,
+    @AccessToken() accessToken: string,
   ): Promise<CommonApiResponse<null>> {
     await this.authService.logout(accessToken);
     SetAuthCookies.clear(req, res);
