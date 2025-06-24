@@ -116,8 +116,10 @@ export class AuthService {
         );
       }
 
+      const { exp, iat, ...rest } = payload;
+
       const newAccessToken = this.jwtService.sign(
-        payload,
+        rest,
         {
           secret: process.env.JWT_SECRET,
           expiresIn: process.env.JWT_EXPIRES_IN,
@@ -131,6 +133,7 @@ export class AuthService {
       });
       return { accessToken: newAccessToken, refreshToken };
     } catch (error) {
+      console.log(error);
       if (error instanceof NotFoundException) {
         throw error;
       }
