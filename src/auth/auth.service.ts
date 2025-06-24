@@ -116,7 +116,7 @@ export class AuthService {
         );
       }
 
-      const { exp, iat, ...rest } = payload;
+      const { exp, iat, isProfile, ...rest } = payload;
 
       const newAccessToken = this.jwtService.sign(
         rest,
