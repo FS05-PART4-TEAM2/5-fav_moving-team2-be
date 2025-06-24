@@ -10,6 +10,8 @@ import { MoverReviewModule } from "./moverReview/moverReview.module";
 import { NotificationsModule } from "./notifications/notification.module";
 import { TaskModule } from "./task/task.module";
 import { ScheduleModule } from "@nestjs/schedule";
+import { APP_INTERCEPTOR } from "@nestjs/core";
+import { LoggingInterceptor } from "./common/interceptors/loggin.interceptor";
 
 @Module({
   imports: [
@@ -28,6 +30,12 @@ import { ScheduleModule } from "@nestjs/schedule";
     NotificationsModule,
     ScheduleModule.forRoot(),
     TaskModule,
+  ],
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
+    },
   ],
 })
 export class AppModule {}

@@ -36,6 +36,8 @@ import * as path from "path";
               : useSSL,
           entities: [__dirname + "/../**/*.entity{.ts,.js}"],
           synchronize: !isProduction,
+          logging: ["query", "error"], // 👈 SQL 로그 활성화
+          logger: "advanced-console", // 기본 콘솔 로거 사용
         };
       },
     }),
