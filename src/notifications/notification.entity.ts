@@ -36,7 +36,7 @@ export class Notifications {
   @Column({ default: false })
   isRead: boolean;
 
-  @Column()
+  @Column({ nullable: true })
   quotationId: string;
 
   @CreateDateColumn()
