@@ -100,12 +100,14 @@ export class NotificationService {
     request: {
       type: NotificationType;
       segments: NotificationTextSegment[];
+      quotationId: string;
     },
   ) {
     const noti = this.notificationRepository.create({
       recipient: userId,
       type: request.type,
       segments: request.segments,
+      quotationId: request.quotationId,
     });
 
     const newNoti = await this.notificationRepository.save(noti);

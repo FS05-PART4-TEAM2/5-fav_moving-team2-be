@@ -373,6 +373,7 @@ export class MoverQuotationService {
     await this.notificationService.createNotification(customerId, {
       type: "QUOTE_ARRIVED",
       segments: notiSegments,
+      quotationId: newReceivedQuote.quotationId,
     });
 
     const result = ReceivedQuoteResponseDto.of(newReceivedQuote);
