@@ -98,6 +98,19 @@ export class NotificationController {
    * 특정 알림을 읽음 처리
    */
   @Patch(":id/read")
+  @ApiOkResponse({
+    description: "받은 요청(기사님) 목록 조회에 성공하였습니다.",
+    schema: {
+      allOf: [
+        { $ref: getSchemaPath(CommonApiResponse) },
+        {
+          properties: {
+            data: { type: "null", example: null },
+          },
+        },
+      ],
+    },
+  })
   async markAsRead(
     @Req() req,
     @Param("id") notificationId: string,
