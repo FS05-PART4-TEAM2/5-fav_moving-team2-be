@@ -68,6 +68,7 @@ export class NotificationResponseDto {
       isHighlight: segment.isHighlight,
     }));
     dto.isRead = n.isRead;
+    dto.quotationId = n.quotationId;
     dto.createdAt = n.createdAt.toISOString();
 
     return dto;
