@@ -407,7 +407,7 @@ export class AuthController {
 
     if (isProd) {
       // 쿠키에 저장
-      SetAuthCookies.set(req, res, accessToken, newRefreshToken)
+      SetAuthCookies.set(req, res, accessToken, newRefreshToken);
     } else {
       res.setHeader("access-token", accessToken);
       res.setHeader("refresh-token", newRefreshToken);
@@ -422,10 +422,12 @@ export class AuthController {
   @Post("logout")
   @ApiOperation({ summary: "로그아웃" })
   async logout(
-    @AccessToken() accessToken: string,
+    @Req() req: Request,
+    @Res({ passthrough: true}) res: Response,
+    @AccessToken() accessToken: string
   ): Promise<CommonApiResponse<null>> {
     await this.authService.logout(accessToken);
-
+    SetAuthCookies.clear(req, res);
     return CommonApiResponse.success(null, "로그아웃되었습니다.");
   }
 }
