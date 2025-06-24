@@ -50,7 +50,7 @@ export class NotificationResponseDto {
     description: "견적 ID",
     example: "123e4567-e89b-12d3-a456-426614174000",
   })
-  quotationId: string;
+  receivedQuoteId: string;
 
   @ApiProperty({
     description: "생성일시",
@@ -68,7 +68,7 @@ export class NotificationResponseDto {
       isHighlight: segment.isHighlight,
     }));
     dto.isRead = n.isRead;
-    dto.quotationId = n.quotationId;
+    dto.receivedQuoteId = n.receivedQuoteId;
     dto.createdAt = n.createdAt.toISOString();
 
     return dto;

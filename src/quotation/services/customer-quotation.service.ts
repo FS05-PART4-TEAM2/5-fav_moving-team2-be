@@ -218,14 +218,14 @@ export class ReceivedQuotationService {
     await this.notificationService.createNotification(mover.id, {
       type: "QUOTE_CONFIRMED",
       segments: notiSegments,
-      quotationId: targetRequest.quotationId,
+      receivedQuoteId: targetRequest.id,
     });
     await this.notificationService.createNotification(
       targetRequest.customerId,
       {
         type: "QUOTE_CONFIRMED",
         segments: notiSegments,
-        quotationId: targetRequest.quotationId,
+        receivedQuoteId: targetRequest.id,
       },
     );
 

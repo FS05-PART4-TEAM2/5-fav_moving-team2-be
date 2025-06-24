@@ -60,13 +60,20 @@ export class TaskService {
       await this.quotationService.getConfirmedQuotationsByDate(today);
 
     for (const quotation of confirmedQuotations) {
+      const receivedQuote =
+        await this.quotationService.getReceivedQuoteByQuotationIdAndConfirmedMover(
+          quotation.id,
+          true,
+        );
+      if (!receivedQuote) continue;
+
       const startAddr = quotation.startAddress.split(" ");
       const endAddr = quotation.endAddress.split(" ");
 
       const segments = [
         { text: "오늘은 ", isHighlight: false },
         {
-          text: `${startAddr[0]}(${startAddr[1]}) → ${endAddr[0]}(${endAddr[1]}) 이사 예정일일`,
+          text: `${startAddr[0]}(${startAddr[1]}) → ${endAddr[0]}(${endAddr[1]}) 이사 예정일`,
           isHighlight: true,
         },
         { text: "이에요.", isHighlight: false },
@@ -75,7 +82,7 @@ export class TaskService {
       await this.notificationService.createNotification(quotation.customerId, {
         type: "MOVE_SCHEDULE",
         segments,
-        quotationId: quotation.id,
+        receivedQuoteId: receivedQuote.id,
       });
 
       // 기사 알림
@@ -84,7 +91,7 @@ export class TaskService {
         {
           type: "MOVE_SCHEDULE",
           segments,
-          quotationId: quotation.id,
+          receivedQuoteId: receivedQuote.id,
         },
       );
     }
