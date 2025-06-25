@@ -10,12 +10,15 @@ import {
 import { RegionKey } from "src/common/constants/region.constant";
 import { QUOTATION_STATE_KEY } from "src/common/constants/quotation-state.constant";
 import { format } from "date-fns";
+import { ReceivedQuote } from "./entities/received-quote.entity";
 
 @Injectable()
 export class QuotationService {
   constructor(
     @InjectRepository(Quotation)
     private readonly quotationRepository: Repository<Quotation>,
+    @InjectRepository(ReceivedQuote)
+    private readonly receivedQuoteRepository: Repository<ReceivedQuote>,
   ) {}
 
   async createQuotation(
@@ -72,5 +75,21 @@ export class QuotationService {
       })
       .andWhere("quotation.moveDate::date = :date", { date: dateString })
       .getMany();
+  }
+
+  /**
+   *
+   */
+  //
+  async getReceivedQuoteByQuotationIdAndConfirmedMover(
+    quotationId: string,
+    isConfirmedMover: true,
+  ): Promise<ReceivedQuote | null> {
+    return await this.receivedQuoteRepository.findOne({
+      where: {
+        quotationId,
+        isConfirmedMover,
+      },
+    });
   }
 }

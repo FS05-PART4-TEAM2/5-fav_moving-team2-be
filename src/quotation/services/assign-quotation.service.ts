@@ -110,7 +110,6 @@ export class AssignQuotationService {
       await this.notificationService.createNotification(moverId, {
         type: "QUOTE_ARRIVED",
         segments: notiSegments,
-        quotationId: quotation.id,
       });
 
       return newAssignMover;
