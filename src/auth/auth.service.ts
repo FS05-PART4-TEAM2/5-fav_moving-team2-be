@@ -10,6 +10,8 @@ import { Repository } from "typeorm";
 import { recordLoginDto } from "src/common/dto/auth-record-login.dto";
 import { IsNull } from "typeorm";
 import { RefreshTokenResponseDto } from "src/common/dto/refreshToken.response.dto";
+import { Mover } from "@/mover/mover.entity";
+import { Customer } from "@/customer/customer.entity";
 
 @Injectable()
 export class AuthService {
@@ -17,6 +19,10 @@ export class AuthService {
     private readonly jwtService: JwtService,
     @InjectRepository(Auth)
     private readonly authRepository: Repository<Auth>,
+    @InjectRepository(Mover)
+    private readonly moverRepository: Repository<Mover>,
+    @InjectRepository(Customer)
+    private readonly customerRepository: Repository<Customer>,
   ) {}
 
   generateTokens(payload) {
@@ -93,14 +99,14 @@ export class AuthService {
       return null;
     }
   }
+
   async refreshAccessToken(
     refreshToken: string,
   ): Promise<RefreshTokenResponseDto> {
     try {
-      const payload =
-        this.jwtService.verify(refreshToken, {
-          secret: process.env.JWT_REFRESH_SECRET,
-        });
+      const payload = this.jwtService.verify(refreshToken, {
+        secret: process.env.JWT_REFRESH_SECRET,
+      });
 
       const existingRecord = await this.authRepository.findOne({
         where: { refreshToken },
@@ -116,10 +122,32 @@ export class AuthService {
         );
       }
 
-      const { exp, iat, isProfile, ...rest } = payload;
+      const { sub, email, role } = payload;
+
+      /**
+       *  @Todo
+       *  isProfile 어떻게 처리할 지 (기사, 손님 여부도 체크해야하고 실제 데이터베이스에서 조회 해야할 듯)
+       *  */
+
+      let isProfile = false;
+      if (role === "customer") {
+        isProfile = await this.customerRepository.exists({
+          where: {
+            id: sub,
+            isProfile: true,
+          },
+        });
+      } else if (role === "mover") {
+        isProfile = await this.moverRepository.exists({
+          where: {
+            id: sub,
+            isProfile: true,
+          },
+        });
+      }
 
       const newAccessToken = this.jwtService.sign(
-        rest,
+        { sub, email, role, isProfile },
         {
           secret: process.env.JWT_SECRET,
           expiresIn: process.env.JWT_EXPIRES_IN,
@@ -137,7 +165,12 @@ export class AuthService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new NotFoundException("refreshToken 검증에 실패했습니다.");
+      if (error.name === "TokenExpiredError") {
+        throw new UnauthorizedException(
+          "refreshToken이 만료되었습니다. 다시 로그인해주세요.",
+        );
+      }
+      throw new UnauthorizedException("refreshToken이 유효하지 않습니다.");
     }
   }
 
