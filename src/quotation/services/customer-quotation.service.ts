@@ -201,7 +201,7 @@ export class ReceivedQuotationService {
     );
 
     // 알림 생성
-    const notiSegments: NotificationTextSegment[] = [
+    const toMoverNotiSegments: NotificationTextSegment[] = [
       {
         text: `${customer.username} 님께 보낸 견적이 `,
         isHighlight: false,
@@ -215,16 +215,30 @@ export class ReceivedQuotationService {
         isHighlight: false,
       },
     ];
+    const toCustomerNotiSegments: NotificationTextSegment[] = [
+      {
+        text: `${mover.nickname}(${mover.username}) 님이 보낸 견적을 `,
+        isHighlight: false,
+      },
+      {
+        text: `확정`,
+        isHighlight: true,
+      },
+      {
+        text: `했어요`,
+        isHighlight: false,
+      },
+    ];
     await this.notificationService.createNotification(mover.id, {
       type: "QUOTE_CONFIRMED",
-      segments: notiSegments,
+      segments: toMoverNotiSegments,
       receivedQuoteId: targetRequest.id,
     });
     await this.notificationService.createNotification(
       targetRequest.customerId,
       {
         type: "QUOTE_CONFIRMED",
-        segments: notiSegments,
+        segments: toCustomerNotiSegments,
         receivedQuoteId: targetRequest.id,
       },
     );
