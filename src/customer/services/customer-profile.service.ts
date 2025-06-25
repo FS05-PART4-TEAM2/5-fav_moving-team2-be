@@ -40,6 +40,11 @@ export class CustomerProfileService {
     let url: string | null = null;
     const { file, currPassword, newPassword, ...rest } = request;
 
+    if (newPassword && !currPassword)
+      throw new BadRequestException(
+        "비밀번호를 변경하려면 현재 비밀번호도 입력해주세요.",
+      );
+
     /** customer 조회 */
     const customer = await this.customerRepository.findOneBy({
       id: userId,
