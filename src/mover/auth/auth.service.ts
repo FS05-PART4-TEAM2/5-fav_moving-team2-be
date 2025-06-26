@@ -82,7 +82,6 @@ export class MoverAuthService {
     const newMoverObject = this.moverRepository.create({
       username: oAuthLoginRequestDto.name,
       email: oAuthLoginRequestDto.email,
-      profileImage: oAuthLoginRequestDto.photo,
       phoneNumber: "000-0000-0000",
       provider: oAuthLoginRequestDto.provider,
     });

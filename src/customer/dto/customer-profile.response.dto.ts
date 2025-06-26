@@ -15,6 +15,7 @@ export class CustomerProfileResponseDto {
 
   static of(
     customer: Customer,
+    profileImage: string | null,
     hasQuotation?: boolean,
   ): CustomerProfileResponseDto {
     const dto = new CustomerProfileResponseDto();
@@ -23,7 +24,7 @@ export class CustomerProfileResponseDto {
     dto.email = customer.email;
     dto.isProfile = customer.isProfile;
     dto.phoneNumber = customer.phoneNumber;
-    dto.profileImage = customer.profileImage;
+    dto.profileImage = profileImage;
     dto.wantService = customer.wantService;
     dto.livingPlace = customer.livingPlace;
 
