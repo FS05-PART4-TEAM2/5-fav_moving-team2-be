@@ -68,10 +68,6 @@ export class CustomerProfileService {
 
     if (file) {
       url = await this.storageService.upload(file);
-
-      if (typeof this.storageService.getSignedUrlFromS3Url === "function") {
-        url = await this.storageService.getSignedUrlFromS3Url(url);
-      }
     }
 
     const updated = this.customerRepository.merge(customer, {

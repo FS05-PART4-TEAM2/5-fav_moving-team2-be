@@ -39,10 +39,6 @@ export class MoverProfileService {
 
     if (request.file) {
       url = await this.storageService.upload(request.file);
-
-      if (typeof this.storageService.getSignedUrlFromS3Url === "function") {
-        url = await this.storageService.getSignedUrlFromS3Url(url);
-      }
     }
 
     const mover = await this.moverRepository.findOneBy({
