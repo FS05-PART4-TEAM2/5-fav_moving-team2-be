@@ -7,6 +7,7 @@ import {
   UseGuards,
   Post,
   BadRequestException,
+  Body,
 } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { AuthGuard } from "@nestjs/passport";
@@ -417,10 +418,11 @@ export class AuthController {
   async refreshAccessToken(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
+    @Body("refreshToken") refreshTokenFromBody?: string,
   ): Promise<CommonApiResponse<{ accessToken: string }>> {
     const isProd = this.configService.get("NODE_ENV") === "production";
     let refreshToken = isProd
-      ? req.cookies?.refreshToken
+      ? (req.cookies?.refreshToken ?? refreshTokenFromBody)
       : req.headers["refresh-token"];
 
     if (Array.isArray(refreshToken)) {
