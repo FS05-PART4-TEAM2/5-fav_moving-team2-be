@@ -67,6 +67,7 @@ export class AssignQuotationService {
         where: {
           moverId,
           customerId: userId,
+          quotationId: quotation.id,
         },
       });
 
