@@ -19,7 +19,10 @@ export class MoverProfileResponseDto {
   serviceList: ServiceTypeKey[];
   serviceArea: RegionKey[];
 
-  static of(mover: Mover): MoverProfileResponseDto {
+  static of(
+    mover: Mover,
+    profileImage: string | null,
+  ): MoverProfileResponseDto {
     const dto = new MoverProfileResponseDto();
     dto.id = mover.id;
     dto.username = mover.username;
@@ -27,7 +30,7 @@ export class MoverProfileResponseDto {
     dto.email = mover.email;
     dto.isProfile = mover.isProfile;
     dto.phoneNumber = mover.phoneNumber;
-    dto.profileImage = mover.profileImage;
+    dto.profileImage = profileImage;
     dto.intro = mover.intro;
     dto.detailDescription = mover.detailDescription;
     dto.career = mover.career;

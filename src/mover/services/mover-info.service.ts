@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
@@ -14,6 +15,7 @@ import { MoverDetailResponseDto } from "../dto/mover-detail.response.dto";
 import { AssignMover } from "src/quotation/entities/assign-mover.entity";
 import { LikeMover } from "src/likeMover/likeMover.entity";
 import { Quotation } from "src/quotation/quotation.entity";
+import { StorageService } from "@/common/interfaces/storage.service";
 
 @Injectable()
 export class MoverInfoService {
@@ -26,6 +28,8 @@ export class MoverInfoService {
     private likeMoverRepository: Repository<LikeMover>,
     @InjectRepository(Quotation)
     private quotationRepository: Repository<Quotation>,
+    @Inject("StorageService")
+    private readonly storageService: StorageService,
   ) {}
 
   async getMoverDetail(
@@ -81,6 +85,15 @@ export class MoverInfoService {
       });
     }
 
+    let profileImage = mover.profileImage;
+    if (
+      typeof this.storageService.getSignedUrlFromS3Url === "function" &&
+      profileImage !== null
+    ) {
+      profileImage =
+        await this.storageService.getSignedUrlFromS3Url(profileImage);
+    }
+
     const moverDetail: MoverDetailResponseDto = {
       id: mover.id,
       idNum: mover.idNum,
@@ -88,7 +101,7 @@ export class MoverInfoService {
       nickname: mover.nickname,
       isLiked, // 찜하기 여부
       isAssigned, // 지정 기사 여부
-      profileImage: mover.profileImage,
+      profileImage: profileImage,
       career: mover.career,
       intro: mover.intro,
       confirmedCounts: mover.confirmedCounts,
@@ -196,26 +209,38 @@ export class MoverInfoService {
       likedMoverIdSet = new Set(likedMovers.map((lm) => lm.moverId));
     }
 
-    const moverInfos: FindMoverData[] = result.map((mover) => {
-      const isAssigned = assignedMoverIdSet.has(mover.id);
-      const isLiked = likedMoverIdSet.has(mover.id);
-      return {
-        id: mover.id,
-        idNum: mover.idNum,
-        nickname: mover.nickname,
-        isLiked, // 찜한 기사인지 여부
-        isAssigned, // 지정 기사인지 여부
-        profileImage: mover.profileImage,
-        career: mover.career,
-        intro: mover.intro,
-        confirmedCounts: mover.confirmedCounts,
-        reviewCounts: mover.reviewCounts,
-        likeCount: mover.likeCount,
-        totalRating:
-          mover.reviewCounts > 0 ? mover.totalRating / mover.reviewCounts : 0,
-        serviceList: mover.serviceList,
-      };
-    });
+    const moverInfos: FindMoverData[] = await Promise.all(
+      result.map(async (mover) => {
+        const isAssigned = assignedMoverIdSet.has(mover.id);
+        const isLiked = likedMoverIdSet.has(mover.id);
+
+        let profileImage = mover.profileImage;
+        if (
+          typeof this.storageService.getSignedUrlFromS3Url === "function" &&
+          profileImage !== null
+        ) {
+          profileImage =
+            await this.storageService.getSignedUrlFromS3Url(profileImage);
+        }
+
+        return {
+          id: mover.id,
+          idNum: mover.idNum,
+          nickname: mover.nickname,
+          isLiked, // 찜한 기사인지 여부
+          isAssigned, // 지정 기사인지 여부
+          profileImage: profileImage,
+          career: mover.career,
+          intro: mover.intro,
+          confirmedCounts: mover.confirmedCounts,
+          reviewCounts: mover.reviewCounts,
+          likeCount: mover.likeCount,
+          totalRating:
+            mover.reviewCounts > 0 ? mover.totalRating / mover.reviewCounts : 0,
+          serviceList: mover.serviceList,
+        };
+      }),
+    );
 
     return {
       list: moverInfos,
