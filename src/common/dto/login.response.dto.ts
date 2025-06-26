@@ -34,6 +34,7 @@ export class MoverLoginResponseDto {
     likeCount: number;
     totalRating: number;
     reviewCounts: number;
+    confirmQuotation: number;
     createdAt: Date;
   };
 }
