@@ -63,7 +63,17 @@ export class MoverProfileService {
     });
     const saved = await this.moverRepository.save(updated);
 
-    return MoverProfileResponseDto.of(saved);
+    /** */
+    let profileImage = mover.profileImage;
+    if (
+      typeof this.storageService.getSignedUrlFromS3Url === "function" &&
+      profileImage !== null
+    ) {
+      profileImage =
+        await this.storageService.getSignedUrlFromS3Url(profileImage);
+    }
+
+    return MoverProfileResponseDto.of(saved, profileImage);
   }
 
   /**  */
@@ -112,7 +122,17 @@ export class MoverProfileService {
     });
     const saved = await this.moverRepository.save(updated);
 
-    return MoverProfileResponseDto.of(saved);
+    /** */
+    let profileImage = mover.profileImage;
+    if (
+      typeof this.storageService.getSignedUrlFromS3Url === "function" &&
+      profileImage !== null
+    ) {
+      profileImage =
+        await this.storageService.getSignedUrlFromS3Url(profileImage);
+    }
+
+    return MoverProfileResponseDto.of(saved, profileImage);
   }
 
   /** */
@@ -123,6 +143,15 @@ export class MoverProfileService {
 
     if (!mover) throw new ForbiddenException();
 
-    return MoverProfileResponseDto.of(mover);
+    let profileImage = mover.profileImage;
+    if (
+      typeof this.storageService.getSignedUrlFromS3Url === "function" &&
+      profileImage !== null
+    ) {
+      profileImage =
+        await this.storageService.getSignedUrlFromS3Url(profileImage);
+    }
+
+    return MoverProfileResponseDto.of(mover, profileImage);
   }
 }
