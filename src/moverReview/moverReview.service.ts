@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ForbiddenException,
+  Inject,
   Injectable,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -17,6 +18,7 @@ import { CreateMoverReviewDto } from "./dto/createReview.request.dto";
 import { Customer } from "src/customer/customer.entity";
 import { ReceivedQuote } from "src/quotation/entities/received-quote.entity";
 import { Quotation } from "src/quotation/quotation.entity";
+import { StorageService } from "@/common/interfaces/storage.service";
 
 @Injectable()
 export class MoverReviewService {
@@ -31,6 +33,8 @@ export class MoverReviewService {
     private customerRepository: Repository<Customer>,
     @InjectRepository(Quotation)
     private quotationRepository: Repository<Quotation>,
+    @Inject("StorageService")
+    private readonly storageService: StorageService,
   ) {}
 
   async getMoverReviewList(
@@ -202,12 +206,23 @@ export class MoverReviewService {
         // status가 COMPLETED가 아니면 리뷰 작성 불가
         console.log(quotation?.status);
         if (quotation?.status !== "COMPLETED") return null;
+
+        let profileImage = mover?.profileImage || null;
+
+        if (
+          typeof this.storageService.getSignedUrlFromS3Url === "function" &&
+          profileImage !== null
+        ) {
+          profileImage =
+            await this.storageService.getSignedUrlFromS3Url(profileImage);
+        }
+
         return {
           content: "",
           rating: 0,
           reviewDate: null,
           moverName: mover?.username || "알 수 없음",
-          moverProfileImage: mover?.profileImage || null,
+          moverProfileImage: profileImage,
           moveDate: quotation?.moveDate || "",
           startAddress: quotation?.startAddress || "",
           endAddress: quotation?.endAddress || "",
@@ -347,12 +362,23 @@ export class MoverReviewService {
             "createdAt",
           ],
         });
+
+        let profileImage = mover?.profileImage || null;
+
+        if (
+          typeof this.storageService.getSignedUrlFromS3Url === "function" &&
+          profileImage !== null
+        ) {
+          profileImage =
+            await this.storageService.getSignedUrlFromS3Url(profileImage);
+        }
+
         return {
           content: review.content,
           rating: review.rating,
           reviewDate: review.createdAt,
           moverName: mover?.username || "알 수 없음",
-          moverProfileImage: mover?.profileImage || null,
+          moverProfileImage: profileImage,
           moveDate: quotation?.moveDate || "",
           startAddress: quotation?.startAddress || "",
           endAddress: quotation?.endAddress || "",

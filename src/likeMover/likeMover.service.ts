@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
@@ -13,6 +14,7 @@ import {
   PaginatedScrollDto,
   PaginatedScrollResponseDto,
 } from "src/common/dto/pagination.dto";
+import { StorageService } from "@/common/interfaces/storage.service";
 
 @Injectable()
 export class likeMoverService {
@@ -22,6 +24,8 @@ export class likeMoverService {
     @InjectRepository(Mover)
     private moverRepository: Repository<Mover>,
     private readonly dataSource: DataSource,
+    @Inject("StorageService")
+    private readonly storageService: StorageService,
   ) {}
 
   async postLikeMoverByCustomer(
@@ -196,13 +200,28 @@ export class likeMoverService {
       .setParameter("userId", userId)
       .getRawMany();
 
-    const parsedMovers = likedMovers.map((m) => ({
-      ...m,
-      serviceList:
-        typeof m.serviceList === "string"
-          ? m.serviceList.split(",")
-          : m.serviceList,
-    }));
+    const parsedMovers = await Promise.all(
+      likedMovers.map(async (m) => {
+        let profileImage = m.profileImage;
+
+        if (
+          typeof this.storageService.getSignedUrlFromS3Url === "function" &&
+          profileImage !== null
+        ) {
+          profileImage =
+            await this.storageService.getSignedUrlFromS3Url(profileImage);
+        }
+
+        return {
+          ...m,
+          profileImage: profileImage,
+          serviceList:
+            typeof m.serviceList === "string"
+              ? m.serviceList.split(",")
+              : m.serviceList,
+        };
+      }),
+    );
 
     const total = await this.likeRepository
       .createQueryBuilder("like")
