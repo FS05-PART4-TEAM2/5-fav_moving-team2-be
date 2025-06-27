@@ -8,6 +8,7 @@ import { Mover } from "src/mover/mover.entity";
 import { Customer } from "src/customer/customer.entity";
 import { ReceivedQuote } from "src/quotation/entities/received-quote.entity";
 import { Quotation } from "src/quotation/quotation.entity";
+import { StorageModule } from "@/common/storage/storage.module";
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { Quotation } from "src/quotation/quotation.entity";
       Quotation,
     ]),
     AuthModule,
+    StorageModule,
   ],
   providers: [MoverReviewService],
   controllers: [MoverReviewController],

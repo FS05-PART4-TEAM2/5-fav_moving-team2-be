@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
@@ -14,6 +15,7 @@ import { Mover } from "src/mover/mover.entity";
 import { InvalidUserException } from "src/common/exceptions/invalid-user.exception";
 import { LikeMover } from "src/likeMover/likeMover.entity";
 import { Customer } from "src/customer/customer.entity";
+import { StorageService } from "@/common/interfaces/storage.service";
 
 @Injectable()
 export class ReceivedQuotationService {
@@ -29,6 +31,8 @@ export class ReceivedQuotationService {
     private readonly notificationService: NotificationService,
     @InjectRepository(LikeMover)
     private readonly likeMoverRepository: Repository<LikeMover>,
+    @Inject("StorageService")
+    private readonly storageService: StorageService,
   ) {}
   // 일반유저 모든 진행중인 요청 조회
   async getAllPendingReceivedQuotations(
@@ -87,11 +91,21 @@ export class ReceivedQuotationService {
         ? quotation.assignMover.includes(receivedQuotation.moverId)
         : false;
 
+      let profileImage = mover?.profileImage || null;
+
+      if (
+        typeof this.storageService.getSignedUrlFromS3Url === "function" &&
+        profileImage !== null
+      ) {
+        profileImage =
+          await this.storageService.getSignedUrlFromS3Url(profileImage);
+      }
+
       const offer = {
         offerId: receivedQuotation.id,
         moverId: mover?.id,
         moverNickname: mover?.nickname,
-        moverProfileImageUrl: mover?.profileImage,
+        moverProfileImageUrl: profileImage,
         isAssigned,
         price: receivedQuotation.price.toString(),
         likeCount: mover?.likeCount,
@@ -299,11 +313,21 @@ export class ReceivedQuotationService {
         ? quotation.assignMover.includes(receivedQuotation.moverId)
         : false;
 
+      let profileImage = mover?.profileImage || null;
+
+      if (
+        typeof this.storageService.getSignedUrlFromS3Url === "function" &&
+        profileImage !== null
+      ) {
+        profileImage =
+          await this.storageService.getSignedUrlFromS3Url(profileImage);
+      }
+
       const offer = {
         offerId: receivedQuotation.id,
         moverId: mover?.id,
         moverNickname: mover?.nickname,
-        moverProfileImageUrl: mover?.profileImage,
+        moverProfileImageUrl: profileImage,
         isAssigned,
         price: receivedQuotation.price.toString(),
         likeCount: mover?.likeCount,
@@ -380,11 +404,21 @@ export class ReceivedQuotationService {
       },
     });
 
+    let profileImage = mover?.profileImage || null;
+
+    if (
+      typeof this.storageService.getSignedUrlFromS3Url === "function" &&
+      profileImage !== null
+    ) {
+      profileImage =
+        await this.storageService.getSignedUrlFromS3Url(profileImage);
+    }
+
     const offer = {
       offerId: receivedQuotation.id,
       moverId: mover?.id,
       moverNickname: mover?.nickname,
-      moverProfileImageUrl: mover?.profileImage,
+      moverProfileImageUrl: profileImage,
       isAssigned,
       price: receivedQuotation.price.toString(),
       likeCount: mover?.likeCount,
