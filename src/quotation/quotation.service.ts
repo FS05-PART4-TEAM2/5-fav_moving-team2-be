@@ -66,14 +66,21 @@ export class QuotationService {
    *
    */
   async getConfirmedQuotationsByDate(date: Date): Promise<Quotation[]> {
-    const dateString = format(date, "yyyy-MM-dd");
+    const start = new Date(date);
+    start.setHours(0, 0, 0, 0);
+
+    const end = new Date(date);
+    end.setHours(23, 59, 59, 999);
 
     return this.quotationRepository
       .createQueryBuilder("quotation")
       .where("quotation.status = :status", {
         status: QUOTATION_STATE_KEY.CONFIRMED,
       })
-      .andWhere("quotation.moveDate::date = :date", { date: dateString })
+      .andWhere("quotation.moveDate BETWEEN :start AND :end", {
+        start,
+        end,
+      })
       .getMany();
   }
 
