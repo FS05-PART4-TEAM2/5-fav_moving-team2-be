@@ -63,6 +63,9 @@ export class MoverInfoService {
           customerId: userId,
           moverId: mover.id,
         },
+        order: {
+          createdAt: "DESC",
+        },
       });
 
       if (assignMover?.quotationId) {
