@@ -157,10 +157,15 @@ export class AssignQuotationService {
       throw new InvalidQuotationException("지정 견적 요청건이 아닙니다.");
 
     // 5. 반려하기
-    await this.assignMoverRepository.update(assignMover, {
-      rejectedReason: comment,
-      status: ASSIGN_STATUS_KEY.REJECTED,
-    });
+    await this.assignMoverRepository.update(
+      {
+        id: assignMover.id,
+      },
+      {
+        rejectedReason: comment,
+        status: ASSIGN_STATUS_KEY.REJECTED,
+      },
+    );
   }
 
   async getRejectRequestList(
