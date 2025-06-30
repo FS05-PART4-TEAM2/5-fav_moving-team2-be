@@ -23,6 +23,7 @@ import {
   OauthLoginRequestDto,
 } from "src/common/dto/oauthLogin.dto";
 import { OauthProviderConflictException } from "src/common/exceptions/oauth-provider-conflict.exception";
+import { StorageService } from "@/common/interfaces/storage.service";
 
 @Injectable()
 export class MoverAuthService {
@@ -32,6 +33,8 @@ export class MoverAuthService {
     private readonly jwtService: JwtService,
     @Inject(forwardRef(() => SharedAuthService))
     private readonly sharedAuthService: SharedAuthService,
+    @Inject("StorageService")
+    private readonly storageService: StorageService,
   ) {}
 
   async signUpOrSignInByOauthMover(
@@ -164,6 +167,16 @@ export class MoverAuthService {
     };
     const { accessToken, refreshToken } =
       this.sharedAuthService.generateTokens(payload);
+
+    let profileImage = mover.profileImage;
+    if (
+      typeof this.storageService.getSignedUrlFromS3Url === "function" &&
+      profileImage !== null
+    ) {
+      profileImage =
+        await this.storageService.getSignedUrlFromS3Url(profileImage);
+    }
+
     const response: MoverLoginResponseDto = {
       accessToken,
       refreshToken,
@@ -174,7 +187,7 @@ export class MoverAuthService {
         email: mover.email,
         phoneNumber: mover.phoneNumber,
         isProfile: !!mover.profileImage,
-        profileImage: mover.profileImage || null,
+        profileImage: mover.profileImage,
         serviceArea: mover.serviceArea || null,
         serviceList: mover.serviceList || null,
         intro: mover.intro || null,
