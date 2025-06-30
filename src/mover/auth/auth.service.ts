@@ -187,7 +187,7 @@ export class MoverAuthService {
         email: mover.email,
         phoneNumber: mover.phoneNumber,
         isProfile: !!mover.profileImage,
-        profileImage: mover.profileImage,
+        profileImage: profileImage,
         serviceArea: mover.serviceArea || null,
         serviceList: mover.serviceList || null,
         intro: mover.intro || null,
