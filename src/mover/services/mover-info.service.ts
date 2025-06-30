@@ -134,122 +134,169 @@ export class MoverInfoService {
       limit = 10,
     } = moverListRequestDto;
 
-    const qb = this.moverRepository.createQueryBuilder("mover");
+    // 기본 필터만 적용한 QueryBuilder
+    const qb = this.moverRepository
+      .createQueryBuilder("mover")
+      .where(`"mover"."isProfile" = true`);
 
-    qb.andWhere("mover.isProfile = true");
-
-    // 키워드
     if (keyword) {
-      qb.andWhere("mover.nickname LIKE :keyword", { keyword: `%${keyword}%` });
+      qb.andWhere(`"mover"."nickname" LIKE :keyword`, {
+        keyword: `%${keyword}%`,
+      });
     }
-
-    // 서비스 가능 지역
     if (region) {
-      qb.andWhere("mover.serviceArea LIKE :region", { region: `%${region}%` });
+      qb.andWhere(`"mover"."serviceArea" LIKE :region`, {
+        region: `%${region}%`,
+      });
     }
-
-    // 서비스 종류
     if (service) {
-      qb.andWhere("mover.serviceList LIKE :service", {
+      qb.andWhere(`"mover"."serviceList" LIKE :service`, {
         service: `%${service}%`,
       });
     }
 
-    // 정렬 기준에 따른 orderBy 속성 변경 로직
-    const field = getCursorField(orderBy);
-    if (field === "idNum") {
-      qb.orderBy("mover.idNum", "DESC");
-      if (idNumCursor != null) {
-        qb.andWhere("mover.idNum < :idNumCursor", { idNumCursor });
-      }
-    } else {
-      qb.orderBy(`mover.${field}`, "DESC").addOrderBy("mover.idNum", "DESC");
+    // BESTRATING은 JS 레벨에서 처리
+    if (orderBy === "BESTRATING") {
+      // 1) 전체(또는 충분히 많은) 레코드 조회
+      const allMovers = await qb.getMany();
+
+      // 2) avgRating 계산
+      const withAvg = allMovers.map((m) => ({
+        ...m,
+        avgRating: m.reviewCounts > 0 ? m.totalRating / m.reviewCounts : 0,
+      }));
+
+      // 3) JS에서 정렬 (avgRating desc, idNum desc)
+      withAvg.sort((a, b) => {
+        if (b.avgRating !== a.avgRating) return b.avgRating - a.avgRating;
+        return b.idNum - a.idNum;
+      });
+
+      // 4) 커서 기반 페이징
+      let start = 0;
       if (orderCursor != null && idNumCursor != null) {
-        qb.andWhere(
-          `(mover.${field} < :orderCursor OR (mover.${field} = :orderCursor AND mover.idNum < :idNumCursor))`,
-          {
-            orderCursor,
-            idNumCursor,
-          },
+        start = withAvg.findIndex(
+          (m) =>
+            m.avgRating < orderCursor ||
+            (m.avgRating === orderCursor && m.idNum < idNumCursor),
         );
+        if (start === -1) start = withAvg.length;
       }
-    }
+      const slice = withAvg.slice(start, start + limit);
+      const hasNext = start + limit < withAvg.length;
 
-    const movers = await qb.take(limit + 1).getMany();
+      // 5) assigned/liked 여부 조회
+      const moverIds = slice.map((m) => m.id);
+      let assignedSet = new Set<string>();
+      let likedSet = new Set<string>();
+      if (userType === "customer" && userId && moverIds.length) {
+        assignedSet = await this.getActiveAssignedMoverIds(userId, moverIds);
+        const likes = await this.likeMoverRepository.find({
+          where: { customerId: userId, moverId: In(moverIds) },
+          select: ["moverId"],
+        });
+        likedSet = new Set(likes.map((l) => l.moverId));
+      }
 
-    const hasNext = movers.length > limit;
-    const result = hasNext ? movers.slice(0, limit) : movers;
-    let orderNextCursor: number | undefined;
-    let idNumNextCursor: number | undefined;
-    if (hasNext) {
-      const lastMover = result[result.length - 1];
-      const cursorField = getCursorField(orderBy);
-      orderNextCursor = lastMover[cursorField];
-      idNumNextCursor = lastMover.idNum;
-    }
-
-    let assignedMoverIdSet = new Set<string>();
-    let likedMoverIdSet = new Set<string>();
-    const moverIds = result.map((m) => m.id);
-
-    if (userType === "customer" && userId && moverIds.length > 0) {
-      /**
-       * @todo
-       * 현재 활성화 된 견적일 때만 isAssigned true
-       */
-      assignedMoverIdSet = await this.getActiveAssignedMoverIds(
-        userId,
-        moverIds,
+      // 6) DTO로 매핑
+      const list: FindMoverData[] = await Promise.all(
+        slice.map(async (m) => ({
+          id: m.id,
+          idNum: m.idNum,
+          nickname: m.nickname,
+          isLiked: likedSet.has(m.id),
+          isAssigned: assignedSet.has(m.id),
+          profileImage: m.profileImage
+            ? typeof this.storageService.getSignedUrlFromS3Url === "function"
+              ? await this.storageService.getSignedUrlFromS3Url(m.profileImage)
+              : m.profileImage
+            : null,
+          career: m.career,
+          intro: m.intro,
+          confirmedCounts: m.confirmedCounts,
+          reviewCounts: m.reviewCounts,
+          likeCount: m.likeCount,
+          totalRating: m.avgRating,
+          serviceList: m.serviceList,
+        })),
       );
 
-      const likedMovers = await this.likeMoverRepository.find({
-        where: {
-          customerId: userId,
-          moverId: In(result.map((mover) => mover.id)),
-        },
-        select: ["moverId"],
-      });
-      likedMoverIdSet = new Set(likedMovers.map((lm) => lm.moverId));
+      const last = list[list.length - 1];
+      return {
+        list,
+        hasNext,
+        orderNextCursor: last?.avgRating ?? 0,
+        idNumNextCursor: last?.idNum ?? null,
+      };
     }
 
-    const moverInfos: FindMoverData[] = await Promise.all(
-      result.map(async (mover) => {
-        const isAssigned = assignedMoverIdSet.has(mover.id);
-        const isLiked = likedMoverIdSet.has(mover.id);
-
-        let profileImage = mover.profileImage;
-        if (
-          typeof this.storageService.getSignedUrlFromS3Url === "function" &&
-          profileImage !== null
-        ) {
-          profileImage =
-            await this.storageService.getSignedUrlFromS3Url(profileImage);
-        }
-
-        return {
-          id: mover.id,
-          idNum: mover.idNum,
-          nickname: mover.nickname,
-          isLiked, // 찜한 기사인지 여부
-          isAssigned, // 지정 기사인지 여부
-          profileImage: profileImage,
-          career: mover.career,
-          intro: mover.intro,
-          confirmedCounts: mover.confirmedCounts,
-          reviewCounts: mover.reviewCounts,
-          likeCount: mover.likeCount,
-          totalRating:
-            mover.reviewCounts > 0 ? mover.totalRating / mover.reviewCounts : 0,
-          serviceList: mover.serviceList,
-        };
-      }),
+    // BESTRATING 외 기존 SQL 커서 로직
+    const field = getCursorField(orderBy);
+    qb.orderBy(`"mover"."${field}"`, "DESC").addOrderBy(
+      `"mover"."idNum"`,
+      "DESC",
     );
 
+    if (orderCursor != null && idNumCursor != null) {
+      qb.andWhere(
+        `(
+         "mover"."${field}" < :orderCursor
+         OR ("mover"."${field}" = :orderCursor AND "mover"."idNum" < :idNumCursor)
+       )`,
+        { orderCursor, idNumCursor },
+      );
+    } else if (idNumCursor != null && field === "idNum") {
+      qb.andWhere(`"mover"."idNum" < :idNumCursor`, { idNumCursor });
+    }
+
+    const entities = await qb.take(limit + 1).getMany();
+    const hasNext2 = entities.length > limit;
+    const slice2 = hasNext2 ? entities.slice(0, limit) : entities;
+    const moverIds2 = slice2.map((m) => m.id);
+
+    let assignedSet2 = new Set<string>();
+    let likedSet2 = new Set<string>();
+    if (userType === "customer" && userId && moverIds2.length) {
+      assignedSet2 = await this.getActiveAssignedMoverIds(userId, moverIds2);
+      const likes2 = await this.likeMoverRepository.find({
+        where: { customerId: userId, moverId: In(moverIds2) },
+        select: ["moverId"],
+      });
+      likedSet2 = new Set(likes2.map((l) => l.moverId));
+    }
+
+    const list2: FindMoverData[] = await Promise.all(
+      slice2.map(async (m) => ({
+        id: m.id,
+        idNum: m.idNum,
+        nickname: m.nickname,
+        isLiked: likedSet2.has(m.id),
+        isAssigned: assignedSet2.has(m.id),
+        profileImage: m.profileImage
+          ? typeof this.storageService.getSignedUrlFromS3Url === "function"
+            ? await this.storageService.getSignedUrlFromS3Url(m.profileImage)
+            : m.profileImage
+          : null,
+        career: m.career,
+        intro: m.intro,
+        confirmedCounts: m.confirmedCounts,
+        reviewCounts: m.reviewCounts,
+        likeCount: m.likeCount,
+        totalRating: m.reviewCounts > 0 ? m.totalRating / m.reviewCounts : 0,
+        serviceList: m.serviceList,
+      })),
+    );
+
+    const last2 = list2[list2.length - 1]!;
+    const rawCursor = (last2 as any)[field];
+    const orderNextCursor =
+      typeof rawCursor === "number" ? rawCursor : Number(rawCursor) || null;
+
     return {
-      list: moverInfos,
-      orderNextCursor: orderNextCursor ?? null, // 기본 값: idNumNextCursor와 일치 - 정렬 없을 때
-      idNumNextCursor: idNumNextCursor ?? null,
-      hasNext,
+      list: list2,
+      hasNext: hasNext2,
+      orderNextCursor,
+      idNumNextCursor: last2.idNum,
     };
   }
 

@@ -14,4 +14,5 @@ export class FindMoverData {
   likeCount: number;
   totalRating: number;
   serviceList: ServiceTypeKey[];
+  avgRating?: number;
 }
