@@ -741,16 +741,22 @@ export class MoverQuotationService {
       // moveType 통계
       moveTypeStats[quotation.moveType]++;
 
-      // startAddress에서 지역 키 추출
+      // startAddress와 endAddress에서 지역 키 추출
       const startRegionKey = this.getRegionKeyByAddress(quotation.startAddress);
-      if (startRegionKey) {
-        startRegionStats[startRegionKey]++;
-      }
-
-      // endAddress에서 지역 키 추출
       const endRegionKey = this.getRegionKeyByAddress(quotation.endAddress);
-      if (endRegionKey) {
-        endRegionStats[endRegionKey]++;
+
+      // startRegion과 endRegion이 같은 경우 하나만 카운트
+      if (startRegionKey && endRegionKey && startRegionKey === endRegionKey) {
+        // 같은 지역 내 이동인 경우 startRegionStats에만 카운트
+        startRegionStats[startRegionKey]++;
+      } else {
+        // 다른 지역간 이동인 경우 각각 카운트
+        if (startRegionKey) {
+          startRegionStats[startRegionKey]++;
+        }
+        if (endRegionKey) {
+          endRegionStats[endRegionKey]++;
+        }
       }
     });
 
