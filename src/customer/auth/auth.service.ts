@@ -21,6 +21,7 @@ import {
 } from "../../common/dto/oauthLogin.dto";
 import { OauthProviderConflictException } from "src/common/exceptions/oauth-provider-conflict.exception";
 import { Quotation } from "src/quotation/quotation.entity";
+import { StorageService } from "src/common/interfaces/storage.service";
 
 @Injectable()
 export class CustomerAuthService {
@@ -29,6 +30,8 @@ export class CustomerAuthService {
     private readonly customerRepository: Repository<Customer>,
     @InjectRepository(Quotation)
     private readonly quotationRepository: Repository<Quotation>,
+    @Inject("StorageService")
+    private readonly storageService: StorageService,
     @Inject(forwardRef(() => SharedAuthService))
     private readonly sharedAuthService: SharedAuthService,
   ) {}
@@ -51,7 +54,12 @@ export class CustomerAuthService {
       }
 
       // access token, refresh token 발급
-      const payload = { sub: existedCustomer.id, email: existedCustomer.email, role: "customer", isProfile: existedCustomer.isProfile };
+      const payload = {
+        sub: existedCustomer.id,
+        email: existedCustomer.email,
+        role: "customer",
+        isProfile: existedCustomer.isProfile,
+      };
       const { accessToken, refreshToken } =
         this.sharedAuthService.generateTokens(payload);
 
@@ -83,7 +91,12 @@ export class CustomerAuthService {
     const newCustomer = await this.customerRepository.save(newCustomerObject);
 
     // access token, refresh token 발급
-    const payload = { sub: newCustomer.id, email: newCustomer.email, role: "customer", isProfile: newCustomer.isProfile };
+    const payload = {
+      sub: newCustomer.id,
+      email: newCustomer.email,
+      role: "customer",
+      isProfile: newCustomer.isProfile,
+    };
     const { accessToken, refreshToken } =
       this.sharedAuthService.generateTokens(payload);
 
@@ -148,7 +161,12 @@ export class CustomerAuthService {
     if (!isPasswordValid) {
       throw new InvalidCredentialsException();
     }
-    const payload = { sub: customer.id, email: customer.email, role: "customer", isProfile: customer.isProfile };
+    const payload = {
+      sub: customer.id,
+      email: customer.email,
+      role: "customer",
+      isProfile: customer.isProfile,
+    };
     const { accessToken, refreshToken } =
       this.sharedAuthService.generateTokens(payload);
 
@@ -160,6 +178,15 @@ export class CustomerAuthService {
         },
       })) > 0;
 
+    let profileImage = customer.profileImage;
+    if (
+      typeof this.storageService.getSignedUrlFromS3Url === "function" &&
+      profileImage !== null
+    ) {
+      profileImage =
+        await this.storageService.getSignedUrlFromS3Url(profileImage);
+    }
+
     const response: CustomerLoginResponseDto = {
       accessToken,
       refreshToken,
@@ -169,7 +196,7 @@ export class CustomerAuthService {
         email: customer.email,
         phoneNumber: customer.phoneNumber,
         isProfile: !!customer.profileImage,
-        profileImage: customer.profileImage || null,
+        profileImage: profileImage,
         wantService: customer.wantService || null,
         livingPlace: customer.livingPlace || null,
         createdAt: customer.createdAt,

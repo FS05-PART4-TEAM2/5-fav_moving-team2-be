@@ -16,6 +16,7 @@ import { MoverAuthService } from "src/mover/auth/auth.service";
 import { NaverStrategy } from "./strategies/naver.strategy";
 import { QuotationModule } from "src/quotation/quotation.module";
 import { KakaoStrategy } from "./strategies/kakao.strategy";
+import { StorageModule } from "@/common/storage/storage.module";
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { KakaoStrategy } from "./strategies/kakao.strategy";
     JwtModule.register({}),
     TypeOrmModule.forFeature([Auth, Customer, Mover]),
     forwardRef(() => QuotationModule),
+    StorageModule,
   ],
   controllers: [AuthController],
   providers: [
