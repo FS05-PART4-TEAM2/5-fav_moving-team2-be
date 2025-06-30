@@ -68,16 +68,6 @@ export class CustomerProfileService {
 
     if (file) {
       url = await this.storageService.upload(file);
-    } else {
-      const exists_url = await this.customerRepository.findOne({
-        where: {
-          id: userId,
-        },
-        select: {
-          profileImage: true,
-        },
-      });
-      url = exists_url?.profileImage ?? null;
     }
 
     const updated = this.customerRepository.merge(customer, {

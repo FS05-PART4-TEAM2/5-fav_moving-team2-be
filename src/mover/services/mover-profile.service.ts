@@ -39,16 +39,6 @@ export class MoverProfileService {
 
     if (request.file) {
       url = await this.storageService.upload(request.file);
-    } else {
-      const exists_url = await this.moverRepository.findOne({
-        where: {
-          id: userId,
-        },
-        select: {
-          profileImage: true,
-        },
-      });
-      url = exists_url?.profileImage ?? null;
     }
 
     const mover = await this.moverRepository.findOneBy({
