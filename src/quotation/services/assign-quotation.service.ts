@@ -156,11 +156,20 @@ export class AssignQuotationService {
     if (!assignMover)
       throw new InvalidQuotationException("지정 견적 요청건이 아닙니다.");
 
+    console.log("반려할 assignMover:", assignMover);
+
     // 5. 반려하기
-    await this.assignMoverRepository.update(assignMover, {
-      rejectedReason: comment,
-      status: ASSIGN_STATUS_KEY.REJECTED,
-    });
+    const result = await this.assignMoverRepository.update(
+      {
+        id: assignMover.id,
+      },
+      {
+        rejectedReason: comment,
+        status: ASSIGN_STATUS_KEY.REJECTED,
+      },
+    );
+
+    console.log("반려 결과: ", result);
   }
 
   async getRejectRequestList(
