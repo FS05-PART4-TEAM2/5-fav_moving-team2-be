@@ -745,18 +745,10 @@ export class MoverQuotationService {
       const startRegionKey = this.getRegionKeyByAddress(quotation.startAddress);
       const endRegionKey = this.getRegionKeyByAddress(quotation.endAddress);
 
-      // startRegion과 endRegion이 같은 경우 하나만 카운트
-      if (startRegionKey && endRegionKey && startRegionKey === endRegionKey) {
-        // 같은 지역 내 이동인 경우 startRegionStats에만 카운트
+      if (startRegionKey) {
         startRegionStats[startRegionKey]++;
-      } else {
-        // 다른 지역간 이동인 경우 각각 카운트
-        if (startRegionKey) {
-          startRegionStats[startRegionKey]++;
-        }
-        if (endRegionKey) {
-          endRegionStats[endRegionKey]++;
-        }
+      } else if (endRegionKey) {
+        endRegionStats[endRegionKey]++;
       }
     });
 
