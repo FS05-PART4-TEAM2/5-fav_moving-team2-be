@@ -188,9 +188,12 @@ export class likeMoverService {
       .addSelect(
         `CASE
             WHEN EXISTS (
-              SELECT 1 FROM assign_mover assign
+              SELECT 1
+              FROM assign_mover assign
+              INNER JOIN quotation q ON assign."quotationId" = q.id::text
               WHERE assign."customerId" = :userId
                 AND assign."moverId" = mover.id::text
+                AND q.status IN ('PENDING', 'CONFIRMED')
             )
             THEN true
             ELSE false
