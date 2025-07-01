@@ -18,19 +18,18 @@ export class TaskService {
     private readonly notificationService: NotificationService,
   ) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT) // 자정마다 실행
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT) // 자정 마다
   async handleQuoStatusUpdate() {
     this.logger.log("이사일이 되었을 때 완료 처리 크론탭 실행");
 
     const now = new Date();
-    now.setHours(0, 0, 0, 0);
 
     const quotations = await this.quotationRepository.find({
       where: {
         status: In(["PENDING", "CONFIRMED"]),
       },
     });
-    const completedQuos = quotations.filter((q) => new Date(q.moveDate) <= now);
+    const completedQuos = quotations.filter((q) => new Date(q.moveDate) < now);
 
     if (completedQuos.length > 0) {
       const completedQuoIds = completedQuos.map((cq) => cq.id);
