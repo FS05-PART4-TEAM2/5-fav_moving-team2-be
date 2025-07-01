@@ -101,6 +101,9 @@ export class ReceivedQuotationService {
           await this.storageService.getSignedUrlFromS3Url(profileImage);
       }
 
+      // console.log("quotation status :", quotation?.status === "COMPLETED")
+      if(quotation?.status === "COMPLETED") continue;
+
       const offer = {
         offerId: receivedQuotation.id,
         moverId: mover?.id,
@@ -109,13 +112,13 @@ export class ReceivedQuotationService {
         isAssigned,
         price: receivedQuotation.price.toString(),
         likeCount: mover?.likeCount,
-        totalRating: mover?.totalRating,
+        totalRating: mover?.reviewCounts === 0 ? 0 : mover?.totalRating / mover?.reviewCounts,
         reviewCounts: mover?.reviewCounts,
         intro: mover?.intro,
         career: mover?.career,
         isLiked: likedMoverIds.has(receivedQuotation.moverId),
         confirmedQuotationCount: mover?.confirmedCounts,
-        isCompleted: receivedQuotation.isCompleted,
+        isCompleted: receivedQuotation.isCompleted || quotation?.status === "COMPLETED",
         isConfirmedMover: receivedQuotation.isConfirmedMover,
         isReviewed: receivedQuotation.isReviewed,
       };
