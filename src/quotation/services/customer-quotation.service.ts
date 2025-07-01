@@ -425,7 +425,7 @@ export class ReceivedQuotationService {
       isAssigned,
       price: receivedQuotation.price.toString(),
       likeCount: mover?.likeCount,
-      totalRating: mover?.totalRating,
+      totalRating: mover?.reviewCounts === 0 ? 0 : mover?.totalRating / mover?.reviewCounts,
       reviewCounts: mover?.reviewCounts,
       intro: mover?.intro,
       career: mover?.career,
