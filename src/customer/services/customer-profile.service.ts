@@ -90,13 +90,13 @@ export class CustomerProfileService {
     const saved = await this.customerRepository.save(updated);
 
     let profileImage = customer.profileImage;
-    if (
-      typeof this.storageService.getSignedUrlFromS3Url === "function" &&
-      profileImage !== null
-    ) {
-      profileImage =
-        await this.storageService.getSignedUrlFromS3Url(profileImage);
-    }
+    // if (
+    //   typeof this.storageService.getSignedUrlFromS3Url === "function" &&
+    //   profileImage !== null
+    // ) {
+    //   profileImage =
+    //     await this.storageService.getSignedUrlFromS3Url(profileImage);
+    // }
 
     return CustomerProfileResponseDto.of(saved, profileImage);
   }
@@ -116,13 +116,13 @@ export class CustomerProfileService {
     });
 
     let profileImage = customer.profileImage;
-    if (
-      typeof this.storageService.getSignedUrlFromS3Url === "function" &&
-      profileImage !== null
-    ) {
-      profileImage =
-        await this.storageService.getSignedUrlFromS3Url(profileImage);
-    }
+    // if (
+    //   typeof this.storageService.getSignedUrlFromS3Url === "function" &&
+    //   profileImage !== null
+    // ) {
+    //   profileImage =
+    //     await this.storageService.getSignedUrlFromS3Url(profileImage);
+    // }
 
     return CustomerProfileResponseDto.of(customer, profileImage, hasQuotation);
   }

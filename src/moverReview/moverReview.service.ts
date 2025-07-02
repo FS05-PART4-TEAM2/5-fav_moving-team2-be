@@ -209,13 +209,13 @@ export class MoverReviewService {
 
         let profileImage = mover?.profileImage || null;
 
-        if (
-          typeof this.storageService.getSignedUrlFromS3Url === "function" &&
-          profileImage !== null
-        ) {
-          profileImage =
-            await this.storageService.getSignedUrlFromS3Url(profileImage);
-        }
+        // if (
+        //   typeof this.storageService.getSignedUrlFromS3Url === "function" &&
+        //   profileImage !== null
+        // ) {
+        //   profileImage =
+        //     await this.storageService.getSignedUrlFromS3Url(profileImage);
+        // }
 
         return {
           content: "",
@@ -365,13 +365,13 @@ export class MoverReviewService {
 
         let profileImage = mover?.profileImage || null;
 
-        if (
-          typeof this.storageService.getSignedUrlFromS3Url === "function" &&
-          profileImage !== null
-        ) {
-          profileImage =
-            await this.storageService.getSignedUrlFromS3Url(profileImage);
-        }
+        // if (
+        //   typeof this.storageService.getSignedUrlFromS3Url === "function" &&
+        //   profileImage !== null
+        // ) {
+        //   profileImage =
+        //     await this.storageService.getSignedUrlFromS3Url(profileImage);
+        // }
 
         return {
           content: review.content,
