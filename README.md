@@ -1,98 +1,160 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 무빙 (Moving) - 이사 전문가 매칭 서비스
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+> 이사 소비자와 이사 전문가를 연결하는 신뢰할 수 있는 매칭 플랫폼
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 🏠 프로젝트 소개
 
-## Description
+**무빙**은 이사 시장의 무분별한 가격 책정과 무책임한 서비스 문제를 해결하기 위해 개발된 매칭 서비스입니다. 소비자가 원하는 서비스와 주거 정보를 입력하면 이사 전문가들이 견적을 제공하고, 사용자가 이를 바탕으로 신뢰할 수 있는 전문가를 선정할 수 있습니다.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### ✨ 주요 기능
 
-## Project setup
+- **투명한 견적 시스템**: 여러 이사 전문가로부터 견적을 받아 비교
+- **신뢰도 기반 매칭**: 리뷰와 평점을 통한 검증된 전문가 선택
+- **실시간 알림**: 견적 접수부터 이사 완료까지 단계별 알림
+- **지역 기반 서비스**: 서비스 가능 지역 내 전문가 매칭
 
-```bash
-$ npm install
+## 🎯 대상 사용자
+
+- **일반 사용자**: 이사를 계획 중인 개인 및 가정
+- **이사 전문가**: 이사 서비스를 제공하는 기사님들
+
+## 🚀 기술 스택
+
+### Backend
+
+- **API Documentation**: Swagger/OpenAPI 3.0
+- **Base URL**: `https://five-fav-moving-team2-be.onrender.com`
+
+### 주요 API 엔드포인트
+
+```
+📋 API 문서: https://five-fav-moving-team2-be.onrender.com/api-docs
 ```
 
-## Compile and run the project
+## 📱 핵심 기능
+
+### 🔐 인증 및 사용자 관리
+
+- **다중 사용자 타입**: 일반 사용자, 이사 전문가 구분
+- **소셜 로그인**: 구글, 네이버, 카카오 지원
+- **프로필 관리**: 맞춤형 프로필 등록 및 수정
+
+### 💼 견적 관리 시스템
+
+#### 일반 사용자
+
+- **채팅 형태 견적 요청**: 직관적인 정보 입력
+- **프로그래스 바**: 현재 단계 시각화
+- **견적 비교**: 여러 전문가 견적 한눈에 비교
+- **전문가 지정 요청**: 원하는 전문가에게 직접 견적 요청
+
+#### 이사 전문가
+
+- **견적 요청 수신**: 서비스 가능 지역 내 요청만 필터링
+- **견적 제안**: 맞춤형 가격 제안
+- **요청 관리**: 수락/반려 처리
+
+### 🔍 전문가 검색 및 선택
+
+- **다양한 정렬 옵션**: 리뷰, 평점, 경력, 확정 횟수순
+- **필터링**: 지역, 서비스 종류별 분류
+- **찜하기 기능**: 관심 전문가 저장
+- **소셜 공유**: 추천 전문가 공유
+
+### ⭐ 리뷰 및 평가 시스템
+
+- **이사 후 리뷰 작성**: 서비스 경험 공유
+- **평점 시스템**: 신뢰도 있는 전문가 선별
+- **리뷰 관리**: 작성/조회 이력 관리
+
+### 🔔 실시간 알림
+
+- **견적 관련**: 새 견적, 견적 확정 알림
+- **이사 당일**: 이사 진행 알림
+
+## 📋 주요 비즈니스 규칙
+
+### 견적 요청 제한
+
+- 이사일 경과 후 새로운 견적 요청 가능
+- 한 번에 하나의 활성 견적 요청만 허용
+- 기존 요청 확정 전까지 새 요청 불가
+
+### 활성 견적 요청 정의
+
+- 확정 전 대기 중인 견적 요청
+- 확정 후부터 이사일 이전까지의 견적
+
+## 🎨 사용자 경험
+
+### 반응형 디자인
+
+- **PC**: 찜한 전문가 3명까지 사이드바 표시
+- **모바일**: 최적화된 터치 인터페이스
+
+### 직관적 인터페이스
+
+- **채팅 형태**: 자연스러운 정보 입력
+- **무한 스크롤**: 부드러운 리스트 탐색
+- **원클릭 수정**: 입력 정보 간편 수정
+
+## 🔗 외부 서비스 연동
+
+- **카카오 우편번호 서비스**: 정확한 주소 입력
+- **소셜 로그인**: 간편한 회원가입/로그인
+- **알림 시스템**: 실시간 상태 업데이트
+
+## 📊 서비스 통계 및 관리
+
+### 자동화 프로세스
+
+- **크론탭**: 이사 날짜 도달 시 자동 완료 처리
+- **알림 스케줄링**: 단계별 자동 알림 발송
+
+## 🚀 시작하기
+
+### API 문서 확인
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+# API 문서 접속
+https://five-fav-moving-team2-be.onrender.com/api-docs
 ```
 
-## Run tests
+### 개발 환경 설정
 
 ```bash
-# unit tests
-$ npm run test
+# 저장소 클론
+git clone [repository-url]
 
-# e2e tests
-$ npm run test:e2e
+# 의존성 설치
+npm install
 
-# test coverage
-$ npm run test:cov
+# 환경 변수 설정
+cp .env.example .env
+
+# 개발 서버 실행
+npm run dev
 ```
 
-## Deployment
+## 📈 프로젝트 난이도
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+**🌟🌟🌟🌟🌟** (5/5) - 고급 수준
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## 🤝 팀 정보
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+- **개발팀**: Team 2
+- **프로젝트 기여자**: 이동혁 외
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## 📞 지원 및 문의
 
-## Resources
+프로젝트 관련 문의사항이나 기술적 지원이 필요한 경우, 이슈를 통해 연락해 주세요.
 
-Check out a few resources that may come in handy when working with NestJS:
+---
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## 📄 라이선스
 
-## Support
+이 프로젝트는 해당 라이선스 하에 배포됩니다. 자세한 내용은 `LICENSE` 파일을 참조해 주세요.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+---
 
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+_무빙과 함께 더 나은 이사 경험을 만들어보세요! 🏠✨_
