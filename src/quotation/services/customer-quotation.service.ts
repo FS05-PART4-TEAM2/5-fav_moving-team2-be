@@ -93,13 +93,13 @@ export class ReceivedQuotationService {
 
       let profileImage = mover?.profileImage || null;
 
-      if (
-        typeof this.storageService.getSignedUrlFromS3Url === "function" &&
-        profileImage !== null
-      ) {
-        profileImage =
-          await this.storageService.getSignedUrlFromS3Url(profileImage);
-      }
+      // if (
+      //   typeof this.storageService.getSignedUrlFromS3Url === "function" &&
+      //   profileImage !== null
+      // ) {
+      //   profileImage =
+      //     await this.storageService.getSignedUrlFromS3Url(profileImage);
+      // }
 
       // console.log("quotation status :", quotation?.status === "COMPLETED")
       if (quotation?.status === "COMPLETED") continue;
@@ -322,13 +322,13 @@ export class ReceivedQuotationService {
 
       let profileImage = mover?.profileImage || null;
 
-      if (
-        typeof this.storageService.getSignedUrlFromS3Url === "function" &&
-        profileImage !== null
-      ) {
-        profileImage =
-          await this.storageService.getSignedUrlFromS3Url(profileImage);
-      }
+      // if (
+      //   typeof this.storageService.getSignedUrlFromS3Url === "function" &&
+      //   profileImage !== null
+      // ) {
+      //   profileImage =
+      //     await this.storageService.getSignedUrlFromS3Url(profileImage);
+      // }
 
       const offer = {
         offerId: receivedQuotation.id,
@@ -416,13 +416,13 @@ export class ReceivedQuotationService {
 
     let profileImage = mover?.profileImage || null;
 
-    if (
-      typeof this.storageService.getSignedUrlFromS3Url === "function" &&
-      profileImage !== null
-    ) {
-      profileImage =
-        await this.storageService.getSignedUrlFromS3Url(profileImage);
-    }
+    // if (
+    //   typeof this.storageService.getSignedUrlFromS3Url === "function" &&
+    //   profileImage !== null
+    // ) {
+    //   profileImage =
+    //     await this.storageService.getSignedUrlFromS3Url(profileImage);
+    // }
 
     const offer = {
       offerId: receivedQuotation.id,

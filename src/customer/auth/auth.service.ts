@@ -179,13 +179,13 @@ export class CustomerAuthService {
       })) > 0;
 
     let profileImage = customer.profileImage;
-    if (
-      typeof this.storageService.getSignedUrlFromS3Url === "function" &&
-      profileImage !== null
-    ) {
-      profileImage =
-        await this.storageService.getSignedUrlFromS3Url(profileImage);
-    }
+    // if (
+    //   typeof this.storageService.getSignedUrlFromS3Url === "function" &&
+    //   profileImage !== null
+    // ) {
+    //   profileImage =
+    //     await this.storageService.getSignedUrlFromS3Url(profileImage);
+    // }
 
     const response: CustomerLoginResponseDto = {
       accessToken,

@@ -89,13 +89,13 @@ export class MoverInfoService {
     }
 
     let profileImage = mover.profileImage;
-    if (
-      typeof this.storageService.getSignedUrlFromS3Url === "function" &&
-      profileImage !== null
-    ) {
-      profileImage =
-        await this.storageService.getSignedUrlFromS3Url(profileImage);
-    }
+    // if (
+    //   typeof this.storageService.getSignedUrlFromS3Url === "function" &&
+    //   profileImage !== null
+    // ) {
+    //   profileImage =
+    //     await this.storageService.getSignedUrlFromS3Url(profileImage);
+    // }
 
     const moverDetail: MoverDetailResponseDto = {
       id: mover.id,
@@ -206,11 +206,11 @@ export class MoverInfoService {
           nickname: m.nickname,
           isLiked: likedSet.has(m.id),
           isAssigned: assignedSet.has(m.id),
-          profileImage: m.profileImage
-            ? typeof this.storageService.getSignedUrlFromS3Url === "function"
-              ? await this.storageService.getSignedUrlFromS3Url(m.profileImage)
-              : m.profileImage
-            : null,
+          profileImage: m.profileImage,
+          // ? typeof this.storageService.getSignedUrlFromS3Url === "function"
+          //   ? await this.storageService.getSignedUrlFromS3Url(m.profileImage)
+          //   : m.profileImage
+          // : null,
           career: m.career,
           intro: m.intro,
           confirmedCounts: m.confirmedCounts,
@@ -272,11 +272,11 @@ export class MoverInfoService {
         nickname: m.nickname,
         isLiked: likedSet2.has(m.id),
         isAssigned: assignedSet2.has(m.id),
-        profileImage: m.profileImage
-          ? typeof this.storageService.getSignedUrlFromS3Url === "function"
-            ? await this.storageService.getSignedUrlFromS3Url(m.profileImage)
-            : m.profileImage
-          : null,
+        profileImage: m.profileImage,
+        // ? typeof this.storageService.getSignedUrlFromS3Url === "function"
+        //   ? await this.storageService.getSignedUrlFromS3Url(m.profileImage)
+        //   : m.profileImage
+        // : null,
         career: m.career,
         intro: m.intro,
         confirmedCounts: m.confirmedCounts,
